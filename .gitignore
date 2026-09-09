@@ -1,3 +1,15 @@
+# --- Python (legacy placeholder) ---
 .env
 venv/
 __pycache__/
+
+# --- .NET / Avalonia ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.binlog

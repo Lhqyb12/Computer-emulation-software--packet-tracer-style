@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NetSim.App.ViewModels"
+        xmlns:app="using:NetSim.App"
+        x:Class="NetSim.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="NetSim"
+        Width="960" Height="640"
+        MinWidth="600" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Bg}">
+
+    <!-- Two columns: a branding panel on the left, the form area on the right. -->
+    <Grid ColumnDefinitions="Auto,*">
+
+        <!-- LEFT: branding. Hidden automatically when the window gets narrow. -->
+        <Border Grid.Column="0"
+                Width="340"
+                Background="{StaticResource Panel}"
+                BorderBrush="{StaticResource Line}"
+                BorderThickness="0,0,1,0"
+                Padding="36"
+                IsVisible="{Binding $parent[Window].Bounds.Width, Converter={x:Static app:WidthToBool.AtLeast700}}">
+            <StackPanel VerticalAlignment="Center" Spacing="14">
+                <TextBlock Text="NetSim" FontSize="22" FontWeight="Bold"
+                           Foreground="{StaticResource Text}" />
+                <TextBlock Classes="subtitle"
+                           Text="Design and simulate networks — build topologies and watch protocols work, packet by packet." />
+            </StackPanel>
+        </Border>
+
+        <!-- RIGHT: a scrollable, centered card that shows the current screen. -->
+        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
+            <Border Classes="card"
+                    Width="380"
+                    Margin="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- CurrentPage is a LoginViewModel or a RegisterViewModel;
+                     the ViewLocator turns it into LoginView / RegisterView. -->
+                <ContentControl Content="{Binding CurrentPage}" />
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</Window>

@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.App.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="NetSim.App.Views.RegisterView"
+             x:DataType="vm:RegisterViewModel">
+
+    <StackPanel Spacing="14">
+
+        <TextBlock Classes="title" Text="Create your account" />
+        <TextBlock Classes="subtitle" Text="Join the network simulation workspace." />
+
+        <TextBlock Classes="error"
+                   Text="{Binding Error}"
+                   IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+
+        <TextBlock Classes="ok"
+                   Text="{Binding Status}"
+                   IsVisible="{Binding Status, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+
+        <!-- Username -->
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="Username" />
+            <TextBox Classes="field" PlaceholderText="net_architect" Text="{Binding Username}" />
+        </StackPanel>
+
+        <!-- Email -->
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="Email" />
+            <TextBox Classes="field" PlaceholderText="you@example.com" Text="{Binding Email}" />
+        </StackPanel>
+
+        <!-- Password -->
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="Password" />
+            <TextBox Classes="field"
+                     PlaceholderText="At least 8 characters"
+                     PasswordChar="●"
+                     RevealPassword="{Binding IsPasswordVisible}"
+                     Text="{Binding Password}" />
+        </StackPanel>
+
+        <!-- Confirm password -->
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="Confirm password" />
+            <TextBox Classes="field"
+                     PlaceholderText="Repeat your password"
+                     PasswordChar="●"
+                     RevealPassword="{Binding IsPasswordVisible}"
+                     Text="{Binding ConfirmPassword}" />
+            <CheckBox Content="Show passwords"
+                      FontSize="12"
+                      IsChecked="{Binding IsPasswordVisible}" />
+        </StackPanel>
+
+        <Button Classes="primary"
+                Content="Create Account"
+                Command="{Binding CreateAccountCommand}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+            <TextBlock Classes="label" Text="Already have an account?" VerticalAlignment="Center" />
+            <Button Classes="link" Content="Sign in" Command="{Binding GoToLoginCommand}" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

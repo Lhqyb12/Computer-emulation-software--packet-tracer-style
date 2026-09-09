@@ -1,0 +1,96 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ================= COLOURS ================= -->
+    <!-- Named once here, reused everywhere as {StaticResource Accent} etc. -->
+    <Styles.Resources>
+        <SolidColorBrush x:Key="Bg"        Color="#0F1420" />
+        <SolidColorBrush x:Key="Panel"     Color="#141B2B" />
+        <SolidColorBrush x:Key="Card"      Color="#1A2130" />
+        <SolidColorBrush x:Key="Field"     Color="#1B2231" />
+        <SolidColorBrush x:Key="Line"      Color="#2A3346" />
+        <SolidColorBrush x:Key="Text"      Color="#E8EDF5" />
+        <SolidColorBrush x:Key="TextDim"   Color="#9AA7B8" />
+        <SolidColorBrush x:Key="Accent"    Color="#3D9BFF" />
+        <SolidColorBrush x:Key="AccentInk" Color="#0B1220" />
+        <SolidColorBrush x:Key="Danger"    Color="#FF7A85" />
+        <SolidColorBrush x:Key="Ok"        Color="#3DD68C" />
+    </Styles.Resources>
+
+    <!-- ================= TEXT ================= -->
+    <Style Selector="TextBlock.title">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+
+    <Style Selector="TextBlock.subtitle">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource TextDim}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextDim}" />
+    </Style>
+
+    <Style Selector="TextBlock.error">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource Danger}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.ok">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource Ok}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- ================= CARD ================= -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{StaticResource Card}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="28" />
+    </Style>
+
+    <!-- ================= TEXT INPUT ================= -->
+    <Style Selector="TextBox.field">
+        <Setter Property="Background" Value="{StaticResource Field}" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="MinHeight" Value="40" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- ================= BUTTONS ================= -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{StaticResource Accent}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentInk}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#5AABFF" />
+    </Style>
+
+    <Style Selector="Button.link">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource Accent}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+</Styles>

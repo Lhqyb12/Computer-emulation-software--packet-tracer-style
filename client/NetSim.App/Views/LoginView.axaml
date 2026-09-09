@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.App.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="NetSim.App.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+
+    <StackPanel Spacing="14">
+
+        <TextBlock Classes="title" Text="Welcome back" />
+        <TextBlock Classes="subtitle" Text="Sign in to continue to your workspace." />
+
+        <!-- Red error message – only shown when Error has a value -->
+        <TextBlock Classes="error"
+                   Text="{Binding Error}"
+                   IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+
+        <!-- Green success message -->
+        <TextBlock Classes="ok"
+                   Text="{Binding Status}"
+                   IsVisible="{Binding Status, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+
+        <!-- Email -->
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="Email" />
+            <TextBox Classes="field"
+                     PlaceholderText="you@example.com"
+                     Text="{Binding Email}" />
+        </StackPanel>
+
+        <!-- Password -->
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="Password" />
+            <TextBox Classes="field"
+                     PlaceholderText="Your password"
+                     PasswordChar="●"
+                     RevealPassword="{Binding IsPasswordVisible}"
+                     Text="{Binding Password}" />
+            <CheckBox Content="Show password"
+                      FontSize="12"
+                      IsChecked="{Binding IsPasswordVisible}" />
+        </StackPanel>
+
+        <Button Classes="primary"
+                Content="Sign In"
+                Command="{Binding SignInCommand}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+            <TextBlock Classes="label" Text="Don't have an account?" VerticalAlignment="Center" />
+            <Button Classes="link" Content="Create one" Command="{Binding GoToRegisterCommand}" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>
