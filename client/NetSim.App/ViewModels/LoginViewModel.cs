@@ -1,15 +1,14 @@
 using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
+using NetSim.App.Services;
 
 namespace NetSim.App.ViewModels;
 
-/// <summary>
-/// Holds the data and behaviour of the <b>sign in</b> screen.
-/// This phase is display-only: it validates the fields and shows a message,
-/// but does not talk to any server yet.
-/// </summary>
 public sealed class LoginViewModel : ViewModelBase
 {
+    private readonly AuthApiClient _api = new();
+
     private string _email = string.Empty;
     private string _password = string.Empty;
     private bool _isPasswordVisible;
@@ -18,14 +17,11 @@ public sealed class LoginViewModel : ViewModelBase
 
     public LoginViewModel()
     {
-        SignInCommand = new RelayCommand(SignIn);
+        SignInCommand = new AsyncRelayCommand(SignInAsync);
         GoToRegisterCommand = new RelayCommand(() => SwitchToRegisterRequested?.Invoke());
     }
 
-    /// <summary>Raised when the user clicks "Create one" – the window swaps in the register screen.</summary>
     public event Action? SwitchToRegisterRequested;
-
-    // ---- Fields the user types into (two-way bound in the View) ----
 
     public string Email
     {
@@ -39,14 +35,11 @@ public sealed class LoginViewModel : ViewModelBase
         set { SetProperty(ref _password, value); Error = null; }
     }
 
-    /// <summary>Bound to the "Show / Hide" toggle next to the password box.</summary>
     public bool IsPasswordVisible
     {
         get => _isPasswordVisible;
         set => SetProperty(ref _isPasswordVisible, value);
     }
-
-    // ---- Messages shown back to the user ----
 
     public string? Error
     {
@@ -60,22 +53,15 @@ public sealed class LoginViewModel : ViewModelBase
         private set => SetProperty(ref _status, value);
     }
 
-    // ---- Buttons ----
-
     public IRelayCommand SignInCommand { get; }
     public IRelayCommand GoToRegisterCommand { get; }
 
-    private void SignIn()
+    private async Task SignInAsync()
     {
         Status = null;
+        Error = null;
 
-        if (string.IsNullOrWhiteSpace(Email))
-        {
-            Error = "Please enter your email.";
-            return;
-        }
-
-        if (!Email.Contains('@'))
+        if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@'))
         {
             Error = "Please enter a valid email address.";
             return;
@@ -87,7 +73,18 @@ public sealed class LoginViewModel : ViewModelBase
             return;
         }
 
-        Error = null;
-        Status = "Looks good. (Sign-in isn't connected yet.)";
+        Status = "Signing in…";
+        AuthResult result = await _api.LoginAsync(Email, Password);
+
+        if (result.Success)
+        {
+            Error = null;
+            Status = result.Message;   // "Signed in."
+        }
+        else
+        {
+            Status = null;
+            Error = result.Message;    // "Wrong email or password."
+        }
     }
 }

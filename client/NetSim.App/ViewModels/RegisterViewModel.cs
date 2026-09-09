@@ -1,14 +1,14 @@
 using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
+using NetSim.App.Services;
 
 namespace NetSim.App.ViewModels;
 
-/// <summary>
-/// Holds the data and behaviour of the <b>create account</b> screen.
-/// Display-only for now: it validates the fields and shows a message.
-/// </summary>
 public sealed class RegisterViewModel : ViewModelBase
 {
+    private readonly AuthApiClient _api = new();
+
     private string _username = string.Empty;
     private string _email = string.Empty;
     private string _password = string.Empty;
@@ -19,14 +19,11 @@ public sealed class RegisterViewModel : ViewModelBase
 
     public RegisterViewModel()
     {
-        CreateAccountCommand = new RelayCommand(CreateAccount);
+        CreateAccountCommand = new AsyncRelayCommand(CreateAccountAsync);
         GoToLoginCommand = new RelayCommand(() => SwitchToLoginRequested?.Invoke());
     }
 
-    /// <summary>Raised when the user clicks "Sign in" – the window swaps back to the login screen.</summary>
     public event Action? SwitchToLoginRequested;
-
-    // ---- Fields ----
 
     public string Username
     {
@@ -58,8 +55,6 @@ public sealed class RegisterViewModel : ViewModelBase
         set => SetProperty(ref _isPasswordVisible, value);
     }
 
-    // ---- Messages ----
-
     public string? Error
     {
         get => _error;
@@ -72,14 +67,13 @@ public sealed class RegisterViewModel : ViewModelBase
         private set => SetProperty(ref _status, value);
     }
 
-    // ---- Buttons ----
-
     public IRelayCommand CreateAccountCommand { get; }
     public IRelayCommand GoToLoginCommand { get; }
 
-    private void CreateAccount()
+    private async Task CreateAccountAsync()
     {
         Status = null;
+        Error = null;
 
         if (string.IsNullOrWhiteSpace(Username))
         {
@@ -93,19 +87,24 @@ public sealed class RegisterViewModel : ViewModelBase
             return;
         }
 
-        if (Password.Length < 8)
-        {
-            Error = "Password must be at least 8 characters.";
-            return;
-        }
-
         if (Password != ConfirmPassword)
         {
             Error = "Passwords do not match.";
             return;
         }
 
-        Error = null;
-        Status = "Account details look valid. (Registration isn't connected yet.)";
+        Status = "Creating account…";
+        AuthResult result = await _api.RegisterAsync(Username, Email, Password);
+
+        if (result.Success)
+        {
+            Error = null;
+            Status = result.Message;   // "Account created."
+        }
+        else
+        {
+            Status = null;
+            Error = result.Message;    // כללי השרת: סיסמה חלשה, אימייל תפוס...
+        }
     }
 }
