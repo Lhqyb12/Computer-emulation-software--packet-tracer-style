@@ -2,8 +2,8 @@ namespace NetSim.App.ViewModels;
 
 /// <summary>
 /// The view model for the whole window. Its only job is <b>navigation</b>:
-/// it holds whichever screen is currently visible (login or register) in
-/// <see cref="CurrentPage"/>, and swaps it when the user asks to switch.
+/// it holds whichever screen is currently visible (login / register / signed-in)
+/// in <see cref="CurrentPage"/>, and swaps it when asked.
 /// </summary>
 public sealed class MainWindowViewModel : ViewModelBase
 {
@@ -25,6 +25,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         var login = new LoginViewModel();
         login.SwitchToRegisterRequested += ShowRegister;
+        login.SignedIn += ShowSignedIn;
         CurrentPage = login;
     }
 
@@ -33,5 +34,12 @@ public sealed class MainWindowViewModel : ViewModelBase
         var register = new RegisterViewModel();
         register.SwitchToLoginRequested += ShowLogin;
         CurrentPage = register;
+    }
+
+    private void ShowSignedIn(string email)
+    {
+        var signedIn = new SignedInViewModel(email);
+        signedIn.SignOutRequested += ShowLogin;
+        CurrentPage = signedIn;
     }
 }

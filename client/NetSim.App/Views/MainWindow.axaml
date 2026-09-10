@@ -5,40 +5,89 @@
         x:Class="NetSim.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="NetSim"
-        Width="960" Height="640"
-        MinWidth="600" MinHeight="480"
+        Width="1000" Height="680"
+        MinWidth="560" MinHeight="520"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Bg}">
 
-    <!-- Two columns: a branding panel on the left, the form area on the right. -->
     <Grid ColumnDefinitions="Auto,*">
 
-        <!-- LEFT: branding. Hidden automatically when the window gets narrow. -->
+        <!-- ============ LEFT: branding (hidden on narrow windows) ============ -->
         <Border Grid.Column="0"
-                Width="340"
-                Background="{StaticResource Panel}"
+                Width="360"
+                Background="{StaticResource BrandGradient}"
                 BorderBrush="{StaticResource Line}"
                 BorderThickness="0,0,1,0"
-                Padding="36"
+                ClipToBounds="True"
                 IsVisible="{Binding $parent[Window].Bounds.Width, Converter={x:Static app:WidthToBool.AtLeast700}}">
-            <StackPanel VerticalAlignment="Center" Spacing="14">
-                <TextBlock Text="NetSim" FontSize="22" FontWeight="Bold"
-                           Foreground="{StaticResource Text}" />
-                <TextBlock Classes="subtitle"
-                           Text="Design and simulate networks — build topologies and watch protocols work, packet by packet." />
-            </StackPanel>
+            <Panel>
+                <Grid Margin="40" RowDefinitions="Auto,*,Auto">
+
+                    <!-- logo lockup -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Border Background="{StaticResource Accent}" CornerRadius="9" Padding="7">
+                            <PathIcon Data="{StaticResource Icon.Hub}" Width="18" Height="18"
+                                      Foreground="{StaticResource OnAccent}" />
+                        </Border>
+                        <TextBlock Text="NetSim" Classes="logo" VerticalAlignment="Center" />
+                        <Border Classes="chip">
+                            <TextBlock Text="LABS" FontSize="10" FontWeight="Bold"
+                                       Foreground="{StaticResource TextDim}" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- pitch -->
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="16" MaxWidth="280">
+                        <TextBlock Classes="title" FontSize="26"
+                                   Text="Design, simulate, and understand networks." />
+                        <TextBlock Classes="subtitle"
+                                   Text="Build topologies and watch protocols work — packet by packet." />
+                        <StackPanel Spacing="11" Margin="0,6,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="15" Height="15"
+                                          Foreground="{StaticResource Accent}" VerticalAlignment="Center" />
+                                <TextBlock Classes="feature" Text="Visual topology builder" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="15" Height="15"
+                                          Foreground="{StaticResource Accent}" VerticalAlignment="Center" />
+                                <TextBlock Classes="feature" Text="Protocol-level packet inspection" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="15" Height="15"
+                                          Foreground="{StaticResource Accent}" VerticalAlignment="Center" />
+                                <TextBlock Classes="feature" Text="Guided networking labs" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2" Classes="hint" Text="Local preview build" />
+                </Grid>
+            </Panel>
         </Border>
 
-        <!-- RIGHT: a scrollable, centered card that shows the current screen. -->
-        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
-            <Border Classes="card"
-                    Width="380"
-                    Margin="24"
-                    HorizontalAlignment="Center" VerticalAlignment="Center">
-                <!-- CurrentPage is a LoginViewModel or a RegisterViewModel;
-                     the ViewLocator turns it into LoginView / RegisterView. -->
-                <ContentControl Content="{Binding CurrentPage}" />
-            </Border>
+        <!-- ============ RIGHT: the current screen, in a centered card ============ -->
+        <ScrollViewer Grid.Column="1" x:Name="Scroll"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <Panel MinHeight="{Binding #Scroll.Bounds.Height}">
+                <StackPanel Margin="24,32" VerticalAlignment="Center" Spacing="16">
+
+                    <!-- compact logo, only when the side panel is hidden -->
+                    <StackPanel Orientation="Horizontal" Spacing="9" HorizontalAlignment="Center"
+                                IsVisible="{Binding $parent[Window].Bounds.Width, Converter={x:Static app:WidthToBool.Below700}}">
+                        <Border Background="{StaticResource Accent}" CornerRadius="7" Padding="5">
+                            <PathIcon Data="{StaticResource Icon.Hub}" Width="15" Height="15"
+                                      Foreground="{StaticResource OnAccent}" />
+                        </Border>
+                        <TextBlock Text="NetSim" Classes="logo" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <Border Classes="card" MaxWidth="400" HorizontalAlignment="Center">
+                        <ContentControl Content="{Binding CurrentPage}" />
+                    </Border>
+                </StackPanel>
+            </Panel>
         </ScrollViewer>
     </Grid>
 </Window>

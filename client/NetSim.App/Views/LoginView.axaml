@@ -5,48 +5,71 @@
              x:Class="NetSim.App.Views.LoginView"
              x:DataType="vm:LoginViewModel">
 
-    <StackPanel Spacing="14">
+    <StackPanel Spacing="16">
 
-        <TextBlock Classes="title" Text="Welcome back" />
-        <TextBlock Classes="subtitle" Text="Sign in to continue to your workspace." />
+        <StackPanel Spacing="5">
+            <TextBlock Classes="title" Text="Welcome back" />
+            <TextBlock Classes="subtitle" Text="Sign in to continue to your workspace." />
+        </StackPanel>
 
-        <!-- Red error message – only shown when Error has a value -->
-        <TextBlock Classes="error"
-                   Text="{Binding Error}"
-                   IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+        <!-- error banner -->
+        <Border Classes="banner bannerError"
+                IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+            <StackPanel Orientation="Horizontal" Spacing="9">
+                <PathIcon Data="{StaticResource Icon.Alert}" Width="15" Height="15"
+                          Foreground="{StaticResource Danger}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                <TextBlock Classes="error" Text="{Binding Error}" />
+            </StackPanel>
+        </Border>
 
-        <!-- Green success message -->
-        <TextBlock Classes="ok"
-                   Text="{Binding Status}"
-                   IsVisible="{Binding Status, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+        <!-- success banner -->
+        <Border Classes="banner bannerOk"
+                IsVisible="{Binding Status, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+            <StackPanel Orientation="Horizontal" Spacing="9">
+                <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="15" Height="15"
+                          Foreground="{StaticResource Ok}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                <TextBlock Classes="ok" Text="{Binding Status}" />
+            </StackPanel>
+        </Border>
 
-        <!-- Email -->
-        <StackPanel Spacing="4">
+        <!-- email -->
+        <StackPanel Spacing="5">
             <TextBlock Classes="label" Text="Email" />
-            <TextBox Classes="field"
-                     PlaceholderText="you@example.com"
-                     Text="{Binding Email}" />
+            <TextBox Classes="field" PlaceholderText="you@example.com" Text="{Binding Email}" />
         </StackPanel>
 
-        <!-- Password -->
-        <StackPanel Spacing="4">
+        <!-- password -->
+        <StackPanel Spacing="5">
             <TextBlock Classes="label" Text="Password" />
-            <TextBox Classes="field"
-                     PlaceholderText="Your password"
-                     PasswordChar="●"
-                     RevealPassword="{Binding IsPasswordVisible}"
-                     Text="{Binding Password}" />
-            <CheckBox Content="Show password"
-                      FontSize="12"
-                      IsChecked="{Binding IsPasswordVisible}" />
+            <Panel>
+                <TextBox Classes="field"
+                         PlaceholderText="Your password"
+                         PasswordChar="●"
+                         RevealPassword="{Binding IsPasswordVisible}"
+                         Text="{Binding Password}"
+                         Padding="12,0,42,0" />
+                <ToggleButton Classes="eye"
+                              HorizontalAlignment="Right" Margin="0,0,6,0"
+                              IsChecked="{Binding IsPasswordVisible}"
+                              ToolTip.Tip="Show or hide password" />
+            </Panel>
         </StackPanel>
 
-        <Button Classes="primary"
-                Content="Sign In"
-                Command="{Binding SignInCommand}" />
+        <!-- submit -->
+        <Button Classes="primary" IsDefault="True" Margin="0,4,0,0"
+                Command="{Binding SignInCommand}">
+            <Panel>
+                <TextBlock Text="Sign In" IsVisible="{Binding !IsBusy}" />
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"
+                            IsVisible="{Binding IsBusy}">
+                    <Ellipse Classes="dot" VerticalAlignment="Center" />
+                    <TextBlock Text="Signing in…" />
+                </StackPanel>
+            </Panel>
+        </Button>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-            <TextBlock Classes="label" Text="Don't have an account?" VerticalAlignment="Center" />
+            <TextBlock Classes="hint" Text="Don't have an account?" VerticalAlignment="Center" />
             <Button Classes="link" Content="Create one" Command="{Binding GoToRegisterCommand}" />
         </StackPanel>
     </StackPanel>

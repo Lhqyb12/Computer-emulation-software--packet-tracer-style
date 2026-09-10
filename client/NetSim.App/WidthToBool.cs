@@ -11,4 +11,7 @@ public static class WidthToBool
 {
     public static readonly IValueConverter AtLeast700 =
         new FuncValueConverter<double, bool>(width => width >= 700);
+
+    public static readonly IValueConverter Below700 =
+        new FuncValueConverter<double, bool>(width => width < 700);
 }

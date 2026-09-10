@@ -4,15 +4,21 @@
              x:Class="NetSim.App.App"
              RequestedThemeVariant="Dark">
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://NetSim.App/Styles/Icons.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <!-- Turn a ViewModel object into its matching View (see ViewLocator.cs). -->
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
-        <!-- Base look for all standard controls. -->
         <FluentTheme />
-        <!-- Our own colours and control styles, layered on top. -->
         <StyleInclude Source="avares://NetSim.App/Styles/Theme.axaml" />
     </Application.Styles>
 </Application>

@@ -1,96 +1,246 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- ================= COLOURS ================= -->
-    <!-- Named once here, reused everywhere as {StaticResource Accent} etc. -->
     <Styles.Resources>
-        <SolidColorBrush x:Key="Bg"        Color="#0F1420" />
-        <SolidColorBrush x:Key="Panel"     Color="#141B2B" />
-        <SolidColorBrush x:Key="Card"      Color="#1A2130" />
-        <SolidColorBrush x:Key="Field"     Color="#1B2231" />
-        <SolidColorBrush x:Key="Line"      Color="#2A3346" />
-        <SolidColorBrush x:Key="Text"      Color="#E8EDF5" />
-        <SolidColorBrush x:Key="TextDim"   Color="#9AA7B8" />
-        <SolidColorBrush x:Key="Accent"    Color="#3D9BFF" />
-        <SolidColorBrush x:Key="AccentInk" Color="#0B1220" />
-        <SolidColorBrush x:Key="Danger"    Color="#FF7A85" />
-        <SolidColorBrush x:Key="Ok"        Color="#3DD68C" />
+        <!-- ===================== COLOURS ===================== -->
+        <SolidColorBrush x:Key="Bg"          Color="#0E1420" />
+        <SolidColorBrush x:Key="Card"        Color="#161E2D" />
+        <SolidColorBrush x:Key="Field"       Color="#1B2434" />
+        <SolidColorBrush x:Key="Line"        Color="#2A3446" />
+        <SolidColorBrush x:Key="LineStrong"  Color="#3A4661" />
+        <SolidColorBrush x:Key="Text"        Color="#EAEEF6" />
+        <SolidColorBrush x:Key="TextDim"     Color="#9AA7BC" />
+        <SolidColorBrush x:Key="TextMuted"   Color="#63708A" />
+        <SolidColorBrush x:Key="Accent"      Color="#2C6BE0" />
+        <SolidColorBrush x:Key="AccentHover" Color="#3D7BF0" />
+        <SolidColorBrush x:Key="AccentPress" Color="#2158C4" />
+        <SolidColorBrush x:Key="OnAccent"    Color="#FFFFFF" />
+        <SolidColorBrush x:Key="Ok"          Color="#3BD07E" />
+        <SolidColorBrush x:Key="OkBg"        Color="#10261C" />
+        <SolidColorBrush x:Key="OkLine"      Color="#1E4C37" />
+        <SolidColorBrush x:Key="Danger"      Color="#FF6B6B" />
+        <SolidColorBrush x:Key="DangerBg"    Color="#241416" />
+        <SolidColorBrush x:Key="DangerLine"  Color="#4E2529" />
+
+        <LinearGradientBrush x:Key="BrandGradient" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Offset="0" Color="#151D2D" />
+            <GradientStop Offset="1" Color="#0B111C" />
+        </LinearGradientBrush>
     </Styles.Resources>
 
-    <!-- ================= TEXT ================= -->
+    <!-- ===================== TYPOGRAPHY ===================== -->
+    <Style Selector="TextBlock.logo">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
     <Style Selector="TextBlock.title">
         <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
-
     <Style Selector="TextBlock.subtitle">
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Foreground" Value="{StaticResource TextDim}" />
         <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="LineHeight" Value="19" />
     </Style>
-
     <Style Selector="TextBlock.label">
         <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Foreground" Value="{StaticResource TextDim}" />
     </Style>
-
+    <Style Selector="TextBlock.hint">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
     <Style Selector="TextBlock.error">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource Danger}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
-
     <Style Selector="TextBlock.ok">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource Ok}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <Style Selector="TextBlock.feature">
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
 
-    <!-- ================= CARD ================= -->
+    <!-- ===================== CARD & CHIP ===================== -->
     <Style Selector="Border.card">
         <Setter Property="Background" Value="{StaticResource Card}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="Padding" Value="28" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="30" />
+    </Style>
+    <Style Selector="Border.chip">
+        <Setter Property="Background" Value="#1E2A3E" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="6,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <!-- ================= TEXT INPUT ================= -->
+    <!-- ===================== BANNERS ===================== -->
+    <Style Selector="Border.banner">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,10" />
+    </Style>
+    <Style Selector="Border.bannerError">
+        <Setter Property="Background" Value="{StaticResource DangerBg}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DangerLine}" />
+    </Style>
+    <Style Selector="Border.bannerOk">
+        <Setter Property="Background" Value="{StaticResource OkBg}" />
+        <Setter Property="BorderBrush" Value="{StaticResource OkLine}" />
+    </Style>
+
+    <!-- ===================== TEXT INPUT ===================== -->
     <Style Selector="TextBox.field">
         <Setter Property="Background" Value="{StaticResource Field}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="CaretBrush" Value="{StaticResource Accent}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="MinHeight" Value="40" />
-        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
+    <Style Selector="TextBox.field /template/ Border#PART_BorderElement">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="TextBox.field:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{StaticResource Field}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrong}" />
+    </Style>
+    <Style Selector="TextBox.field:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{StaticResource Field}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+    </Style>
+    <Style Selector="TextBox.field.invalid /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{StaticResource Danger}" />
+    </Style>
 
-    <!-- ================= BUTTONS ================= -->
+    <!-- Password reveal toggle (sits inside the password field) -->
+    <Style Selector="ToggleButton.eye">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                    <PathIcon x:Name="i" Width="17" Height="17"
+                              Foreground="{StaticResource TextMuted}"
+                              Data="{StaticResource Icon.Eye}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.eye:pointerover /template/ PathIcon#i">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+    <Style Selector="ToggleButton.eye:checked /template/ PathIcon#i">
+        <Setter Property="Data" Value="{StaticResource Icon.EyeOff}" />
+        <Setter Property="Foreground" Value="{StaticResource Accent}" />
+    </Style>
+
+    <!-- ===================== BUTTONS ===================== -->
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{StaticResource Accent}" />
-        <Setter Property="Foreground" Value="{StaticResource AccentInk}" />
+        <Setter Property="Foreground" Value="{StaticResource OnAccent}" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="MinHeight" Value="42" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#5AABFF" />
+        <Setter Property="Background" Value="{StaticResource AccentHover}" />
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentPress}" />
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource Accent}" />
+        <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
+    <Style Selector="Button.ghost">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#1C2536" />
     </Style>
 
     <Style Selector="Button.link">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="2" />
+        <Setter Property="Padding" Value="2,1" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="Foreground" Value="{StaticResource Accent}" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource AccentHover}" />
+    </Style>
+
+    <!-- ===================== LOADING DOT ===================== -->
+    <Style Selector="Ellipse.dot">
+        <Setter Property="Width" Value="7" />
+        <Setter Property="Height" Value="7" />
+        <Setter Property="Fill" Value="{StaticResource OnAccent}" />
+        <Style.Animations>
+            <Animation Duration="0:0:0.9" IterationCount="INFINITE" Easing="SineEaseInOut">
+                <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.3" /></KeyFrame>
+                <KeyFrame Cue="50%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.3" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== CHECKBOX ===================== -->
+    <Style Selector="CheckBox.small">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextDim}" />
+        <Setter Property="MinHeight" Value="0" />
     </Style>
 </Styles>
