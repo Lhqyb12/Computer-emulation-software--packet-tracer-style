@@ -1,0 +1,47 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Consistent icon sizing via Classes, so no View hand-specifies Width/Height per icon. -->
+
+  <Style Selector="PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+    <Setter Property="Width" Value="{DynamicResource Icon.Size.MD}" />
+    <Setter Property="Height" Value="{DynamicResource Icon.Size.MD}" />
+  </Style>
+
+  <Style Selector="PathIcon.SM">
+    <Setter Property="Width" Value="{DynamicResource Icon.Size.SM}" />
+    <Setter Property="Height" Value="{DynamicResource Icon.Size.SM}" />
+  </Style>
+
+  <Style Selector="PathIcon.MD">
+    <Setter Property="Width" Value="{DynamicResource Icon.Size.MD}" />
+    <Setter Property="Height" Value="{DynamicResource Icon.Size.MD}" />
+  </Style>
+
+  <Style Selector="PathIcon.LG">
+    <Setter Property="Width" Value="{DynamicResource Icon.Size.LG}" />
+    <Setter Property="Height" Value="{DynamicResource Icon.Size.LG}" />
+  </Style>
+
+  <Style Selector="PathIcon.Muted">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+
+  <Style Selector="PathIcon.Accent">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+  </Style>
+
+  <Style Selector="PathIcon.Success">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Success}" />
+  </Style>
+
+  <Style Selector="PathIcon.Warning">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Warning}" />
+  </Style>
+
+  <Style Selector="PathIcon.Error">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Error}" />
+  </Style>
+
+</Styles>

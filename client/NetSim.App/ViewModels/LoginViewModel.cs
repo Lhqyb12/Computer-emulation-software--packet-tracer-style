@@ -22,14 +22,29 @@ public sealed class LoginViewModel : ViewModelBase
     public LoginViewModel()
     {
         SignInCommand = new AsyncRelayCommand(SignInAsync, () => !IsBusy);
+        
         GoToRegisterCommand = new RelayCommand(() => SwitchToRegisterRequested?.Invoke());
+        GoToForgotPasswordCommand = new RelayCommand(() => SwitchToForgotPasswordRequested?.Invoke());
+
     }
+
+    // This screen doesn't know or care who's listening, or what happens next - it just announces
+    // "the user asked to switch to register" and lets whoever's subscribed (MainWindowViewModel)
+    // decide what that means. Keeps this ViewModel free of any navigation knowledge.
+    
 
     /// <summary>Raised when the user asks to go to the register screen.</summary>
     public event Action? SwitchToRegisterRequested;
 
+    /// <summary>Raised when the user asks to go to the forgot-password screen.</summary>
+    public event Action? SwitchToForgotPasswordRequested;
+
+
+    // Action<string> instead of a plain Action because subscribers need the email that signed in -
+    // MainWindowViewModel.ShowSignedIn(string email) is exactly shaped to match this signature,
+    // which is what lets it be attached with += in the first place
     /// <summary>Raised after a successful sign-in, carrying the email that signed in.</summary>
-    public event Action<string>? SignedIn;
+    public event Action<string, string>? SignedIn;
 
     public string Email
     {
@@ -74,6 +89,8 @@ public sealed class LoginViewModel : ViewModelBase
 
     public IRelayCommand SignInCommand { get; }
     public IRelayCommand GoToRegisterCommand { get; }
+    public IRelayCommand GoToForgotPasswordCommand { get; }
+
 
     private async Task SignInAsync()
     {
@@ -101,7 +118,10 @@ public sealed class LoginViewModel : ViewModelBase
             {
                 Error = null;
                 Status = result.Message;
-                SignedIn?.Invoke(Email);
+                // Rings the SignedIn bell - if MainWindowViewModel (or anyone else) subscribed with
+                // +=, its handler runs right here, synchronously, before this method continues. The
+                // ?. guards against calling Invoke when nobody subscribed at all (SignedIn would be null)
+                SignedIn?.Invoke(Email, result.Role);
             }
             else
             {

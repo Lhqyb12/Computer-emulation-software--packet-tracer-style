@@ -1,0 +1,88 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Device Library (Phase 11): category filter chips and device cards. Both are plain ListBox/
+    ListBoxItem (native keyboard/selection behavior for free) restyled to look like chips/cards
+    rather than default list rows - selected/pointerover targets FluentTheme's own
+    "PART_ContentPresenter" template part, the same selector shape Styles/Buttons.axaml and
+    Styles/Inputs.axaml (ToggleButton) already use so our rule wins over the built-in one.
+  -->
+
+  <Style Selector="ListBox.CategoryChips">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.CategoryChips ScrollViewer">
+    <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+  </Style>
+  <Style Selector="ListBox.CategoryChips ListBoxItem">
+    <Setter Property="Padding" Value="10,4" />
+    <Setter Property="Margin" Value="0,0,6,6" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Full}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Caption}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Medium}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ListBox.CategoryChips ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Full}" />
+  </Style>
+  <Style Selector="ListBox.CategoryChips ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Hover}" />
+  </Style>
+  <Style Selector="ListBox.CategoryChips ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Brush.Accent}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="ListBox.CategoryChips ListBoxItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.OnAccent}" />
+  </Style>
+
+  <Style Selector="ListBox.DeviceLibraryList">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.DeviceLibraryList ListBoxItem">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0,0,0,8" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="ListBox.DeviceLibraryList ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+  </Style>
+
+  <!-- The card itself (inside the DataTemplate) owns the resting visuals; the states below only
+       need to override its border/background so a card looks identical whether or not it is
+       currently placement-armed. -->
+  <Style Selector="Border.DeviceCard">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+    <Setter Property="Padding" Value="12,10" />
+  </Style>
+  <Style Selector="ListBoxItem:pointerover Border.DeviceCard">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Hover}" />
+  </Style>
+  <Style Selector="ListBoxItem:selected Border.DeviceCard">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Selected}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+  </Style>
+
+  <Style Selector="Border.DeviceCard PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+  <Style Selector="ListBoxItem:selected Border.DeviceCard PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+  </Style>
+
+</Styles>

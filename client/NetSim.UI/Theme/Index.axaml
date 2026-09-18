@@ -1,0 +1,38 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Single entry point for the whole design system: App.axaml only needs to reference this one
+    file (after &lt;FluentTheme/&gt;). Resources (tokens/colors/icons) load first, then component
+    styles, which consume those resources by key. This is the layering described in the design
+    docs: Theme Resources -> Design Tokens -> Component Styles -> Views.
+  -->
+
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://NetSim.UI/Theme/Tokens.axaml" />
+        <ResourceInclude Source="avares://NetSim.UI/Theme/TypographyTokens.axaml" />
+        <ResourceInclude Source="avares://NetSim.UI/Theme/Icons.axaml" />
+        <ResourceInclude Source="avares://NetSim.UI/Theme/Colors.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Typography.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Icons.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Buttons.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Inputs.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Cards.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Sidebar.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/DeviceLibrary.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Toolbar.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/StatusBar.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Tabs.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Tooltips.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Dialogs.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Notifications.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Loading.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/EmptyState.axaml" />
+
+</Styles>

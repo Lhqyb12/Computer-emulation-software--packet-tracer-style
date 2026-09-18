@@ -1,0 +1,81 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Reusable text roles, applied via Classes on TextBlock (e.g. Classes="H1"). Keeps the number
+    of distinct sizes small and consistent instead of every View picking its own FontSize.
+  -->
+
+  <Style Selector="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Default}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+  </Style>
+
+  <!-- Application title, used once in shell chrome -->
+  <Style Selector="TextBlock.Display">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Display}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Bold}" />
+  </Style>
+
+  <!-- Page title -->
+  <Style Selector="TextBlock.H1">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.H1}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Bold}" />
+  </Style>
+
+  <!-- Section title -->
+  <Style Selector="TextBlock.H2">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.H2}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.SemiBold}" />
+  </Style>
+
+  <!-- Subtitle: secondary emphasis under a title -->
+  <Style Selector="TextBlock.Subtitle">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Subtitle}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Medium}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+
+  <!-- Body: default text role, matches the base TextBlock style above -->
+  <Style Selector="TextBlock.Body">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Regular}" />
+  </Style>
+
+  <!-- Secondary body text: de-emphasized, same size as Body -->
+  <Style Selector="TextBlock.BodySecondary">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+
+  <!-- Small metadata / captions -->
+  <Style Selector="TextBlock.Caption">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Caption}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+
+  <!-- Form/field labels -->
+  <Style Selector="TextBlock.Label">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Small}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Medium}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+
+  <!-- Status/state text (paired with a semantic Foreground override at the call site) -->
+  <Style Selector="TextBlock.Status">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Small}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Medium}" />
+  </Style>
+
+  <!-- Monospace: IPs, MACs, hex, logs, CLI text -->
+  <Style Selector="TextBlock.Mono">
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Mono}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Mono}" />
+  </Style>
+
+  <Style Selector="TextBlock.Disabled">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
+  </Style>
+
+</Styles>

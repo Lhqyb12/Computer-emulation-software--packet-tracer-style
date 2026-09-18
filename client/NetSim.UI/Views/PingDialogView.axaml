@@ -1,0 +1,57 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.PingDialogView"
+             x:DataType="vm:PingDialogViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.PingSuccess">
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Success}" />
+    </Style>
+    <Style Selector="TextBlock.PingFailure">
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Error}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="16" Width="420">
+    <TextBlock Text="Ping" Classes="DialogTitle" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="{Binding SourceDescription}" Classes="Caption" />
+      <TextBlock Text="{Binding SourceAddressText}" Classes="Caption Mono" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Destination IPv4 Address" Classes="Label" />
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <TextBox Grid.Column="0" Text="{Binding DestinationInput}" PlaceholderText="192.168.1.20" />
+        <Button Grid.Column="1" Content="Ping" Classes="Primary" Command="{Binding PingCommand}" IsEnabled="{Binding !IsBusy}" />
+      </Grid>
+    </StackPanel>
+
+    <Border Classes="Notification Error"
+            IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding ValidationError}" Classes="Body" TextWrapping="Wrap" />
+    </Border>
+
+    <Border Classes="GroupContainer" IsVisible="{Binding HasRun}">
+      <StackPanel Spacing="8">
+        <TextBlock Text="{Binding SummaryText}" Classes="Body" TextWrapping="Wrap" />
+
+        <ItemsControl ItemsSource="{Binding Replies}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:PingReplyRow">
+              <TextBlock Text="{Binding Text}" Classes.PingSuccess="{Binding IsSuccess}" Classes.PingFailure="{Binding !IsSuccess}"
+                         Classes="Caption Mono" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Close" Classes="Secondary" Command="{Binding CloseCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

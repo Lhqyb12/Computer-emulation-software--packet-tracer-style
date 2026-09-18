@@ -1,0 +1,29 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <ScrollViewer Padding="32">
+    <StackPanel Spacing="{DynamicResource Space.LG}" MaxWidth="640" HorizontalAlignment="Left">
+
+      <TextBlock Text="{Binding Title}" Classes="H1" />
+
+      <Border Classes="Card">
+        <StackPanel Spacing="{DynamicResource Space.MD}">
+          <TextBlock Text="Appearance" Classes="H2" />
+          <TextBlock Text="Choose how the application looks. Dark is recommended for extended technical sessions."
+                     Classes="BodySecondary" TextWrapping="Wrap" />
+
+          <StackPanel Spacing="{DynamicResource Space.SM}" Margin="0,4,0,0">
+            <RadioButton Content="Dark" GroupName="Appearance" IsChecked="{Binding IsDarkSelected}" />
+            <RadioButton Content="Light" GroupName="Appearance" IsChecked="{Binding IsLightSelected}" />
+            <RadioButton Content="System" GroupName="Appearance" IsChecked="{Binding IsSystemSelected}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

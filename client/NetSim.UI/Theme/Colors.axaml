@@ -1,0 +1,146 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Semantic color brushes, organized as Avalonia ThemeDictionaries. Every key below exists in
+    both the "Light" and "Dark" dictionaries with the same name, so Styles/*.axaml and Views can
+    reference a single DynamicResource key (e.g. Brush.Surface) and get the correct value for
+    whichever ThemeVariant is currently active - switching Application.RequestedThemeVariant
+    (see NetSim.UI.Theming.ThemeService) re-resolves every DynamicResource lookup
+    automatically, with no per-View code required.
+
+    Palette intent: a cool graphite/slate neutral scale (not a plain black/white invert between
+    themes - each theme defines its own surface levels) paired with a single azure "signal"
+    accent used intentionally for interactive/active elements, plus Success/Warning/Error/Info
+    semantic colors reserved for status meaning (network health, validation, notifications) -
+    never used decoratively elsewhere.
+  -->
+
+  <ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary x:Key="Dark">
+      <!--
+        FluentTheme's own controls (CheckBox, RadioButton, ToggleSwitch, selected
+        ComboBoxItem/ListBoxItem, focus visuals) read the SystemAccentColor* family
+        internally, so overriding it here is the supported way to make those built-in
+        controls follow our accent instead of Avalonia's default blue - without having to
+        chase every individual per-control template resource key by hand.
+      -->
+      <Color x:Key="SystemAccentColor">#4FA8E8</Color>
+      <Color x:Key="SystemAccentColorLight1">#6BB9EE</Color>
+      <Color x:Key="SystemAccentColorLight2">#8CC9F2</Color>
+      <Color x:Key="SystemAccentColorLight3">#ADD9F6</Color>
+      <Color x:Key="SystemAccentColorDark1">#3D8FD0</Color>
+      <Color x:Key="SystemAccentColorDark2">#2E71A8</Color>
+      <Color x:Key="SystemAccentColorDark3">#205480</Color>
+
+      <!-- Surfaces: distinct levels so app/sidebar/panel/card/elevated are all separable -->
+      <SolidColorBrush x:Key="Brush.Bg.App" Color="#14171C" />
+      <SolidColorBrush x:Key="Brush.Bg.Sidebar" Color="#1A1E24" />
+      <SolidColorBrush x:Key="Brush.Bg.Panel" Color="#1D2129" />
+      <SolidColorBrush x:Key="Brush.Surface" Color="#20242C" />
+      <SolidColorBrush x:Key="Brush.Surface.Elevated" Color="#262B34" />
+      <SolidColorBrush x:Key="Brush.Surface.Hover" Color="#2A303A" />
+      <SolidColorBrush x:Key="Brush.Surface.Selected" Color="#1F3B52" />
+
+      <!-- Borders -->
+      <SolidColorBrush x:Key="Brush.Border.Default" Color="#2E333D" />
+      <SolidColorBrush x:Key="Brush.Border.Strong" Color="#3A414D" />
+
+      <!-- Text -->
+      <SolidColorBrush x:Key="Brush.Text.Primary" Color="#E7EAEE" />
+      <SolidColorBrush x:Key="Brush.Text.Secondary" Color="#9AA3B0" />
+      <SolidColorBrush x:Key="Brush.Text.Disabled" Color="#5A6270" />
+      <SolidColorBrush x:Key="Brush.Text.OnAccent" Color="#FFFFFF" />
+
+      <!-- Accent (interactive/active) -->
+      <SolidColorBrush x:Key="Brush.Accent" Color="#4FA8E8" />
+      <SolidColorBrush x:Key="Brush.Accent.Hover" Color="#6BB9EE" />
+      <SolidColorBrush x:Key="Brush.Accent.Pressed" Color="#3D8FD0" />
+      <SolidColorBrush x:Key="Brush.Accent.Subtle" Color="#1F3B52" />
+
+      <!-- Semantic status -->
+      <SolidColorBrush x:Key="Brush.Success" Color="#3DD68C" />
+      <SolidColorBrush x:Key="Brush.Success.Subtle" Color="#163B2B" />
+      <SolidColorBrush x:Key="Brush.Warning" Color="#F5B851" />
+      <SolidColorBrush x:Key="Brush.Warning.Subtle" Color="#4A3A16" />
+      <SolidColorBrush x:Key="Brush.Error" Color="#F0665E" />
+      <SolidColorBrush x:Key="Brush.Error.Hover" Color="#F58179" />
+      <SolidColorBrush x:Key="Brush.Error.Pressed" Color="#D8493F" />
+      <SolidColorBrush x:Key="Brush.Error.Subtle" Color="#4A201D" />
+      <SolidColorBrush x:Key="Brush.Info" Color="#4FA8E8" />
+      <SolidColorBrush x:Key="Brush.Info.Subtle" Color="#1F3B52" />
+
+      <!-- Chrome -->
+      <SolidColorBrush x:Key="Brush.Overlay" Color="#8C000000" />
+      <SolidColorBrush x:Key="Brush.Focus" Color="#6BB9EE" />
+      <BoxShadows x:Key="Shadow.SM">0 1 3 0 #55000000</BoxShadows>
+      <BoxShadows x:Key="Shadow.MD">0 4 16 0 #66000000</BoxShadows>
+
+      <!-- Network Canvas: a level below Bg.Panel so the workspace reads as a distinct surface -->
+      <SolidColorBrush x:Key="Brush.Canvas.Background" Color="#12151A" />
+      <SolidColorBrush x:Key="Brush.Canvas.Grid" Color="#262B33" />
+      <SolidColorBrush x:Key="Brush.Canvas.Selection" Color="#4FA8E8" />
+      <!-- Connections: a neutral cable colour that reads clearly on the dark canvas without
+           competing with the azure selection accent, plus the interface anchor dot colour. -->
+      <SolidColorBrush x:Key="Brush.Canvas.Connection" Color="#8A93A3" />
+      <SolidColorBrush x:Key="Brush.Canvas.Anchor" Color="#6BB9EE" />
+    </ResourceDictionary>
+
+    <ResourceDictionary x:Key="Light">
+      <Color x:Key="SystemAccentColor">#1D6FBF</Color>
+      <Color x:Key="SystemAccentColorLight1">#4A8DCC</Color>
+      <Color x:Key="SystemAccentColorLight2">#77ABD9</Color>
+      <Color x:Key="SystemAccentColorLight3">#A4C9E6</Color>
+      <Color x:Key="SystemAccentColorDark1">#175C9F</Color>
+      <Color x:Key="SystemAccentColorDark2">#134A80</Color>
+      <Color x:Key="SystemAccentColorDark3">#0F3A66</Color>
+
+      <SolidColorBrush x:Key="Brush.Bg.App" Color="#F4F6F8" />
+      <SolidColorBrush x:Key="Brush.Bg.Sidebar" Color="#ECEFF3" />
+      <SolidColorBrush x:Key="Brush.Bg.Panel" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="Brush.Surface.Elevated" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="Brush.Surface.Hover" Color="#E9EDF2" />
+      <SolidColorBrush x:Key="Brush.Surface.Selected" Color="#DCEAFB" />
+
+      <SolidColorBrush x:Key="Brush.Border.Default" Color="#D7DCE3" />
+      <SolidColorBrush x:Key="Brush.Border.Strong" Color="#BAC2CC" />
+
+      <SolidColorBrush x:Key="Brush.Text.Primary" Color="#1B2027" />
+      <SolidColorBrush x:Key="Brush.Text.Secondary" Color="#5B6472" />
+      <SolidColorBrush x:Key="Brush.Text.Disabled" Color="#9AA1AB" />
+      <SolidColorBrush x:Key="Brush.Text.OnAccent" Color="#FFFFFF" />
+
+      <SolidColorBrush x:Key="Brush.Accent" Color="#1D6FBF" />
+      <SolidColorBrush x:Key="Brush.Accent.Hover" Color="#175C9F" />
+      <SolidColorBrush x:Key="Brush.Accent.Pressed" Color="#134A80" />
+      <SolidColorBrush x:Key="Brush.Accent.Subtle" Color="#DCEAFB" />
+
+      <SolidColorBrush x:Key="Brush.Success" Color="#1E9E5C" />
+      <SolidColorBrush x:Key="Brush.Success.Subtle" Color="#E1F5EA" />
+      <SolidColorBrush x:Key="Brush.Warning" Color="#B8720A" />
+      <SolidColorBrush x:Key="Brush.Warning.Subtle" Color="#FBF0DC" />
+      <SolidColorBrush x:Key="Brush.Error" Color="#D93B33" />
+      <SolidColorBrush x:Key="Brush.Error.Hover" Color="#C22E28" />
+      <SolidColorBrush x:Key="Brush.Error.Pressed" Color="#A62620" />
+      <SolidColorBrush x:Key="Brush.Error.Subtle" Color="#FBE3E1" />
+      <SolidColorBrush x:Key="Brush.Info" Color="#1D6FBF" />
+      <SolidColorBrush x:Key="Brush.Info.Subtle" Color="#DCEAFB" />
+
+      <SolidColorBrush x:Key="Brush.Overlay" Color="#66000000" />
+      <SolidColorBrush x:Key="Brush.Focus" Color="#1D6FBF" />
+      <BoxShadows x:Key="Shadow.SM">0 1 3 0 #1A000000</BoxShadows>
+      <BoxShadows x:Key="Shadow.MD">0 6 20 0 #26000000</BoxShadows>
+
+      <!-- Network Canvas: a level below Bg.Panel so the workspace reads as a distinct surface -->
+      <SolidColorBrush x:Key="Brush.Canvas.Background" Color="#E3E7EC" />
+      <SolidColorBrush x:Key="Brush.Canvas.Grid" Color="#C7CED8" />
+      <SolidColorBrush x:Key="Brush.Canvas.Selection" Color="#1D6FBF" />
+      <SolidColorBrush x:Key="Brush.Canvas.Connection" Color="#5B6472" />
+      <SolidColorBrush x:Key="Brush.Canvas.Anchor" Color="#1D6FBF" />
+    </ResourceDictionary>
+
+  </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

@@ -1,0 +1,30 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Dialog visual language: a scrim to dim the shell behind a modal, and a card the dialog
+    content sits on. No dialog host/service exists yet (that is application logic, out of
+    scope for this phase) - this is the reusable look future dialogs (New Project, confirmations,
+    device config, settings, errors) will be built on top of.
+  -->
+
+  <Style Selector="Border.DialogScrim">
+    <Setter Property="Background" Value="{DynamicResource Brush.Overlay}" />
+  </Style>
+
+  <Style Selector="Border.DialogCard">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Elevated}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.LG}" />
+    <Setter Property="Padding" Value="32" />
+    <Setter Property="BoxShadow" Value="{DynamicResource Shadow.MD}" />
+    <Setter Property="MinWidth" Value="320" />
+  </Style>
+
+  <Style Selector="TextBlock.DialogTitle">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.H2}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.SemiBold}" />
+  </Style>
+
+</Styles>

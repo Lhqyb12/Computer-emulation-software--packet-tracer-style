@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:NetSim.App"
+             xmlns:uiviews="using:NetSim.UI.Views"
              x:Class="NetSim.App.App"
              RequestedThemeVariant="Dark">
 
@@ -12,13 +13,18 @@
         </ResourceDictionary>
     </Application.Resources>
 
-    <!-- Turn a ViewModel object into its matching View (see ViewLocator.cs). -->
+    <!-- Turn a ViewModel object into its matching View. Two locators coexist because the
+         login/register screens (NetSim.App.ViewModels.ViewModelBase) and the simulator
+         workspace ported from NetworkSimulator (NetSim.UI.Common.ViewModelBase) are separate
+         base types - see ViewLocator.cs and NetSim.UI/Views/ViewLocator.cs. -->
     <Application.DataTemplates>
         <local:ViewLocator />
+        <uiviews:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://NetSim.App/Styles/Theme.axaml" />
+        <StyleInclude Source="avares://NetSim.UI/Theme/Index.axaml" />
     </Application.Styles>
 </Application>

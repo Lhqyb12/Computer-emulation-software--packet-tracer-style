@@ -1,0 +1,340 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.DesignSystemDemoView"
+             x:DataType="vm:DesignSystemDemoViewModel">
+
+  <ScrollViewer Padding="32">
+    <StackPanel Spacing="32" MaxWidth="920" HorizontalAlignment="Left">
+
+      <!-- Header -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="{Binding Title}" Classes="H1" />
+        <TextBlock Classes="BodySecondary"
+                   Text="Development-only style guide. Not a real application screen - verifies every design-system primitive looks coherent together." />
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+          <Button Content="Preview Dark" Classes="Secondary" Command="{Binding PreviewDarkCommand}" />
+          <Button Content="Preview Light" Classes="Secondary" Command="{Binding PreviewLightCommand}" />
+          <Button Content="Preview System" Classes="Secondary" Command="{Binding PreviewSystemCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Colors -->
+      <StackPanel Spacing="12">
+        <TextBlock Text="Colors" Classes="H2" />
+        <WrapPanel ItemWidth="112" ItemHeight="76">
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Bg.App}" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" />
+            <TextBlock Text="Bg.App" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Bg.Sidebar}" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" />
+            <TextBlock Text="Bg.Sidebar" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Bg.Panel}" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" />
+            <TextBlock Text="Bg.Panel" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" />
+            <TextBlock Text="Surface" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Surface.Elevated}" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" />
+            <TextBlock Text="Surface.Elevated" Classes="Caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Surface.Hover}" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" />
+            <TextBlock Text="Surface.Hover" Classes="Caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Surface.Selected}" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" />
+            <TextBlock Text="Surface.Selected" Classes="Caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Border.Strong}" />
+            <TextBlock Text="Border.Strong" Classes="Caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Accent}" />
+            <TextBlock Text="Accent" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Accent.Hover}" />
+            <TextBlock Text="Accent.Hover" Classes="Caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Accent.Pressed}" />
+            <TextBlock Text="Accent.Pressed" Classes="Caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Success}" />
+            <TextBlock Text="Success" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Warning}" />
+            <TextBlock Text="Warning" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Error}" />
+            <TextBlock Text="Error" Classes="Caption" />
+          </StackPanel>
+          <StackPanel Spacing="4" Margin="0,0,8,8">
+            <Border Height="44" CornerRadius="{DynamicResource Radius.SM}" Background="{DynamicResource Brush.Info}" />
+            <TextBlock Text="Info" Classes="Caption" />
+          </StackPanel>
+        </WrapPanel>
+      </StackPanel>
+
+      <!-- Typography -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Typography" Classes="H2" />
+        <Border Classes="Card">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Network Simulator" Classes="Display" />
+            <TextBlock Text="Page Title" Classes="H1" />
+            <TextBlock Text="Section Title" Classes="H2" />
+            <TextBlock Text="Subtitle" Classes="Subtitle" />
+            <TextBlock Text="Body text sits at the default size and weight used throughout the application." Classes="Body" TextWrapping="Wrap" />
+            <TextBlock Text="Secondary body text is de-emphasized without shrinking the size." Classes="BodySecondary" TextWrapping="Wrap" />
+            <TextBlock Text="LABEL" Classes="Label" />
+            <TextBlock Text="Caption / metadata text" Classes="Caption" />
+            <TextBlock Text="192.168.1.1  AA:BB:CC:DD:EE:FF  0xFF" Classes="Mono" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- Buttons -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Buttons" Classes="H2" />
+        <Border Classes="Card">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Primary" Classes="Primary" />
+              <Button Content="Secondary" Classes="Secondary" />
+              <Button Content="Tertiary" Classes="Tertiary" />
+              <Button Content="Destructive" Classes="Destructive" />
+              <Button Classes="Icon" ToolTip.Tip="Add device">
+                <PathIcon Data="{StaticResource Icon.Add}" Classes="SM" />
+              </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Primary" Classes="Primary" IsEnabled="False" />
+              <Button Content="Secondary" Classes="Secondary" IsEnabled="False" />
+              <Button Content="Tertiary" Classes="Tertiary" IsEnabled="False" />
+              <Button Content="Destructive" Classes="Destructive" IsEnabled="False" />
+              <Button Classes="Icon" IsEnabled="False">
+                <PathIcon Data="{StaticResource Icon.Delete}" Classes="SM" />
+              </Button>
+            </StackPanel>
+            <TextBlock Text="Second row: disabled state. Hover/press the first row to see interaction states." Classes="Caption" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- Inputs -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Inputs" Classes="H2" />
+        <Border Classes="Card">
+          <StackPanel Spacing="16">
+            <StackPanel Spacing="12" Orientation="Horizontal">
+              <StackPanel Spacing="4" Width="200">
+                <TextBlock Text="Device name" Classes="Label" />
+                <TextBox PlaceholderText="Router-01" />
+              </StackPanel>
+              <StackPanel Spacing="4" Width="200">
+                <TextBlock Text="Disabled field" Classes="Label" />
+                <TextBox Text="192.168.1.1" IsEnabled="False" Classes="Mono" />
+              </StackPanel>
+              <StackPanel Spacing="4" Width="200">
+                <TextBlock Text="Validation error" Classes="Label" />
+                <TextBox Text="10.0.0.256" Classes="Error Mono" />
+              </StackPanel>
+            </StackPanel>
+            <StackPanel Spacing="12" Orientation="Horizontal">
+              <ComboBox SelectedIndex="0" Width="180">
+                <ComboBoxItem Content="Router" />
+                <ComboBoxItem Content="Switch" />
+                <ComboBoxItem Content="PC" />
+              </ComboBox>
+              <CheckBox Content="Checked" IsChecked="{Binding IsSampleChecked}" />
+              <CheckBox Content="Unchecked" IsChecked="False" />
+              <RadioButton Content="Option A" GroupName="DemoRadio" IsChecked="True" />
+              <RadioButton Content="Option B" GroupName="DemoRadio" />
+              <ToggleButton Content="Toggle" IsChecked="{Binding IsSampleToggled}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- Cards and panels -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Cards &amp; Panels" Classes="H2" />
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Border Classes="Card" Width="240">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Card" Classes="H2" />
+              <TextBlock Text="Resting surface, one level above the panel behind it." Classes="BodySecondary" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border Classes="CardElevated" Width="240">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Elevated Card" Classes="H2" />
+              <TextBlock Text="Floating content - popovers, callouts." Classes="BodySecondary" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border Classes="GroupContainer" Width="240">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Group Container" Classes="Label" />
+              <TextBlock Text="Tighter grouping inside a card." Classes="BodySecondary" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Tabs -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Tabs" Classes="H2" />
+        <Border Classes="Card">
+          <TabControl>
+            <TabItem Header="Overview">
+              <TextBlock Text="Overview tab content." Classes="BodySecondary" Margin="0,12,0,0" />
+            </TabItem>
+            <TabItem Header="Configuration">
+              <TextBlock Text="Configuration tab content." Classes="BodySecondary" Margin="0,12,0,0" />
+            </TabItem>
+            <TabItem Header="Logs">
+              <TextBlock Text="Logs tab content." Classes="BodySecondary" Margin="0,12,0,0" />
+            </TabItem>
+          </TabControl>
+        </Border>
+      </StackPanel>
+
+      <!-- Status and notifications -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Status &amp; Notifications" Classes="H2" />
+        <StackPanel Spacing="8">
+          <Border Classes="Notification Success">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{StaticResource Icon.Success}" Classes="SM Success" />
+              <TextBlock Text="Link established: Router-01 &lt;-&gt; Switch-01." Classes="Body" />
+            </StackPanel>
+          </Border>
+          <Border Classes="Notification Warning">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{StaticResource Icon.Warning}" Classes="SM Warning" />
+              <TextBlock Text="High latency detected on this segment." Classes="Body" />
+            </StackPanel>
+          </Border>
+          <Border Classes="Notification Error">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{StaticResource Icon.Error}" Classes="SM Error" />
+              <TextBlock Text="Interface down: Gi0/1." Classes="Body" />
+            </StackPanel>
+          </Border>
+          <Border Classes="Notification Info">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{StaticResource Icon.Info}" Classes="SM Accent" />
+              <TextBlock Text="Simulation paused." Classes="Body" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Ellipse Classes="StatusDot Success" />
+            <TextBlock Text="Connected" Classes="StatusText" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Ellipse Classes="StatusDot Warning" />
+            <TextBlock Text="Degraded" Classes="StatusText" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Ellipse Classes="StatusDot Error" />
+            <TextBlock Text="Disconnected" Classes="StatusText" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Ellipse Classes="StatusDot Neutral" />
+            <TextBlock Text="Idle" Classes="StatusText" />
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+          <Border Classes="Badge Success"><TextBlock Text="12 online" /></Border>
+          <Border Classes="Badge Warning"><TextBlock Text="2 warnings" /></Border>
+          <Border Classes="Badge Error"><TextBlock Text="1 error" /></Border>
+          <Border Classes="Badge Info"><TextBlock Text="Beta" /></Border>
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Icons -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Icons" Classes="H2" />
+        <Border Classes="Card">
+          <WrapPanel ItemWidth="88" ItemHeight="64">
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Home}" HorizontalAlignment="Center" /><TextBlock Text="Home" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Projects}" HorizontalAlignment="Center" /><TextBlock Text="Projects" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Settings}" HorizontalAlignment="Center" /><TextBlock Text="Settings" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Router}" HorizontalAlignment="Center" /><TextBlock Text="Router" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Switch}" HorizontalAlignment="Center" /><TextBlock Text="Switch" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Pc}" HorizontalAlignment="Center" /><TextBlock Text="PC" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Server}" HorizontalAlignment="Center" /><TextBlock Text="Server" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Network}" HorizontalAlignment="Center" /><TextBlock Text="Network" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Connection}" HorizontalAlignment="Center" /><TextBlock Text="Connection" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Packet}" HorizontalAlignment="Center" /><TextBlock Text="Packet" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Play}" HorizontalAlignment="Center" /><TextBlock Text="Play" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Pause}" HorizontalAlignment="Center" /><TextBlock Text="Pause" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Stop}" HorizontalAlignment="Center" /><TextBlock Text="Stop" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Search}" HorizontalAlignment="Center" /><TextBlock Text="Search" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Delete}" HorizontalAlignment="Center" /><TextBlock Text="Delete" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Add}" HorizontalAlignment="Center" /><TextBlock Text="Add" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Save}" HorizontalAlignment="Center" /><TextBlock Text="Save" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Open}" HorizontalAlignment="Center" /><TextBlock Text="Open" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Ai}" Classes="Accent" HorizontalAlignment="Center" /><TextBlock Text="AI" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Warning}" Classes="Warning" HorizontalAlignment="Center" /><TextBlock Text="Warning" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Error}" Classes="Error" HorizontalAlignment="Center" /><TextBlock Text="Error" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Spacing="4" HorizontalAlignment="Center"><PathIcon Data="{StaticResource Icon.Success}" Classes="Success" HorizontalAlignment="Center" /><TextBlock Text="Success" Classes="Caption" HorizontalAlignment="Center" /></StackPanel>
+          </WrapPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- Tooltips -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Tooltips" Classes="H2" />
+        <Border Classes="Card">
+          <Button Content="Hover me" Classes="Secondary" ToolTip.Tip="This is a reusable tooltip - future icons/tools will use the same style." />
+        </Border>
+      </StackPanel>
+
+      <!-- Loading -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Loading" Classes="H2" />
+        <Border Classes="Card">
+          <StackPanel Spacing="12">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Indeterminate" Classes="Caption" />
+              <ProgressBar IsIndeterminate="True" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Text="Determinate" Classes="Caption" />
+              <ProgressBar Value="{Binding SampleProgress}" Minimum="0" Maximum="100" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- Empty state -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="Empty State" Classes="H2" />
+        <Border Classes="Panel" Height="200">
+          <StackPanel Classes="EmptyState">
+            <PathIcon Data="{StaticResource Icon.Projects}" />
+            <TextBlock Text="No projects yet" Classes="EmptyStateTitle" />
+            <TextBlock Text="Create a new project to start building a network topology." Classes="EmptyStateDescription" />
+            <Button Content="New Project" Classes="Primary" Margin="0,8,0,0" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

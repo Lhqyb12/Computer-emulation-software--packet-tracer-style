@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.App.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="NetSim.App.Views.UsersView"
+             x:DataType="vm:UsersViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="24">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,16" VerticalAlignment="Center">
+            <TextBlock Classes="title" Text="User management" VerticalAlignment="Center" />
+            <Button Classes="ghost" Content="Refresh" Width="90" Command="{Binding RefreshCommand}" />
+            <Button Classes="ghost" Content="Back" Width="90" Command="{Binding GoBackCommand}" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Classes="banner bannerError" Margin="0,0,0,16"
+                IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+            <TextBlock Classes="error" Text="{Binding Error}" />
+        </Border>
+
+        <Border Grid.Row="2" Classes="card" Padding="0">
+            <ScrollViewer>
+                <StackPanel>
+                    <Grid ColumnDefinitions="2*,3*,1*,2*,Auto" Margin="16,14">
+                        <TextBlock Grid.Column="0" Classes="label" Text="USERNAME" />
+                        <TextBlock Grid.Column="1" Classes="label" Text="EMAIL" />
+                        <TextBlock Grid.Column="2" Classes="label" Text="ROLE" />
+                        <TextBlock Grid.Column="3" Classes="label" Text="LAST LOGIN" />
+                        <TextBlock Grid.Column="4" Classes="label" Text="" Width="90" />
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding Users}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:UserRowViewModel">
+                                <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="16,12">
+                                    <Grid ColumnDefinitions="2*,3*,1*,2*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding Username}"
+                                                   Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Email}" Classes="hint" VerticalAlignment="Center" />
+                                        <Border Grid.Column="2" Classes="chip" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Role}" FontSize="11" Foreground="{StaticResource TextDim}" />
+                                        </Border>
+                                        <TextBlock Grid.Column="3" Text="{Binding LastLoginDisplay}" Classes="hint" VerticalAlignment="Center" />
+                                        <Button Grid.Column="4" Classes="ghost" Content="Delete" Width="90" MinHeight="34"
+                                                Foreground="{StaticResource Danger}"
+                                                Command="{Binding DeleteCommand}" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,20 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Tooltip infrastructure. Not populated across the app yet (Phase 5 is styling only) - future
+    tools/icons attach ToolTip.Tip as they're introduced and automatically get this look.
+  -->
+
+  <Style Selector="ToolTip">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Elevated}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.SM}" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Small}" />
+    <Setter Property="MaxWidth" Value="320" />
+  </Style>
+
+</Styles>

@@ -1,0 +1,46 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.DhcpClientDialogView"
+             x:DataType="vm:DhcpClientDialogViewModel">
+
+  <StackPanel Spacing="16" Width="440">
+    <TextBlock Text="DHCP Client" Classes="DialogTitle" />
+
+    <TextBlock Text="{Binding SourceDescription}" Classes="Caption" />
+
+    <Border Classes="GroupContainer">
+      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="4">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Mode" Classes="Label" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ModeText}" Classes="Caption" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Status" Classes="Label" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StatusText}" Classes="Caption" />
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="IPv4" Classes="Label" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AddressText}" Classes="Caption Mono" />
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Subnet" Classes="Label" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SubnetText}" Classes="Caption Mono" />
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Gateway" Classes="Label" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding GatewayText}" Classes="Caption Mono" />
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="DNS" Classes="Label" />
+        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding DnsText}" Classes="Caption Mono" />
+      </Grid>
+    </Border>
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Lease" Classes="Label" />
+      <TextBlock Text="{Binding LeaseText}" Classes="Caption Mono" TextWrapping="Wrap" />
+    </StackPanel>
+
+    <Border Classes="GroupContainer" IsVisible="{Binding HasRun}">
+      <TextBlock Text="{Binding Message}" Classes="Caption Mono" TextWrapping="Wrap" />
+    </Border>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Request Lease" Classes="Primary" Command="{Binding RequestLeaseCommand}" IsEnabled="{Binding !IsBusy}" />
+      <Button Content="Renew" Classes="Secondary" Command="{Binding RenewCommand}" IsEnabled="{Binding !IsBusy}" />
+      <Button Content="Release" Classes="Secondary" Command="{Binding ReleaseCommand}" IsEnabled="{Binding !IsBusy}" />
+      <Button Content="Close" Classes="Secondary" Command="{Binding CloseCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

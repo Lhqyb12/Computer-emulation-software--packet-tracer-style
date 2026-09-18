@@ -55,6 +55,10 @@
             </Panel>
         </StackPanel>
 
+        <Button Classes="link" HorizontalAlignment="Right" Content="Forgot password?"
+                Command="{Binding GoToForgotPasswordCommand}" />
+
+
         <!-- submit -->
         <Button Classes="primary" IsDefault="True" Margin="0,4,0,0"
                 Command="{Binding SignInCommand}">

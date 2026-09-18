@@ -1,0 +1,26 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.RenameProjectDialogView"
+             x:DataType="vm:RenameProjectDialogViewModel">
+
+  <StackPanel Spacing="16" Width="360">
+    <TextBlock Text="Rename Project" Classes="DialogTitle" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Project Name" Classes="Label" />
+      <TextBox Text="{Binding Name}" />
+    </StackPanel>
+
+    <Border Classes="Notification Error"
+            IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding ValidationError}" Classes="Body" TextWrapping="Wrap" />
+    </Border>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Cancel" Classes="Secondary" Command="{Binding CancelCommand}" />
+      <Button Content="Rename" Classes="Primary" Command="{Binding RenameCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

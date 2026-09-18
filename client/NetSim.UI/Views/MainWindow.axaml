@@ -1,0 +1,125 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NetSim.UI.ViewModels"
+        x:Class="NetSim.UI.Views.MainWindow"
+        x:DataType="vm:ShellViewModel"
+        Title="Network Simulator"
+        Width="1200" Height="760"
+        MinWidth="900" MinHeight="600"
+        Background="{DynamicResource Brush.Bg.App}"
+        WindowStartupLocation="CenterScreen">
+
+  <Panel>
+
+    <DockPanel>
+
+      <!-- Menu -->
+      <Menu DockPanel.Dock="Top" Background="{DynamicResource Brush.Bg.Panel}">
+        <MenuItem Header="_File">
+          <MenuItem Header="_New Project..." Command="{Binding NewProjectCommand}" InputGesture="Ctrl+N" />
+          <MenuItem Header="_Open Project..." Command="{Binding OpenProjectCommand}" InputGesture="Ctrl+O" />
+          <Separator />
+          <MenuItem Header="_Save" Command="{Binding SaveProjectCommand}" InputGesture="Ctrl+S" />
+          <MenuItem Header="Save _As..." Command="{Binding SaveProjectAsCommand}" InputGesture="Ctrl+Shift+S" />
+          <Separator />
+          <MenuItem Header="_Close Project" Command="{Binding CloseProjectCommand}" />
+          <Separator />
+          <MenuItem Header="E_xit" Click="OnExitClicked" />
+        </MenuItem>
+      </Menu>
+
+      <!-- Toolbar -->
+      <Border Classes="Toolbar" DockPanel.Dock="Top">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <Button Classes="Icon" Command="{Binding GoBackCommand}" ToolTip.Tip="Back">
+            <PathIcon Data="{StaticResource Icon.ChevronLeft}" Classes="SM" />
+          </Button>
+          <Rectangle Classes="ToolbarSeparator" />
+          <Button Classes="Icon" Command="{Binding NewProjectCommand}" ToolTip.Tip="New Project">
+            <PathIcon Data="{StaticResource Icon.Add}" Classes="SM" />
+          </Button>
+          <Button Classes="Icon" Command="{Binding OpenProjectCommand}" ToolTip.Tip="Open Project">
+            <PathIcon Data="{StaticResource Icon.Open}" Classes="SM" />
+          </Button>
+          <Button Classes="Icon" Command="{Binding SaveProjectCommand}" ToolTip.Tip="Save Project">
+            <PathIcon Data="{StaticResource Icon.Save}" Classes="SM" />
+          </Button>
+          <Rectangle Classes="ToolbarSeparator" />
+          <TextBlock Text="Network Simulator" Classes="Subtitle" VerticalAlignment="Center" Margin="8,0" />
+        </StackPanel>
+      </Border>
+
+      <!-- Status bar -->
+      <Border Classes="StatusBar" DockPanel.Dock="Bottom">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+            <Ellipse Classes="StatusDot Success" />
+            <TextBlock Text="Ready" Classes="StatusText" />
+          </StackPanel>
+          <TextBlock Grid.Column="1" Text="{Binding ProjectStatusText}" Classes="StatusText" />
+        </Grid>
+      </Border>
+
+      <!-- Sidebar -->
+      <Border Classes="Sidebar" DockPanel.Dock="Left" Width="220">
+        <StackPanel Spacing="4" Margin="12">
+
+          <Button Classes="NavItem" Classes.Selected="{Binding IsHomeActive}" Command="{Binding NavigateHomeCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource Icon.Home}" Classes="SM" />
+              <TextBlock Text="Home" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <Button Classes="NavItem" Classes.Selected="{Binding IsProjectsActive}" Command="{Binding NavigateProjectsCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource Icon.Projects}" Classes="SM" />
+              <TextBlock Text="Projects" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <Button Classes="NavItem" Classes.Selected="{Binding IsWorkspaceActive}" Command="{Binding NavigateWorkspaceCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource Icon.Network}" Classes="SM" />
+              <TextBlock Text="Network" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <Button Classes="NavItem" Classes.Selected="{Binding IsSettingsActive}" Command="{Binding NavigateSettingsCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource Icon.Settings}" Classes="SM" />
+              <TextBlock Text="Settings" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+          <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,8" />
+
+          <Button Classes="NavItem" Classes.Selected="{Binding IsDesignSystemActive}" Command="{Binding NavigateDesignSystemCommand}"
+                  ToolTip.Tip="Development-only style guide">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource Icon.Ai}" Classes="SM" />
+              <TextBlock Text="Design System" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Content -->
+      <Border Background="{DynamicResource Brush.Bg.Panel}">
+        <ContentControl Content="{Binding CurrentViewModel}" />
+      </Border>
+
+    </DockPanel>
+
+    <!-- Modal dialog overlay -->
+    <Border Classes="DialogScrim"
+            IsVisible="{Binding DialogHost.ActiveDialog, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <Border Classes="DialogCard" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <ContentControl Content="{Binding DialogHost.ActiveDialog}" />
+      </Border>
+    </Border>
+
+  </Panel>
+
+</Window>

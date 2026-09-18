@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Design tokens that do NOT change between Light/Dark themes: spacing, corner radius,
+    control sizing, icon sizing and border thickness. Theme-dependent values (colors,
+    shadows) live in Theme/Colors.axaml so they can vary per ThemeVariant.
+  -->
+
+  <!--
+    Spacing scale. Typed as x:Double so it binds cleanly to double-typed properties like
+    StackPanel.Spacing/Grid gaps. Padding/Margin are Thickness-typed, and Avalonia does not
+    coerce a DynamicResource double into a Thickness at binding time - Styles/*.axaml therefore
+    use literal Thickness values that match this same scale (4/8/12/20/32) rather than binding
+    these resources directly to Padding/Margin.
+  -->
+  <x:Double x:Key="Space.XS">4</x:Double>
+  <x:Double x:Key="Space.SM">8</x:Double>
+  <x:Double x:Key="Space.MD">12</x:Double>
+  <x:Double x:Key="Space.LG">20</x:Double>
+  <x:Double x:Key="Space.XL">32</x:Double>
+
+  <!-- Corner radius scale -->
+  <CornerRadius x:Key="Radius.SM">4</CornerRadius>
+  <CornerRadius x:Key="Radius.MD">8</CornerRadius>
+  <CornerRadius x:Key="Radius.LG">12</CornerRadius>
+  <CornerRadius x:Key="Radius.Full">999</CornerRadius>
+
+  <!-- Border thickness -->
+  <Thickness x:Key="Border.Thickness.Hairline">1</Thickness>
+  <Thickness x:Key="Border.Thickness.Emphasis">2</Thickness>
+
+  <!-- Control heights -->
+  <x:Double x:Key="Control.Height.SM">28</x:Double>
+  <x:Double x:Key="Control.Height.MD">34</x:Double>
+  <x:Double x:Key="Control.Height.LG">42</x:Double>
+
+  <!-- Icon sizes -->
+  <x:Double x:Key="Icon.Size.SM">14</x:Double>
+  <x:Double x:Key="Icon.Size.MD">18</x:Double>
+  <x:Double x:Key="Icon.Size.LG">24</x:Double>
+
+  <!--
+    Motion durations, in milliseconds, for reference/consistency. Avalonia transitions take
+    their Duration inline (e.g. "0:0:0.12") rather than through a resource lookup, so these
+    exist as the single source of truth that Styles/*.axaml transitions are hand-kept in sync
+    with: Fast=120ms (hover/press feedback), Normal=160ms (selection/expand), Slow=240ms
+    (panel/dialog motion).
+  -->
+  <x:Double x:Key="Motion.Duration.Fast">120</x:Double>
+  <x:Double x:Key="Motion.Duration.Normal">160</x:Double>
+  <x:Double x:Key="Motion.Duration.Slow">240</x:Double>
+
+</ResourceDictionary>

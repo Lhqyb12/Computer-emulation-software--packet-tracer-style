@@ -1,0 +1,79 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             xmlns:devices="using:NetSim.UI.Devices"
+             x:Class="NetSim.UI.Views.DeviceLibraryView"
+             x:DataType="vm:DeviceLibraryViewModel">
+
+  <Panel>
+
+    <!-- Collapsed: a thin strip with just an expand control - see the Phase 11 brief, "Library Collapsing" -->
+    <Border Classes="Sidebar" Width="36" IsVisible="{Binding IsCollapsed}">
+      <Button Classes="Icon" Command="{Binding ToggleCollapseCommand}"
+              HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0"
+              ToolTip.Tip="Expand Device Library">
+        <PathIcon Data="{StaticResource Icon.Router}" Classes="SM" />
+      </Button>
+    </Border>
+
+    <!-- Expanded: header, search, category chips, device list -->
+    <Border Classes="Sidebar" Width="260" IsVisible="{Binding !IsCollapsed}">
+      <DockPanel Margin="14">
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+          <TextBlock Grid.Column="0" Text="Device Library" Classes="H2" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Classes="Icon" Command="{Binding ToggleCollapseCommand}" ToolTip.Tip="Collapse">
+            <PathIcon Data="{StaticResource Icon.ChevronLeft}" Classes="SM" />
+          </Button>
+        </Grid>
+
+        <TextBox DockPanel.Dock="Top" PlaceholderText="Search devices..." Text="{Binding SearchText, Mode=TwoWay}"
+                 Margin="0,0,0,10" />
+
+        <ListBox DockPanel.Dock="Top" Classes="CategoryChips"
+                 ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategoryOption, Mode=TwoWay}"
+                 Margin="0,0,0,4">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:CategoryFilterOption">
+              <TextBlock Text="{Binding Label}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Device list / empty state fills the remaining space -->
+        <Grid>
+          <ScrollViewer IsVisible="{Binding HasResults}">
+            <ListBox Classes="DeviceLibraryList" ItemsSource="{Binding FilteredDevices}"
+                     SelectedItem="{Binding SelectedEntry, Mode=TwoWay}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="devices:DeviceLibraryEntry">
+                  <Border Classes="DeviceCard" ToolTip.Tip="{Binding Description}">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                      <PathIcon Data="{Binding Icon}" Classes="LG" HorizontalAlignment="Center" />
+                      <TextBlock Text="{Binding DisplayName}" Classes="Label" HorizontalAlignment="Center" />
+                      <TextBlock Text="{Binding Description}" Classes="Caption" TextWrapping="Wrap"
+                                 TextAlignment="Center" HorizontalAlignment="Center" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </ScrollViewer>
+
+          <StackPanel Classes="EmptyState" IsVisible="{Binding !HasResults}" IsHitTestVisible="False">
+            <PathIcon Data="{StaticResource Icon.Search}" />
+            <TextBlock Text="{Binding EmptyStateMessage}" Classes="EmptyStateDescription" />
+          </StackPanel>
+        </Grid>
+
+      </DockPanel>
+    </Border>
+
+  </Panel>
+
+</UserControl>

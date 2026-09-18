@@ -1,0 +1,52 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Status bar chrome plus a small health-dot vocabulary (Success/Warning/Error/Info/Neutral)
+    that the future network-monitoring status bar entries (link up/down, sim running, etc.)
+    reuse instead of picking colors ad hoc.
+  -->
+
+  <Style Selector="Border.StatusBar">
+    <Setter Property="Background" Value="{DynamicResource Brush.Bg.Panel}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Padding" Value="8,4" />
+  </Style>
+
+  <Style Selector="TextBlock.StatusText">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Small}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+  <Style Selector="TextBlock.StatusText.Success">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Success}" />
+  </Style>
+  <Style Selector="TextBlock.StatusText.Warning">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Warning}" />
+  </Style>
+  <Style Selector="TextBlock.StatusText.Error">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Error}" />
+  </Style>
+
+  <Style Selector="Ellipse.StatusDot">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="8" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Ellipse.StatusDot.Success">
+    <Setter Property="Fill" Value="{DynamicResource Brush.Success}" />
+  </Style>
+  <Style Selector="Ellipse.StatusDot.Warning">
+    <Setter Property="Fill" Value="{DynamicResource Brush.Warning}" />
+  </Style>
+  <Style Selector="Ellipse.StatusDot.Error">
+    <Setter Property="Fill" Value="{DynamicResource Brush.Error}" />
+  </Style>
+  <Style Selector="Ellipse.StatusDot.Info">
+    <Setter Property="Fill" Value="{DynamicResource Brush.Info}" />
+  </Style>
+  <Style Selector="Ellipse.StatusDot.Neutral">
+    <Setter Property="Fill" Value="{DynamicResource Brush.Text.Disabled}" />
+  </Style>
+
+</Styles>

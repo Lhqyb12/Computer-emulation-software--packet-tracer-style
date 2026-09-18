@@ -1,0 +1,592 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.DevicePropertiesView"
+             x:DataType="vm:DevicePropertiesViewModel">
+
+  <Border Classes="Sidebar" Width="280">
+   <Panel>
+
+    <!-- No device selected: professional empty state instead of a blank/broken panel -->
+    <StackPanel Classes="EmptyState" IsVisible="{Binding HasNoSelection}" Margin="16">
+      <PathIcon Data="{StaticResource Icon.Router}" />
+      <TextBlock Text="Select a device" Classes="EmptyStateTitle" />
+      <TextBlock Text="Select a network device on the canvas to view its properties."
+                 Classes="EmptyStateDescription" />
+    </StackPanel>
+
+    <!-- Multiple devices selected: no multi-device editing in this phase -->
+    <StackPanel Classes="EmptyState" IsVisible="{Binding HasMultipleSelection}" Margin="16">
+      <PathIcon Data="{StaticResource Icon.Network}" />
+      <TextBlock Text="Multiple devices selected" Classes="EmptyStateTitle" />
+      <TextBlock Text="Select a single device to view its properties."
+                 Classes="EmptyStateDescription" />
+    </StackPanel>
+
+    <!-- Exactly one device selected -->
+    <ScrollViewer IsVisible="{Binding HasSingleSelection}">
+      <StackPanel Margin="14" Spacing="{DynamicResource Space.MD}">
+
+        <!-- Summary header -->
+        <Border Classes="Card">
+          <StackPanel Spacing="{DynamicResource Space.SM}" HorizontalAlignment="Center">
+            <Border Background="{DynamicResource Brush.Surface.Selected}" CornerRadius="{DynamicResource Radius.Full}"
+                    Width="56" Height="56" HorizontalAlignment="Center">
+              <PathIcon Data="{Binding DeviceIcon}" Width="28" Height="28"
+                        Foreground="{DynamicResource Brush.Accent}" />
+            </Border>
+            <TextBlock Text="{Binding DeviceName}" Classes="H2" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding DeviceTypeDisplayName}" Classes="BodySecondary" HorizontalAlignment="Center" />
+            <Border Classes="Badge" Classes.Success="{Binding IsPoweredOn}" Classes.Neutral="{Binding !IsPoweredOn}"
+                    HorizontalAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <Ellipse Classes="StatusDot" Classes.Success="{Binding IsPoweredOn}" Classes.Neutral="{Binding !IsPoweredOn}" />
+                <TextBlock Text="{Binding DeviceStateDisplayName}" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <!-- General -->
+        <StackPanel Spacing="{DynamicResource Space.SM}">
+          <TextBlock Text="GENERAL" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="{DynamicResource Space.SM}">
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="Device Name" Classes="Label" />
+                <TextBox Text="{Binding DeviceName, Mode=TwoWay}"
+                         Classes.Error="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                         MaxLength="128" />
+              </StackPanel>
+
+              <Border Classes="Notification Error"
+                      IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding ValidationError}" Classes="Body" TextWrapping="Wrap" />
+              </Border>
+
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="Cancel" Classes="Secondary" Command="{Binding CancelCommand}" />
+                <Button Content="Apply" Classes="Primary" Command="{Binding ApplyCommand}" />
+              </StackPanel>
+
+              <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,4" />
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="Device Type" Classes="Label" />
+                <TextBlock Text="{Binding DeviceTypeDisplayName}" Classes="Body" />
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="State" Classes="Label" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Power On" Classes="Secondary" IsVisible="{Binding !IsPoweredOn}"
+                          Command="{Binding PowerOnCommand}" />
+                  <Button Content="Power Off" Classes="Secondary" IsVisible="{Binding IsPoweredOn}"
+                          Command="{Binding PowerOffCommand}" />
+                </StackPanel>
+              </StackPanel>
+
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Interfaces -->
+        <StackPanel Spacing="{DynamicResource Space.SM}">
+          <TextBlock Text="INTERFACES" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="{DynamicResource Space.SM}">
+
+              <TextBlock Text="No interfaces on this device." Classes="Caption"
+                         IsVisible="{Binding !HasInterfaces}" />
+
+              <ListBox ItemsSource="{Binding Interfaces}"
+                       SelectedItem="{Binding SelectedInterface, Mode=TwoWay}"
+                       IsVisible="{Binding HasInterfaces}"
+                       Background="Transparent" BorderThickness="0" Padding="0"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="4" />
+                  </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DeviceInterfaceItem">
+                    <StackPanel Spacing="2">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse Classes="StatusDot"
+                                 Classes.Success="{Binding IsUp}"
+                                 Classes.Error="{Binding !IsEnabled}"
+                                 Classes.Neutral="{Binding IsEnabledAndDown}" />
+                        <TextBlock Text="{Binding Name}" Classes="Body" FontWeight="{DynamicResource Font.Weight.Medium}" />
+                        <TextBlock Text="{Binding StatusText}" Classes="Caption" HorizontalAlignment="Right" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding InterfaceTypeText}" Classes="Caption" />
+                        <TextBlock Text="{Binding SpeedText}" Classes="Caption" />
+                        <TextBlock Text="{Binding ConnectionText}" Classes="Caption" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <!-- Selected interface detail + actions (DataContext stays the ViewModel) -->
+              <Border Background="{DynamicResource Brush.Surface}" CornerRadius="{DynamicResource Radius.SM}"
+                      Padding="12" IsVisible="{Binding HasSelectedInterface}">
+                <StackPanel Spacing="{DynamicResource Space.SM}">
+                  <TextBlock Text="{Binding SelectedInterface.Name}" Classes="Body" FontWeight="{DynamicResource Font.Weight.SemiBold}" />
+
+                  <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Type" Classes="Label" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedInterface.InterfaceTypeText}" Classes="Caption" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Speed" Classes="Label" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedInterface.SpeedText}" Classes="Caption" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Admin" Classes="Label" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedInterface.AdminStateText}" Classes="Caption" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Status" Classes="Label" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedInterface.StatusText}" Classes="Caption" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Connection" Classes="Label" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedInterface.ConnectionText}" Classes="Caption" />
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="MAC" Classes="Label"
+                               IsVisible="{Binding SelectedInterface.HasMacAddress}" />
+                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SelectedInterface.MacAddressText}" Classes="Caption Mono"
+                               IsVisible="{Binding SelectedInterface.HasMacAddress}" />
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="IPv4" Classes="Label"
+                               IsVisible="{Binding SelectedInterface.HasIPv4}" />
+                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SelectedInterface.CidrText}" Classes="Caption Mono"
+                               IsVisible="{Binding SelectedInterface.HasIPv4}" />
+
+                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Mask" Classes="Label"
+                               IsVisible="{Binding SelectedInterface.HasIPv4}" />
+                    <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding SelectedInterface.SubnetMaskText}" Classes="Caption Mono"
+                               IsVisible="{Binding SelectedInterface.HasIPv4}" />
+                  </Grid>
+
+                  <!-- IPv6 addresses (Phase 19) - an interface commonly carries several -->
+                  <Grid ColumnDefinitions="90,*" IsVisible="{Binding SelectedInterface.HasIPv6}">
+                    <TextBlock Grid.Column="0" Text="IPv6" Classes="Label" VerticalAlignment="Top" />
+                    <ItemsControl Grid.Column="1" ItemsSource="{Binding SelectedInterface.IPv6Cidrs}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding}" Classes="Caption Mono" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Grid>
+
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Enable" Classes="Secondary"
+                            IsVisible="{Binding !SelectedInterface.IsEnabled}"
+                            Command="{Binding EnableInterfaceCommand}" />
+                    <Button Content="Disable" Classes="Secondary"
+                            IsVisible="{Binding SelectedInterface.IsEnabled}"
+                            Command="{Binding DisableInterfaceCommand}" />
+                  </StackPanel>
+
+                  <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,2" />
+
+                  <!-- IPv4 configuration editor (Phase 18) -->
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="IPv4 ADDRESS" Classes="Label" />
+
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Address" Classes="Label" />
+                      <TextBox Text="{Binding IPv4AddressInput, Mode=TwoWay}" PlaceholderText="192.168.1.10" MaxLength="15"
+                               Classes.Error="{Binding IPv4ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Subnet mask / prefix" Classes="Label" />
+                      <TextBox Text="{Binding IPv4SubnetMaskInput, Mode=TwoWay}" PlaceholderText="255.255.255.0 or /24" MaxLength="18"
+                               Classes.Error="{Binding IPv4ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <Border Classes="Notification Error"
+                            IsVisible="{Binding IPv4ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                      <TextBlock Text="{Binding IPv4ValidationError}" Classes="Body" TextWrapping="Wrap" />
+                    </Border>
+
+                    <TextBlock Classes="Caption"
+                               IsVisible="{Binding SelectedInterface.HasSecondaryIPv4}"
+                               Text="{Binding SelectedInterface.SecondaryIPv4Count, StringFormat='+ {0} secondary address(es)'}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                      <Button Content="Clear" Classes="Secondary" Command="{Binding ClearIPv4Command}" />
+                      <Button Content="Apply" Classes="Primary" Command="{Binding ApplyIPv4Command}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,2" />
+
+                  <!-- IPv4 default gateway editor (Phase 27) - the next-hop router for off-link traffic -->
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="DEFAULT GATEWAY" Classes="Label" />
+
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Gateway address" Classes="Label" />
+                      <TextBox Text="{Binding DefaultGatewayInput, Mode=TwoWay}" PlaceholderText="192.168.1.1" MaxLength="15"
+                               Classes.Error="{Binding DefaultGatewayValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <Border Classes="Notification Error"
+                            IsVisible="{Binding DefaultGatewayValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                      <TextBlock Text="{Binding DefaultGatewayValidationError}" Classes="Body" TextWrapping="Wrap" />
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                      <Button Content="Clear" Classes="Secondary" Command="{Binding ClearDefaultGatewayCommand}" />
+                      <Button Content="Apply" Classes="Primary" Command="{Binding ApplyDefaultGatewayCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,2" />
+
+                  <!-- IPv6 configuration editor (Phase 19) - adds an address, keeping any already set -->
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="IPv6 ADDRESS" Classes="Label" />
+
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Address" Classes="Label" />
+                      <TextBox Text="{Binding IPv6AddressInput, Mode=TwoWay}" PlaceholderText="2001:db8:1::10" MaxLength="45"
+                               Classes.Error="{Binding IPv6ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Prefix length" Classes="Label" />
+                      <TextBox Text="{Binding IPv6PrefixLengthInput, Mode=TwoWay}" PlaceholderText="64 or /64" MaxLength="4"
+                               Classes.Error="{Binding IPv6ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <Border Classes="Notification Error"
+                            IsVisible="{Binding IPv6ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                      <TextBlock Text="{Binding IPv6ValidationError}" Classes="Body" TextWrapping="Wrap" />
+                    </Border>
+
+                    <TextBlock Classes="Caption"
+                               IsVisible="{Binding SelectedInterface.HasSecondaryIPv6}"
+                               Text="{Binding SelectedInterface.SecondaryIPv6Count, StringFormat='+ {0} secondary address(es)'}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                      <Button Content="Clear" Classes="Secondary" Command="{Binding ClearIPv6Command}" />
+                      <Button Content="Add" Classes="Primary" Command="{Binding AddIPv6Command}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <!-- Switch port VLAN configuration (Phase 26) - shown only for an Ethernet port on a switch -->
+                  <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,2"
+                             IsVisible="{Binding SelectedInterfaceIsSwitchPort}" />
+                  <StackPanel Spacing="4" IsVisible="{Binding SelectedInterfaceIsSwitchPort}">
+                    <TextBlock Text="SWITCH PORT (VLAN)" Classes="Label" />
+
+                    <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,Auto" RowSpacing="4">
+                      <TextBlock Grid.Row="0" Grid.Column="0" Text="Mode" Classes="Label" />
+                      <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedInterface.SwitchPortModeText}" Classes="Caption" />
+                      <TextBlock Grid.Row="1" Grid.Column="0" Text="VLAN" Classes="Label" />
+                      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedInterface.VlanSummaryText}" Classes="Caption" TextWrapping="Wrap" />
+                    </Grid>
+
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Access VLAN id" Classes="Label" />
+                      <TextBox Text="{Binding AccessVlanInput, Mode=TwoWay}" PlaceholderText="1-4094" MaxLength="4"
+                               Classes.Error="{Binding PortVlanValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <Border Classes="Notification Error"
+                            IsVisible="{Binding PortVlanValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                      <TextBlock Text="{Binding PortVlanValidationError}" Classes="Body" TextWrapping="Wrap" />
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                      <Button Content="Trunk" Classes="Secondary" Command="{Binding MakeTrunkPortCommand}" />
+                      <Button Content="Access" Classes="Secondary" Command="{Binding MakeAccessPortCommand}" />
+                      <Button Content="Set VLAN" Classes="Primary" Command="{Binding SetAccessVlanCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,2" />
+
+                  <!-- ARP table (Phase 20) - runtime IPv4 -> MAC state learned on this interface's L2 segment -->
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="ARP TABLE" Classes="Label" />
+
+                    <TextBlock Text="No ARP entries learned." Classes="Caption"
+                               IsVisible="{Binding !SelectedInterface.HasArpEntries}" />
+
+                    <ItemsControl ItemsSource="{Binding SelectedInterface.ArpEntries}"
+                                  IsVisible="{Binding SelectedInterface.HasArpEntries}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ArpEntryRow">
+                          <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
+                            <TextBlock Grid.Column="0" Text="{Binding IpText}" Classes="Caption Mono" />
+                            <TextBlock Grid.Column="1" Text="{Binding MacText}" Classes="Caption Mono" />
+                            <TextBlock Grid.Column="2" Text="{Binding TypeText}" Classes="Caption" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                      <Button Content="Clear ARP Table" Classes="Secondary" Command="{Binding ClearArpCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,2" />
+
+                  <!-- Diagnostics (Phase 21+) - Ping / DNS Lookup / DHCP, all entirely simulated -->
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="DIAGNOSTICS" Classes="Label" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                      <Button Content="DHCP..." Classes="Secondary" Command="{Binding DhcpCommand}" />
+                      <Button Content="DNS Lookup..." Classes="Secondary" Command="{Binding DnsLookupCommand}" />
+                      <Button Content="Ping..." Classes="Secondary" Command="{Binding PingCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- VLAN database (Phase 26) - a switch's configured VLANs. Persisted configuration. Shown only for a switch. -->
+        <StackPanel Spacing="{DynamicResource Space.SM}" IsVisible="{Binding IsSwitch}">
+          <TextBlock Text="VLANS" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="6">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                <TextBlock Grid.Column="0" Text="ID" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="Name" Classes="Label" />
+                <TextBlock Grid.Column="2" Text="Ports" Classes="Label" />
+                <TextBlock Grid.Column="3" Text="" Classes="Label" />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding Vlans}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SwitchVlanRow">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                      <TextBlock Grid.Column="0" Text="{Binding IdText}" Classes="Caption" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="Caption" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2" Text="{Binding PortsText}" Classes="Caption" TextTrimming="CharacterEllipsis" />
+                      <Button Grid.Column="3" Content="Remove" Classes="Secondary" IsVisible="{Binding CanRemove}"
+                              Command="{Binding $parent[ItemsControl].((vm:DevicePropertiesViewModel)DataContext).RemoveVlanCommand}"
+                              CommandParameter="{Binding}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Border Classes="Notification Error"
+                      IsVisible="{Binding VlanValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding VlanValidationError}" Classes="Body" TextWrapping="Wrap" />
+              </Border>
+
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                <TextBox Grid.Column="0" Width="64" Text="{Binding NewVlanIdInput, Mode=TwoWay}" PlaceholderText="ID" MaxLength="4" />
+                <TextBox Grid.Column="1" Text="{Binding NewVlanNameInput, Mode=TwoWay}" PlaceholderText="Name (optional)" MaxLength="64" />
+                <Button Grid.Column="2" Content="Add VLAN" Classes="Primary" Command="{Binding CreateVlanCommand}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- MAC address table (Phase 25) - a switch's learned MAC -> port forwarding table.
+             Runtime state; read-only here. Shown only for a switch device. -->
+        <StackPanel Spacing="{DynamicResource Space.SM}" IsVisible="{Binding IsSwitch}">
+          <TextBlock Text="MAC ADDRESS TABLE" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="6">
+              <TextBlock Text="No MAC addresses learned yet." Classes="Caption"
+                         IsVisible="{Binding !HasMacAddressTable}" />
+
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8"
+                    IsVisible="{Binding HasMacAddressTable}">
+                <TextBlock Grid.Column="0" Text="VLAN" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="MAC Address" Classes="Label" />
+                <TextBlock Grid.Column="2" Text="Port" Classes="Label" />
+                <TextBlock Grid.Column="3" Text="Age" Classes="Label" />
+                <TextBlock Grid.Column="4" Text="Type" Classes="Label" />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding MacAddressTable}"
+                            IsVisible="{Binding HasMacAddressTable}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SwitchMacEntryRow">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+                      <TextBlock Grid.Column="0" Text="{Binding VlanText}" Classes="Caption" />
+                      <TextBlock Grid.Column="1" Text="{Binding MacText}" Classes="Caption Mono" />
+                      <TextBlock Grid.Column="2" Text="{Binding PortText}" Classes="Caption" />
+                      <TextBlock Grid.Column="3" Text="{Binding AgeText}" Classes="Caption" />
+                      <TextBlock Grid.Column="4" Text="{Binding TypeText}" Classes="Caption" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="Refresh" Classes="Secondary" Command="{Binding RefreshMacTableCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Routing table (Phase 27) - a router's IPv4 routing table. Connected routes are derived
+             from interface addressing; runtime state, read-only here. Shown only for a router. -->
+        <StackPanel Spacing="{DynamicResource Space.SM}" IsVisible="{Binding IsRouter}">
+          <TextBlock Text="ROUTING TABLE" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="6">
+              <TextBlock Text="No routes yet - configure an IPv4 address on an interface." Classes="Caption"
+                         IsVisible="{Binding !HasRoutingTable}" />
+
+              <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8"
+                    IsVisible="{Binding HasRoutingTable}">
+                <TextBlock Grid.Column="0" Text="" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="Network" Classes="Label" />
+                <TextBlock Grid.Column="2" Text="Next Hop" Classes="Label" />
+                <TextBlock Grid.Column="3" Text="Interface" Classes="Label" />
+                <TextBlock Grid.Column="4" Text="Type" Classes="Label" />
+                <TextBlock Grid.Column="5" Text="Status" Classes="Label" />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding RoutingTable}"
+                            IsVisible="{Binding HasRoutingTable}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:RouterRouteRow">
+                    <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+                      <TextBlock Grid.Column="0" Text="{Binding CodeText}" Classes="Caption Mono" />
+                      <TextBlock Grid.Column="1" Classes="Caption Mono">
+                        <Run Text="{Binding NetworkText}" /><Run Text="{Binding PrefixText}" />
+                      </TextBlock>
+                      <TextBlock Grid.Column="2" Text="{Binding NextHopText}" Classes="Caption" />
+                      <TextBlock Grid.Column="3" Text="{Binding InterfaceText}" Classes="Caption" />
+                      <TextBlock Grid.Column="4" Text="{Binding TypeText}" Classes="Caption" />
+                      <TextBlock Grid.Column="5" Text="{Binding StatusText}" Classes="Caption" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="Refresh" Classes="Secondary" Command="{Binding RefreshRoutingTableCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Static routes (Phase 28) - a router's manually configured static and default routes.
+             Persisted configuration; managed through IStaticRouteService. Shown only for a router. -->
+        <StackPanel Spacing="{DynamicResource Space.SM}" IsVisible="{Binding IsRouter}">
+          <TextBlock Text="STATIC ROUTES" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="6">
+              <TextBlock Text="No static routes configured. Add one below to reach a network that is not directly connected."
+                         Classes="Caption" TextWrapping="Wrap"
+                         IsVisible="{Binding !HasStaticRoutes}" />
+
+              <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8"
+                    IsVisible="{Binding HasStaticRoutes}">
+                <TextBlock Grid.Column="0" Text="Destination" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="Next Hop" Classes="Label" />
+                <TextBlock Grid.Column="2" Text="Interface" Classes="Label" />
+                <TextBlock Grid.Column="3" Text="Type" Classes="Label" />
+                <TextBlock Grid.Column="4" Text="Status" Classes="Label" />
+                <TextBlock Grid.Column="5" Text="" Classes="Label" />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding StaticRoutes}" IsVisible="{Binding HasStaticRoutes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:StaticRouteRow">
+                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+                      <TextBlock Grid.Column="0" Text="{Binding DestinationText}" Classes="Caption Mono" />
+                      <TextBlock Grid.Column="1" Text="{Binding NextHopText}" Classes="Caption Mono" />
+                      <TextBlock Grid.Column="2" Text="{Binding InterfaceText}" Classes="Caption" />
+                      <TextBlock Grid.Column="3" Text="{Binding TypeText}" Classes="Caption" />
+                      <TextBlock Grid.Column="4" Text="{Binding StatusText}" Classes="Caption" />
+                      <Button Grid.Column="5" Content="Edit" Classes="Secondary"
+                              Command="{Binding $parent[ItemsControl].((vm:DevicePropertiesViewModel)DataContext).EditStaticRouteCommand}"
+                              CommandParameter="{Binding}" />
+                      <Button Grid.Column="6" Content="Delete" Classes="Secondary"
+                              Command="{Binding $parent[ItemsControl].((vm:DevicePropertiesViewModel)DataContext).RemoveStaticRouteCommand}"
+                              CommandParameter="{Binding}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Rectangle Height="1" Fill="{DynamicResource Brush.Border.Default}" Margin="0,2" />
+
+              <TextBlock Text="ADD / EDIT ROUTE" Classes="Label" />
+
+              <Grid ColumnDefinitions="*,72" ColumnSpacing="8">
+                <TextBox Grid.Column="0" Text="{Binding StaticRouteDestinationInput, Mode=TwoWay}"
+                         PlaceholderText="Destination network (192.168.2.0)" MaxLength="15" />
+                <TextBox Grid.Column="1" Text="{Binding StaticRoutePrefixInput, Mode=TwoWay}"
+                         PlaceholderText="/24" MaxLength="3" />
+              </Grid>
+
+              <TextBox Text="{Binding StaticRouteNextHopInput, Mode=TwoWay}"
+                       PlaceholderText="Next hop (10.0.0.2) - optional" MaxLength="15" />
+              <TextBox Text="{Binding StaticRouteInterfaceInput, Mode=TwoWay}"
+                       PlaceholderText="Outgoing interface (Gi0/1) - optional" MaxLength="40" />
+
+              <Border Classes="Notification Error"
+                      IsVisible="{Binding StaticRouteValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding StaticRouteValidationError}" Classes="Body" TextWrapping="Wrap" />
+              </Border>
+
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="Default Route" Classes="Secondary" Command="{Binding UseDefaultRouteTemplateCommand}" />
+                <Button Content="Cancel" Classes="Secondary" Command="{Binding CancelStaticRouteEditCommand}"
+                        IsVisible="{Binding IsEditingStaticRoute}" />
+                <Button Content="{Binding StaticRouteSaveButtonText}" Classes="Primary"
+                        Command="{Binding AddOrUpdateStaticRouteCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- DNS client configuration (Phase 23) - manual/programmatic only; DHCP-provided DNS
+             configuration is Phase 24. Device-scoped (IDnsClientConfigurationStore), not per-interface. -->
+        <StackPanel Spacing="{DynamicResource Space.SM}">
+          <TextBlock Text="DNS" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="8">
+              <TextBlock Text="DNS Server" Classes="Label" />
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <TextBox Grid.Column="0" Text="{Binding DnsServerAddressInput}" PlaceholderText="192.168.1.53" />
+                <Button Grid.Column="1" Content="Clear" Classes="Secondary" Command="{Binding ClearDnsServerCommand}" />
+                <Button Grid.Column="2" Content="Apply" Classes="Primary" Command="{Binding ApplyDnsServerCommand}" />
+              </Grid>
+              <Border Classes="Notification Error"
+                      IsVisible="{Binding DnsServerValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding DnsServerValidationError}" Classes="Body" TextWrapping="Wrap" />
+              </Border>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Information -->
+        <StackPanel Spacing="{DynamicResource Space.SM}">
+          <TextBlock Text="INFORMATION" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Device ID" Classes="Label" />
+              <TextBlock Text="{Binding DeviceIdText}" Classes="Caption Mono" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+
+   </Panel>
+  </Border>
+
+</UserControl>

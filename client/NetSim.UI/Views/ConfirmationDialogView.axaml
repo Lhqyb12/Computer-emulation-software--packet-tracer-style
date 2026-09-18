@@ -1,0 +1,20 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.ConfirmationDialogView"
+             x:DataType="vm:ConfirmationDialogViewModel">
+
+  <StackPanel Spacing="16" Width="360">
+    <TextBlock Text="{Binding Title}" Classes="DialogTitle" />
+    <TextBlock Text="{Binding Message}" Classes="BodySecondary" TextWrapping="Wrap" />
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="{Binding CancelText}" Classes="Secondary" Command="{Binding CancelCommand}" />
+      <Button Content="{Binding ConfirmText}"
+              Classes.Primary="{Binding !IsDestructive}"
+              Classes.Destructive="{Binding IsDestructive}"
+              Command="{Binding ConfirmCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

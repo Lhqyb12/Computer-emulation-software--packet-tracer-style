@@ -1,0 +1,47 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Surface containers, applied via Classes on a Border. These are the building blocks future
+    screens (device properties, AI assistant, statistics, settings, diagnostics) reuse instead
+    of each hand-rolling its own border/background/radius combination.
+  -->
+
+  <!-- Standard card: content grouped on a surface one level above the panel behind it -->
+  <Style Selector="Border.Card">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+    <Setter Property="Padding" Value="20" />
+  </Style>
+
+  <!-- Elevated card: floating content (popovers, callouts) - shadow instead of resting flush -->
+  <Style Selector="Border.CardElevated">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Elevated}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+    <Setter Property="Padding" Value="20" />
+    <Setter Property="BoxShadow" Value="{DynamicResource Shadow.SM}" />
+  </Style>
+
+  <!-- Panel: a large content region (e.g. the shell's main content area) -->
+  <Style Selector="Border.Panel">
+    <Setter Property="Background" Value="{DynamicResource Brush.Bg.Panel}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.LG}" />
+    <Setter Property="Padding" Value="20" />
+  </Style>
+
+  <!-- Group container: a tighter, lower-emphasis grouping inside a card/panel -->
+  <Style Selector="Border.GroupContainer">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.SM}" />
+    <Setter Property="Padding" Value="12" />
+  </Style>
+
+</Styles>

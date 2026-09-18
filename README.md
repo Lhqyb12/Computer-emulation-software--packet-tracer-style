@@ -3,21 +3,43 @@
 A desktop workspace for building network topologies and watching protocols work —
 a modern take on tools like Cisco Packet Tracer.
 
-> **Current status:** only the **login / register screen** is being built, and only
-> its **display** (no server, no database yet). Everything else is future work.
+> **Current status:** login/register work end to end against the real server + database.
+> The network simulator workspace (topology canvas, device library, the full protocol
+> engine) has been ported in from the `NetworkSimulator` reference project and is wired
+> in **stage 1** only: it shows and works fully locally/in-memory after sign-in, with no
+> server or database involvement yet. Stage 2 (server-side project storage) and stage 3
+> (connecting the client to it) are future work.
 
 ## Layout
 
 ```
 FinalProjectCyber/
-├── client/                     ← the desktop app
+├── client/                          ← the desktop app
 │   ├── NetSim.Client.sln
-│   └── NetSim.App/             Avalonia UI 12 · .NET 9 · MVVM
+│   ├── NetSim.App/                  Avalonia UI 12 · .NET 9 · MVVM · composition root
+│   ├── NetSim.Core/                 Protocol/domain engine (Ethernet, ARP, IPv4/IPv6, ICMP,
+│   │                                TCP, UDP, DNS, DHCP, switching+VLAN, routing, topology)
+│   ├── NetSim.Application/          Use-case layer: canvas interaction, device/network/
+│   │                                project services - depends on NetSim.Core
+│   ├── NetSim.UI/                   Avalonia views/view models for the workspace (canvas,
+│   │                                device library, projects, settings) - depends on
+│   │                                NetSim.Application
+│   ├── NetSim.Core.Tests/
+│   └── NetSim.Application.Tests/
 │
-└── server/                     ← ASP.NET Core Web API (scaffold only, /health)
+└── server/                          ← ASP.NET Core Web API (auth: EF Core + PostgreSQL)
     ├── NetSim.Server.sln
-    └── NetSim.Server/
+    ├── NetSim.Server/
+    └── NetSim.Server.Tests/
 ```
+
+`NetSim.Core`/`NetSim.Application`/`NetSim.UI` were ported from a separate, further-along
+reference project (`NetworkSimulator`) that built the simulation engine standalone (no auth,
+local LiteDB persistence). Here, persistence for network projects is deferred to a future
+stage built on this repo's own server + PostgreSQL instead - there is no
+`NetSim.Infrastructure`/LiteDB layer. `NetSim.App/Persistence/InMemoryProjectRepository.cs`
+is a stage-1 stand-in so the workspace's project-management commands have something to talk
+to until that stage exists.
 
 ## Run the client
 

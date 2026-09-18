@@ -1,0 +1,38 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.DnsLookupDialogView"
+             x:DataType="vm:DnsLookupDialogViewModel">
+
+  <StackPanel Spacing="16" Width="440">
+    <TextBlock Text="DNS Lookup" Classes="DialogTitle" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="{Binding SourceDescription}" Classes="Caption" />
+      <TextBlock Text="{Binding DnsServerText}" Classes="Caption Mono" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Domain Name" Classes="Label" />
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+        <TextBox Grid.Column="0" Text="{Binding DomainInput}" PlaceholderText="www.example.com" />
+        <ComboBox Grid.Column="1" ItemsSource="{Binding RecordTypes}" SelectedItem="{Binding SelectedRecordType}" Width="90" />
+        <Button Grid.Column="2" Content="Lookup" Classes="Primary" Command="{Binding LookupCommand}" IsEnabled="{Binding !IsBusy}" />
+      </Grid>
+    </StackPanel>
+
+    <Border Classes="Notification Error"
+            IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding ValidationError}" Classes="Body" TextWrapping="Wrap" />
+    </Border>
+
+    <Border Classes="GroupContainer" IsVisible="{Binding HasRun}">
+      <TextBlock Text="{Binding ResultText}" Classes="Caption Mono" TextWrapping="Wrap" />
+    </Border>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Close" Classes="Secondary" Command="{Binding CloseCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

@@ -1,0 +1,128 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             xmlns:controls="using:NetSim.UI.Controls"
+             xmlns:views="using:NetSim.UI.Views"
+             x:Class="NetSim.UI.Views.NetworkWorkspaceView"
+             x:DataType="vm:NetworkWorkspaceViewModel">
+
+  <Grid>
+
+    <!-- No project open: graceful placeholder instead of an empty/broken canvas -->
+    <Border IsVisible="{Binding !HasCurrentProject}">
+      <StackPanel Classes="EmptyState">
+        <PathIcon Data="{StaticResource Icon.Network}" />
+        <TextBlock Text="No project is currently open" Classes="EmptyStateTitle" />
+        <TextBlock Text="Open or create a project to start building your network."
+                   Classes="EmptyStateDescription" />
+        <Button Content="Go to Projects" Classes="Primary" Margin="0,8,0,0" Command="{Binding GoToProjectsCommand}" />
+      </StackPanel>
+    </Border>
+
+    <!-- Workspace: canvas toolbar + device library placeholder + Network Canvas -->
+    <DockPanel IsVisible="{Binding HasCurrentProject}">
+
+      <Border Classes="Toolbar" DockPanel.Dock="Top">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+
+          <ToggleButton Classes="ToolbarButton"
+                        IsChecked="{Binding Canvas.IsSelectToolActive, Mode=OneWay}"
+                        Command="{Binding Canvas.SelectToolCommand}"
+                        ToolTip.Tip="Select">
+            <PathIcon Data="{StaticResource Icon.Cursor}" Classes="SM" />
+          </ToggleButton>
+          <ToggleButton Classes="ToolbarButton"
+                        IsChecked="{Binding Canvas.IsPanToolActive, Mode=OneWay}"
+                        Command="{Binding Canvas.PanToolCommand}"
+                        ToolTip.Tip="Pan">
+            <PathIcon Data="{StaticResource Icon.Pan}" Classes="SM" />
+          </ToggleButton>
+          <ToggleButton Classes="ToolbarButton"
+                        IsChecked="{Binding Canvas.IsConnectToolActive, Mode=OneWay}"
+                        Command="{Binding Canvas.ConnectToolCommand}"
+                        ToolTip.Tip="Connect (click two device interfaces to cable them)">
+            <PathIcon Data="{StaticResource Icon.Connection}" Classes="SM" />
+          </ToggleButton>
+
+          <Rectangle Classes="ToolbarSeparator" />
+
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.ZoomOutCommand}" ToolTip.Tip="Zoom Out">
+            <PathIcon Data="{StaticResource Icon.ZoomOut}" Classes="SM" />
+          </Button>
+          <TextBlock Text="{Binding Canvas.ZoomPercentText}" Classes="Caption"
+                     VerticalAlignment="Center" Width="40" TextAlignment="Center" />
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.ZoomInCommand}" ToolTip.Tip="Zoom In">
+            <PathIcon Data="{StaticResource Icon.ZoomIn}" Classes="SM" />
+          </Button>
+
+          <Rectangle Classes="ToolbarSeparator" />
+
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.FitToViewCommand}" ToolTip.Tip="Fit to View">
+            <PathIcon Data="{StaticResource Icon.FitToView}" Classes="SM" />
+          </Button>
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.ResetViewCommand}" ToolTip.Tip="Reset View">
+            <PathIcon Data="{StaticResource Icon.ViewReset}" Classes="SM" />
+          </Button>
+
+          <Rectangle Classes="ToolbarSeparator" />
+
+          <ToggleButton Classes="ToolbarButton"
+                        IsChecked="{Binding Canvas.IsGridVisible, Mode=OneWay}"
+                        Command="{Binding Canvas.ToggleGridCommand}"
+                        ToolTip.Tip="Toggle Grid">
+            <PathIcon Data="{StaticResource Icon.Grid}" Classes="SM" />
+          </ToggleButton>
+          <ToggleButton Classes="ToolbarButton"
+                        IsChecked="{Binding Canvas.IsSnapToGridEnabled, Mode=OneWay}"
+                        Command="{Binding Canvas.ToggleSnapToGridCommand}"
+                        ToolTip.Tip="Snap to Grid">
+            <PathIcon Data="{StaticResource Icon.Snap}" Classes="SM" />
+          </ToggleButton>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Device Library (Phase 11) -->
+      <views:DeviceLibraryView DockPanel.Dock="Left" DataContext="{Binding DeviceLibrary}" />
+
+      <!-- Device Properties (Phase 12) -->
+      <views:DevicePropertiesView DockPanel.Dock="Right" DataContext="{Binding DeviceProperties}" />
+
+      <!-- Network Canvas -->
+      <Panel>
+        <controls:NetworkCanvasControl ViewModel="{Binding Canvas}"
+                                        CanvasBackground="{DynamicResource Brush.Canvas.Background}"
+                                        GridBrush="{DynamicResource Brush.Canvas.Grid}"
+                                        ItemFillBrush="{DynamicResource Brush.Surface.Elevated}"
+                                        ItemBorderBrush="{DynamicResource Brush.Border.Strong}"
+                                        ItemTextBrush="{DynamicResource Brush.Text.Primary}"
+                                        HoverBrush="{DynamicResource Brush.Accent.Hover}"
+                                        SelectionBrush="{DynamicResource Brush.Canvas.Selection}"
+                                        MarqueeFillBrush="{DynamicResource Brush.Accent.Subtle}"
+                                        ConnectionBrush="{DynamicResource Brush.Canvas.Connection}"
+                                        ConnectionSelectedBrush="{DynamicResource Brush.Canvas.Selection}"
+                                        AnchorBrush="{DynamicResource Brush.Canvas.Anchor}"
+                                        AnchorHighlightBrush="{DynamicResource Brush.Success}"
+                                        AnchorDisabledBrush="{DynamicResource Brush.Text.Disabled}"
+                                        InvalidBrush="{DynamicResource Brush.Error}" />
+
+        <StackPanel Classes="EmptyState" IsHitTestVisible="False" IsVisible="{Binding Canvas.IsWorkspaceEmpty}">
+          <PathIcon Data="{StaticResource Icon.Network}" />
+          <TextBlock Text="Your network is empty" Classes="EmptyStateTitle" />
+          <TextBlock Text="Add devices to start building your topology." Classes="EmptyStateDescription" />
+        </StackPanel>
+
+        <!-- World-coordinate readout under the pointer - see docs/architecture/canvas-interaction.md -->
+        <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12"
+                Background="{DynamicResource Brush.Bg.Panel}" BorderBrush="{DynamicResource Brush.Border.Default}"
+                BorderThickness="1" CornerRadius="{DynamicResource Radius.SM}" Padding="8,4"
+                IsHitTestVisible="False">
+          <TextBlock Text="{Binding Canvas.PointerCoordinatesText}" Classes="Caption" FontFamily="Consolas,monospace" />
+        </Border>
+      </Panel>
+
+    </DockPanel>
+
+  </Grid>
+
+</UserControl>

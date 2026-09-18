@@ -1,0 +1,35 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.NewProjectDialogView"
+             x:DataType="vm:NewProjectDialogViewModel">
+
+  <StackPanel Spacing="16" Width="380">
+    <TextBlock Text="New Project" Classes="DialogTitle" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Project Name" Classes="Label" />
+      <TextBox Text="{Binding Name}" PlaceholderText="e.g. Campus Network" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Description (optional)" Classes="Label" />
+      <TextBox Text="{Binding Description}"
+                PlaceholderText="What is this project for?"
+                AcceptsReturn="True"
+                TextWrapping="Wrap"
+                Height="76" />
+    </StackPanel>
+
+    <Border Classes="Notification Error"
+            IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding ValidationError}" Classes="Body" TextWrapping="Wrap" />
+    </Border>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Cancel" Classes="Secondary" Command="{Binding CancelCommand}" />
+      <Button Content="Create" Classes="Primary" Command="{Binding CreateCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

@@ -1,0 +1,29 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Typography tokens: font families, sizes and weights. Reusable text styles (Classes on
+    TextBlock, keyed by role - Heading1, Body, Mono, etc.) are defined in Styles/Typography.axaml
+    and build on top of these values, so the two stay separated: tokens here, usage there.
+  -->
+
+  <FontFamily x:Key="Font.Family.Default">avares://Avalonia.Fonts.Inter/Assets#Inter</FontFamily>
+  <FontFamily x:Key="Font.Family.Mono">Cascadia Mono,Consolas,Menlo,DejaVu Sans Mono,monospace</FontFamily>
+
+  <!-- Sizes -->
+  <x:Double x:Key="Font.Size.Display">28</x:Double>
+  <x:Double x:Key="Font.Size.H1">22</x:Double>
+  <x:Double x:Key="Font.Size.H2">17</x:Double>
+  <x:Double x:Key="Font.Size.Subtitle">14</x:Double>
+  <x:Double x:Key="Font.Size.Body">13</x:Double>
+  <x:Double x:Key="Font.Size.Small">12</x:Double>
+  <x:Double x:Key="Font.Size.Caption">11</x:Double>
+  <x:Double x:Key="Font.Size.Mono">13</x:Double>
+
+  <!-- Weights -->
+  <FontWeight x:Key="Font.Weight.Regular">Normal</FontWeight>
+  <FontWeight x:Key="Font.Weight.Medium">Medium</FontWeight>
+  <FontWeight x:Key="Font.Weight.SemiBold">SemiBold</FontWeight>
+  <FontWeight x:Key="Font.Weight.Bold">Bold</FontWeight>
+
+</ResourceDictionary>

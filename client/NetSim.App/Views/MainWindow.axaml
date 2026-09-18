@@ -10,7 +10,33 @@
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Bg}">
 
-    <Grid ColumnDefinitions="Auto,*">
+    <Panel>
+
+    <!-- ============ SIGNED-IN: the simulator workspace, full window ============ -->
+    <Grid RowDefinitions="Auto,*" IsVisible="{Binding IsWorkspaceActive}">
+        <Border Grid.Row="0" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}"
+                BorderThickness="0,0,0,1" Padding="16,10">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Border Background="{StaticResource Accent}" CornerRadius="7" Padding="5">
+                        <PathIcon Data="{StaticResource Icon.Hub}" Width="15" Height="15"
+                                  Foreground="{StaticResource OnAccent}" />
+                    </Border>
+                    <TextBlock Text="NetSim" Classes="logo" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Classes="hint" VerticalAlignment="Center" Text="{Binding SignedInEmail}" />
+                    <Button Classes="ghost" Content="Manage users" Command="{Binding ManageUsersCommand}"
+                            IsVisible="{Binding IsAdmin}" />
+                    <Button Classes="ghost" Content="Sign out" Command="{Binding SignOutCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
+    </Grid>
+
+    <!-- ============ SIGNED-OUT: login / register, narrow branding+card layout ============ -->
+    <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsAuthActive}">
 
         <!-- ============ LEFT: branding (hidden on narrow windows) ============ -->
         <Border Grid.Column="0"
@@ -90,4 +116,6 @@
             </Panel>
         </ScrollViewer>
     </Grid>
+
+    </Panel>
 </Window>
