@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using System.Net.Http.Headers;
+
 
 namespace NetSim.App.Services;
 
@@ -12,6 +14,8 @@ public class AuthResult
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
+
 }
 
 // שורה אחת בטבלת ניהול המשתמשים - תואם ל-UserSummaryDto בצד השרת
@@ -49,12 +53,14 @@ public class AuthApiClient
 
     // callerEmail הוא האימייל של מי שמחובר כרגע - השרת קורא אותו מתוך ה-Header בשם X-User-Email
     // כדי להחליט אם מותר לגשת לנקודת הקצה הזו (ראי UsersController.GetCallerAsync)
-    public async Task<List<UserSummaryDto>?> GetUsersAsync(string callerEmail)
+    public async Task<List<UserSummaryDto>?> GetUsersAsync( string token)
     {
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "api/users");
-            request.Headers.Add("X-User-Email", callerEmail);
+          
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
 
             var response = await _http.SendAsync(request);
             if (!response.IsSuccessStatusCode)
@@ -68,12 +74,14 @@ public class AuthApiClient
         }
     }
 
-    public async Task<bool> DeleteUserAsync(int id, string callerEmail)
+    public async Task<bool> DeleteUserAsync(int id, string token)
     {
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, $"api/users/{id}");
-            request.Headers.Add("X-User-Email", callerEmail);
+          
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
 
             var response = await _http.SendAsync(request);
             return response.IsSuccessStatusCode;

@@ -17,4 +17,6 @@ public class AuthResponse
     // string.Empty rather than null - so code that uses the message (e.g. displaying it in the UI) never crashes
     public string Message { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
+
 }

@@ -12,14 +12,19 @@ namespace NetSim.Server.Services;
 public class AuthService
 {
     private readonly AppDbContext _db;
-     private readonly EmailSender _email;
+    private readonly EmailSender _email;
+    private readonly TokenService _tokens;
+
+    private const int MaxResetAttempts = 5;
+
 
     // Dependency Injection again: AppDbContext is injected by the DI container (registered as Scoped in
     // Program.cs), so this class doesn't know/care how the connection is actually created
-    public AuthService(AppDbContext db, EmailSender email)
+    public AuthService(AppDbContext db, EmailSender email, TokenService tokens)
     {
         _db = db;
         _email = email;
+        _tokens = tokens;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -95,7 +100,14 @@ public class AuthService
        user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
-        return new AuthResponse { Success = true, Message = "Signed in.", Role = user.Role };
+        return new AuthResponse
+        {
+            Success = true,
+            Message = "Signed in.",
+            Role = user.Role,
+            Token = _tokens.CreateToken(user),
+        };
+
 
     }
 
@@ -114,6 +126,8 @@ public class AuthService
             // בדיוק כמו סיסמה - שומרים רק hash של הקוד, לא את הקוד עצמו
             user.ResetCodeHash = PasswordHasher.Hash(code);
             user.ResetCodeExpiresAt = DateTime.UtcNow.AddMinutes(15);
+            user.ResetAttempts = 0;
+
             await _db.SaveChangesAsync();
 
             await _email.SendAsync(
@@ -140,7 +154,17 @@ public class AuthService
         // מפני Timing Attack על הקוד עצמו
         bool codeOk = PasswordHasher.Verify(request.Code, user.ResetCodeHash);
         if (!codeOk)
+        {
+            user.ResetAttempts++;
+            if (user.ResetAttempts >= MaxResetAttempts)
+            {
+                user.ResetCodeHash = null;
+                user.ResetCodeExpiresAt = null;
+                user.ResetAttempts = 0;
+            }
+            await _db.SaveChangesAsync();
             return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+        }
 
         // כאן, בניגוד לבדיקות שלמעלה, כן מחזירים הודעה ספציפית (חולשת הסיסמה) - כי בשלב הזה כבר
         // אימתנו שהקוד נכון, אז אין כבר שום סיכון של User Enumeration - זה בדיוק כמו RegisterAsync
@@ -153,6 +177,7 @@ public class AuthService
         // וגם מבטלים כל בקשת איפוס ישנה שהייתה פעילה
         user.ResetCodeHash = null;
         user.ResetCodeExpiresAt = null;
+        user.ResetAttempts = 0;
         await _db.SaveChangesAsync();
 
         return new AuthResponse { Success = true, Message = "Password has been reset." };

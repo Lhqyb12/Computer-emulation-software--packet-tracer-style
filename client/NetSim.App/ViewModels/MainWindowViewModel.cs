@@ -20,6 +20,8 @@ public sealed class MainWindowViewModel : ViewModelBase
     private object _currentPage = null!;
     private string? _signedInEmail;
     private string? _signedInRole;
+    private string? _signedInToken;
+
 
     public MainWindowViewModel(IServiceProvider services) //constructor
     {
@@ -99,6 +101,8 @@ public sealed class MainWindowViewModel : ViewModelBase
         // to "nobody signed in" - it's not just a startup-only path
         SignedInEmail = null;
         SignedInRole = null;
+        _signedInToken = null;
+
 
         // A fresh instance every time (not resolved from DI - LoginViewModel has no dependencies of
         // its own here) so that any half-filled form state doesn't linger if the user comes back to
@@ -131,12 +135,14 @@ public sealed class MainWindowViewModel : ViewModelBase
     }
 
 
-        private void ShowSignedIn(string email, string role)
+    private void ShowSignedIn(string email, string role, string token)
     {
         SignedInEmail = email;
         SignedInRole = role;
+        _signedInToken = token;
         ShowWorkspace();
     }
+
 
     private void ShowWorkspace()
     {
@@ -153,10 +159,10 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private void ShowUsers()
     {
-        if (SignedInEmail is null)
+        if ( _signedInToken is null)
             return;
 
-        var users = new UsersViewModel(SignedInEmail);
+         var users = new UsersViewModel( _signedInToken);
         // When the user clicks "Back" on the users screen, go back to the simulator workspace
         users.BackRequested += ShowWorkspace;
         CurrentPage = users;

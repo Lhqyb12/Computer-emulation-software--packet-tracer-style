@@ -35,5 +35,7 @@ public class User
     public string Role { get; set; } = "User";
     public string? ResetCodeHash { get; set; }
     public DateTime? ResetCodeExpiresAt { get; set; }
+    public int ResetAttempts { get; set; } //number of attempts for writing the code that the mails sends for reset
+
 
 }

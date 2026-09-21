@@ -1,6 +1,11 @@
 using Microsoft.EntityFrameworkCore;  // UseNpgsql / AddDbContext - connects EF Core to the PostgreSQL database
 using NetSim.Server.Data;             // AppDbContext
 using NetSim.Server.Services;         // AuthService
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 
 
 // "Top-level statements" (a C# 9+ feature): there's no explicit class Program with a static void Main here -
@@ -29,8 +34,30 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // AuthService depends on AppDbContext, which is itself Scoped by default - DbContext is not thread-safe, and
 // a single instance of it must never be shared across multiple concurrent requests/threads
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<AuthService>();
+//builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailSender>();
+builder.Services.AddScoped<TokenService>();
+
+string jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
+            RoleClaimType = ClaimTypes.Role,
+        };
+    });
+builder.Services.AddAuthorization();
+
 
 
 
@@ -69,6 +96,8 @@ if (app.Environment.IsDevelopment())
 // security-critical: without this, email+password could travel over the network as plain text and be
 // intercepted (man-in-the-middle)
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Simple liveness probe – lets the client (and us) confirm the server is up.
 // A deliberately minimal, unauthenticated endpoint (no [ApiController]/DTOs) - "MapGet" directly on the app,

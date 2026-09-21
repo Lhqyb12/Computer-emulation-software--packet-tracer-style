@@ -12,14 +12,16 @@ public sealed class UsersViewModel : ViewModelBase
     private readonly AuthApiClient _api = new();
     // The email of the currently signed-in Admin - sent as the X-User-Email header on every
     // call to the server, so it knows who's asking (see AuthApiClient.GetUsersAsync/DeleteUserAsync)
-    private readonly string _callerEmail;
+    
+    private readonly string _token;
+
 
     private bool _isBusy;
     private string? _error;
 
-    public UsersViewModel(string callerEmail)
+    public UsersViewModel(string token)
     {
-        _callerEmail = callerEmail;
+        _token = token;
         RefreshCommand = new AsyncRelayCommand(LoadAsync);
         GoBackCommand = new RelayCommand(() => BackRequested?.Invoke());
         // Fire-and-forget: loads the list the moment the screen is created, without making the
@@ -54,7 +56,8 @@ public sealed class UsersViewModel : ViewModelBase
         Error = null;
         try
         {
-            var users = await _api.GetUsersAsync(_callerEmail);
+            var users = await _api.GetUsersAsync( _token);
+
             if (users is null)
             {
                 Error = "Could not load users. Are you still signed in as an Admin?";
@@ -74,7 +77,8 @@ public sealed class UsersViewModel : ViewModelBase
     private async Task DeleteAsync(UserRowViewModel row)
     {
         Error = null;
-        bool ok = await _api.DeleteUserAsync(row.Id, _callerEmail);
+        bool ok = await _api.DeleteUserAsync(row.Id, _token);
+
         if (ok)
             Users.Remove(row);
         else

@@ -44,7 +44,8 @@ public sealed class LoginViewModel : ViewModelBase
     // MainWindowViewModel.ShowSignedIn(string email) is exactly shaped to match this signature,
     // which is what lets it be attached with += in the first place
     /// <summary>Raised after a successful sign-in, carrying the email that signed in.</summary>
-    public event Action<string, string>? SignedIn;
+    public event Action<string, string, string>? SignedIn;
+
 
     public string Email
     {
@@ -121,7 +122,8 @@ public sealed class LoginViewModel : ViewModelBase
                 // Rings the SignedIn bell - if MainWindowViewModel (or anyone else) subscribed with
                 // +=, its handler runs right here, synchronously, before this method continues. The
                 // ?. guards against calling Invoke when nobody subscribed at all (SignedIn would be null)
-                SignedIn?.Invoke(Email, result.Role);
+                SignedIn?.Invoke(Email, result.Role, result.Token);
+
             }
             else
             {
