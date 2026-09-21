@@ -72,6 +72,13 @@
             </Panel>
         </Button>
 
+        <TextBlock Classes="hint" HorizontalAlignment="Center" Text="or" />
+
+        <Button Classes="ghost" Command="{Binding GoogleSignInCommand}" Content="Continue with Google" />
+
+
+
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
             <TextBlock Classes="hint" Text="Don't have an account?" VerticalAlignment="Center" />
             <Button Classes="link" Content="Create one" Command="{Binding GoToRegisterCommand}" />

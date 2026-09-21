@@ -15,6 +15,8 @@ public class AuthResult
     public string Message { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public string Token { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+
 
 }
 
@@ -49,6 +51,9 @@ public class AuthApiClient
 
     public Task<AuthResult> ResetPasswordAsync(string email, string code, string newPassword) =>
         PostAsync("api/auth/reset-password", new { email, code, newPassword });
+    
+    public Task<AuthResult> GoogleLoginAsync(string idToken) =>
+        PostAsync("api/auth/google", new { idToken });
 
 
     // callerEmail הוא האימייל של מי שמחובר כרגע - השרת קורא אותו מתוך ה-Header בשם X-User-Email

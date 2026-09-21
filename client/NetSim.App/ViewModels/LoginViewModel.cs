@@ -11,6 +11,8 @@ namespace NetSim.App.ViewModels;
 public sealed class LoginViewModel : ViewModelBase
 {
     private readonly AuthApiClient _api = new();
+    private readonly GoogleSignInService _google = new();
+
 
     private string _email = string.Empty;
     private string _password = string.Empty;
@@ -25,6 +27,8 @@ public sealed class LoginViewModel : ViewModelBase
         
         GoToRegisterCommand = new RelayCommand(() => SwitchToRegisterRequested?.Invoke());
         GoToForgotPasswordCommand = new RelayCommand(() => SwitchToForgotPasswordRequested?.Invoke());
+        GoogleSignInCommand = new AsyncRelayCommand(SignInWithGoogleAsync, () => !IsBusy);
+
 
     }
 
@@ -73,6 +77,8 @@ public sealed class LoginViewModel : ViewModelBase
         {
             SetProperty(ref _isBusy, value);
             SignInCommand.NotifyCanExecuteChanged();
+            GoogleSignInCommand.NotifyCanExecuteChanged();
+
         }
     }
 
@@ -91,6 +97,8 @@ public sealed class LoginViewModel : ViewModelBase
     public IRelayCommand SignInCommand { get; }
     public IRelayCommand GoToRegisterCommand { get; }
     public IRelayCommand GoToForgotPasswordCommand { get; }
+    public IRelayCommand GoogleSignInCommand { get; }
+
 
 
     private async Task SignInAsync()
@@ -136,4 +144,41 @@ public sealed class LoginViewModel : ViewModelBase
             IsBusy = false;
         }
     }
+
+
+    private async Task SignInWithGoogleAsync()
+    {
+        Status = null;
+        Error = null;
+
+        IsBusy = true;
+        try
+        {
+            Status = "Complete the sign-in in your browser...";
+            string idToken = await _google.GetIdTokenAsync();
+            AuthResult result = await _api.GoogleLoginAsync(idToken);
+
+            if (result.Success)
+            {
+                Error = null;
+                Status = result.Message;
+                SignedIn?.Invoke(result.Email, result.Role, result.Token);
+            }
+            else
+            {
+                Status = null;
+                Error = result.Message;
+            }
+        }
+        catch (Exception )
+        {
+            Status = null;
+            Error = "Google sign-in was cancelled or failed.";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
 }

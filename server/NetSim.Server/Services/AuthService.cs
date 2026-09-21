@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;  // AnyAsync / FirstOrDefaultAsync - asynch
 using NetSim.Server.Data;             // AppDbContext
 using NetSim.Server.Dtos;             // RegisterRequest / LoginRequest / AuthResponse
 using NetSim.Server.Models;           // User
+using Google.Apis.Auth;
+
 
 namespace NetSim.Server.Services;
 
@@ -16,16 +18,20 @@ public class AuthService
     private readonly TokenService _tokens;
 
     private const int MaxResetAttempts = 5;
+    private readonly IConfiguration _config;
+
 
 
     // Dependency Injection again: AppDbContext is injected by the DI container (registered as Scoped in
     // Program.cs), so this class doesn't know/care how the connection is actually created
-    public AuthService(AppDbContext db, EmailSender email, TokenService tokens)
+    public AuthService(AppDbContext db, EmailSender email, TokenService tokens, IConfiguration config)
     {
         _db = db;
         _email = email;
         _tokens = tokens;
+        _config = config;
     }
+
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
@@ -110,6 +116,59 @@ public class AuthService
 
 
     }
+
+    public async Task<AuthResponse> GoogleLoginAsync(GoogleLoginRequest request)
+    {
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { _config["Google:ClientId"]! }
+            };
+            payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
+        }
+        catch (InvalidJwtException)
+        {
+            return new AuthResponse { Success = false, Message = "Google sign-in failed." };
+        }
+
+        if (!payload.EmailVerified)
+            return new AuthResponse { Success = false, Message = "Your Google email is not verified." };
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.GoogleId == payload.Subject)
+                   ?? await _db.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
+
+        if (user is null)
+        {
+            user = new User
+            {
+                Username = payload.Name ?? payload.Email,
+                Email = payload.Email,
+                PasswordHash = string.Empty,
+                GoogleId = payload.Subject,
+            };
+            _db.Users.Add(user);
+        }
+        else if (user.GoogleId is null)
+        {
+            user.GoogleId = payload.Subject;
+        }
+
+        user.LastLoginAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return new AuthResponse
+        {
+            Success = true,
+            Message = "Signed in with Google.",
+            Email = user.Email,
+            Role = user.Role,
+            Token = _tokens.CreateToken(user),
+        };
+
+    }
+
 
     
     public async Task<AuthResponse> ForgotPasswordAsync(ForgotPasswordRequest request)

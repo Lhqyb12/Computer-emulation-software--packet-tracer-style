@@ -73,5 +73,15 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("google")]
+    public async Task<ActionResult<AuthResponse>> Google(GoogleLoginRequest request)
+    {
+        var result = await _auth.GoogleLoginAsync(request);
+        if (!result.Success)
+            return Unauthorized(result);
+        return Ok(result);
+    }
+
+
 
 }
