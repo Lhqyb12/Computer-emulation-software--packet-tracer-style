@@ -9,6 +9,6 @@ namespace NetSim.App.ViewModels;
 /// a helper that stores a new value AND notifies the UI so bindings refresh.
 /// </para>
 /// </summary>
-public abstract class ViewModelBase : ObservableObject
+public abstract class ViewModelBase : ObservableObject //abstract=its forbidden to create an object directly from this class
 {
 }

@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using NetSim.App.Composition;
-using NetSim.App.ViewModels;
-using NetSim.App.Views;
+using NetSim.App.Composition; //
+using NetSim.App.ViewModels; //
+using NetSim.App.Views; //
 
 namespace NetSim.App;
 
@@ -12,21 +12,21 @@ public partial class App : Avalonia.Application
     // Loads App.axaml (styles, resources, the ViewLocator).
     public override void Initialize()
     {
-        AvaloniaXamlLoader.Load(this);
+        AvaloniaXamlLoader.Load(this); //load App.axaml file and settings..
     }
 
     // Runs once, after Avalonia is ready. We create the main window here.
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)//desktop=object
         {
             // Builds the simulator workspace's DI container (Application + UI services, see
             // Composition/CompositionRoot.cs). Login/register stay outside it. Runs exactly once,
             // before any window exists, so the container is fully built by the time anything
             // could ask it for a service.
-            var services = CompositionRoot.BuildServiceProvider();
+            var services = CompositionRoot.BuildServiceProvider(); //a box (in composion file) that knows what objects do we need to create
 
-            desktop.MainWindow = new MainWindow
+            desktop.MainWindow = new MainWindow //Vievs/MainWindow.axaml
             {
                 // The window's DataContext is the object its bindings read from. The container gets
                 // handed straight into MainWindowViewModel's constructor - it's the _services field

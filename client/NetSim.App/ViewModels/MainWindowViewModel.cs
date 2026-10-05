@@ -18,7 +18,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly IServiceProvider _services;
 
     private object _currentPage = null!;
-    private string? _signedInEmail;
+    private string? _signedInEmail; //?=can be null
     private string? _signedInRole;
     private string? _signedInToken;
 
@@ -49,12 +49,12 @@ public sealed class MainWindowViewModel : ViewModelBase
         get => _currentPage;
         // Private on purpose - which screen is showing is this ViewModel's own decision, nothing
         // outside this class should be able to force a screen change directly
-        private set
-        {
+        private set 
+        {//set creates value(type: object)
             // SetProperty (from the base ViewModelBase) stores the value and raises
             // PropertyChanged("CurrentPage") - this is literally how Avalonia's binding system
             // knows to refresh the window and display the new page
-            SetProperty(ref _currentPage, value);
+             SetProperty(ref _currentPage, value);//ref=command to give access to the currentpage value itself ve lo lishloh otek
 
             // IsWorkspaceActive/IsAuthActive are computed from CurrentPage below, but C# has no way
             // of knowing that automatically - changing CurrentPage doesn't by itself notify anything
@@ -81,6 +81,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         get => _signedInEmail;
         private set => SetProperty(ref _signedInEmail, value);
     }
+    
     public string? SignedInRole
     {
         get => _signedInRole;

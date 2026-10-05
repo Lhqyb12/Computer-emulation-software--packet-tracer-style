@@ -21,7 +21,7 @@ public class ViewLocator : IDataTemplate
         var type = Type.GetType(name);
 
         return type is not null
-            ? (Control)Activator.CreateInstance(type)!
+            ? (Control)Activator.CreateInstance(type)! //control=when we dont know what class is expected to be created
             : new TextBlock { Text = "View not found: " + name };
     }
 

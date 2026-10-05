@@ -36,7 +36,8 @@ public class AuthApiClient
 {
     private readonly HttpClient _http = new()
     {
-        BaseAddress = new Uri("http://localhost:5184/")
+        BaseAddress = new Uri("https://localhost:7089/")
+
     };
 
     public Task<AuthResult> RegisterAsync(string username, string email, string password) =>
@@ -101,9 +102,9 @@ public class AuthApiClient
     {
         try
         {
-            var response = await _http.PostAsJsonAsync(path, body);
+            var response = await _http.PostAsJsonAsync(path, body);//converts the emailand pass to json file, adds the path to the base adress
             var result = await response.Content.ReadFromJsonAsync<AuthResult>();
-            return result ?? new AuthResult { Success = false, Message = "No response from server." };
+            return result ?? new AuthResult { Success = false, Message = "No response from server." };//??=is null
         }
         catch (Exception)
         {

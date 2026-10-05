@@ -9,7 +9,7 @@ public class LoginRequest
     public string Email { get; set; } = string.Empty;
 
     // The password arrives here as plain text - and that's fine! It exists like this only briefly, in memory,
-    // for the duration of the request, and is encrypted in transit by HTTPS (UseHttpsRedirection in Program.cs).
+    // for the duration of the request, and is encrypted in transit by HTTPS (the server listens on HTTPS only).
     // On the server side it is never stored as-is - it's compared against the stored hash via
     // PasswordHasher.Verify and then discarded
     public string Password { get; set; } = string.Empty;

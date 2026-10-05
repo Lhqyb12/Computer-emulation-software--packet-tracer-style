@@ -47,15 +47,15 @@ public class AuthController : ControllerBase
 
     // POST /api/auth/login - also POST so the password travels in the request body, not as a visible URL parameter
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
+    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)//email+pass as LoginRequest object
     {
         var result = await _auth.LoginAsync(request);
         // 401 Unauthorized (not 400/404!) when login fails - the semantically correct status code for a failed
         // authentication attempt, as opposed to 403 Forbidden (identity known but not allowed) or 404
         // (the user doesn't exist - exactly what we do NOT want to reveal!)
         if (!result.Success)
-            return Unauthorized(result);
-        return Ok(result);
+            return Unauthorized(result);//code=401-client failed(because of wrong email or pass)
+        return Ok(result);//code=200, success
     }
     [HttpPost("forgot-password")]
     public async Task<ActionResult<AuthResponse>> ForgotPassword(ForgotPasswordRequest request)

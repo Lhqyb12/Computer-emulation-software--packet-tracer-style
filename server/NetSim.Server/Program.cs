@@ -92,9 +92,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// Forces every plain HTTP request to be redirected to HTTPS -
-// security-critical: without this, email+password could travel over the network as plain text and be
-// intercepted (man-in-the-middle)
+// The server listens on HTTPS only (see Properties/launchSettings.json), so email+password and the
+// JWT never travel as plain text. This redirect is a second layer: if an HTTP address is ever added,
+// requests to it are sent to HTTPS. It is not the protection itself - a redirect only answers after
+// the plain request has already arrived.
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

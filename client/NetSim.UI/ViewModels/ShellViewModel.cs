@@ -185,8 +185,8 @@ public partial class ShellViewModel : ViewModelBase
         SaveProjectAsCommand.NotifyCanExecuteChanged();
         CloseProjectCommand.NotifyCanExecuteChanged();
     }
-
-    private void OnCurrentViewModelChanged(object? sender, System.EventArgs e)
+                                           //who broadcast the event //extra information aboutwhat happend
+    private void OnCurrentViewModelChanged(object? sender, System.EventArgs e)//every function that has been registered to event must look like that
     {
         CurrentViewModel = _navigationService.CurrentViewModel;
         OnPropertyChanged(nameof(CanGoBack));

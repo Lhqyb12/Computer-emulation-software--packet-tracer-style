@@ -1,4 +1,4 @@
-@host = http://localhost:5184
+@host = https://localhost:7089
 
 ### הרשמה
 POST {{host}}/api/auth/register

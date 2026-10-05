@@ -23,7 +23,7 @@ public sealed class LoginViewModel : ViewModelBase
 
     public LoginViewModel()
     {
-        SignInCommand = new AsyncRelayCommand(SignInAsync, () => !IsBusy);
+        SignInCommand = new AsyncRelayCommand(SignInAsync, () => !IsBusy); //AsyncRelayCommand=for actions that take time as comunicating with the server
         
         GoToRegisterCommand = new RelayCommand(() => SwitchToRegisterRequested?.Invoke());
         GoToForgotPasswordCommand = new RelayCommand(() => SwitchToForgotPasswordRequested?.Invoke());
