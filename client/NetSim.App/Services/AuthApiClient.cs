@@ -17,6 +17,10 @@ public class AuthResult
     public string Token { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 
+    // True when the server refused a login only because the email was never verified
+    public bool NeedsVerification { get; set; }
+
+
 
 }
 
@@ -52,9 +56,18 @@ public class AuthApiClient
 
     public Task<AuthResult> ResetPasswordAsync(string email, string code, string newPassword) =>
         PostAsync("api/auth/reset-password", new { email, code, newPassword });
-    
+
     public Task<AuthResult> GoogleLoginAsync(string idToken) =>
         PostAsync("api/auth/google", new { idToken });
+
+
+    public Task<AuthResult> VerifyEmailAsync(string email, string code) =>
+        PostAsync("api/auth/verify-email", new { email, code });
+
+    public Task<AuthResult> ResendVerificationAsync(string email) =>
+        PostAsync("api/auth/resend-verification", new { email });
+
+
 
 
     // callerEmail הוא האימייל של מי שמחובר כרגע - השרת קורא אותו מתוך ה-Header בשם X-User-Email
@@ -64,7 +77,7 @@ public class AuthApiClient
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "api/users");
-          
+
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
@@ -85,7 +98,7 @@ public class AuthApiClient
         try
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, $"api/users/{id}");
-          
+
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 

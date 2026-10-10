@@ -18,23 +18,37 @@ public class AuthService
     private readonly TokenService _tokens;
 
     private const int MaxResetAttempts = 5;
+    private const int MaxVerifyAttempts = 5;
+
     private readonly IConfiguration _config;
 
 
 
     // Dependency Injection again: AppDbContext is injected by the DI container (registered as Scoped in
     // Program.cs), so this class doesn't know/care how the connection is actually created
-    public AuthService(AppDbContext db, EmailSender email, TokenService tokens, IConfiguration config)
+    // Records security events (failed logins, password resets...) for the Super Admin dashboard
+    private readonly SecurityLog _security;
+
+    public AuthService(AppDbContext db, EmailSender email, TokenService tokens, IConfiguration config,
+        SecurityLog security)
     {
         _db = db;
         _email = email;
         _tokens = tokens;
         _config = config;
+        _security = security;
     }
+
 
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
+        // Check #0: the email has to look like a real address. The client checks this too, but anyone can
+        // call the API directly and skip the client - so the server never trusts that it was checked
+        if (!EmailPolicy.IsValid(request.Email))
+            return new AuthResponse { Success = false, Message = "Please enter a valid email address." };
+
+
         // Check #1: password policy - checked first and before any DB call on purpose (fail fast).
         // If the password is weak, there's no point spending a DB query checking for a duplicate email -
         // this saves load and response time
@@ -77,9 +91,21 @@ public class AuthService
             // instead of letting an unhandled exception crash the request with a 500
             return new AuthResponse { Success = false, Message = "Email is already registered." };
         }
+        await _security.RecordAsync("Account created", user.Email, "Registered with a password - waiting for email verification");
+
+        // The account exists now, but it is locked (EmailVerified = false) until the code is typed in
+        bool sent = await SendVerificationCodeAsync(user);
+        if (!sent)
+        {
+            // We could not deliver the code, so nobody could ever unlock this account. Deleting the row
+            // lets the user fix the address (or simply try again) instead of hitting "already registered"
+            _db.Users.Remove(user);
+            await _db.SaveChangesAsync();
+            return new AuthResponse { Success = false, Message = "We couldn't send an email to that address. Check it and try again." };
+        }
 
         // Generic success message - we don't return, for example, the new user's internal Id, to avoid exposing unnecessary information
-        return new AuthResponse { Success = true, Message = "Account created." };
+        return new AuthResponse { Success = true, Message = "Account created. Check your email for a verification code." };
 
     }
 
@@ -93,7 +119,12 @@ public class AuthService
         // registered" and "the password is wrong", and therefore can't discover which email addresses are
         // registered in the system by trial and error
         if (user is null)
+        {
+            // The client gets the generic message; the real reason is written only to the owner's
+            // security log, which the client can never see
+            await _security.RecordAsync("Login failed", request.Email, "Unknown email");
             return new AuthResponse { Success = false, Message = "Wrong email or password." };
+        }
 
         // Verify recomputes PBKDF2 on the entered password, using the same salt and iteration count stored in
         // user.PasswordHash, and compares in constant time (see PasswordHasher.Verify) - again, the original
@@ -101,7 +132,25 @@ public class AuthService
         bool ok = PasswordHasher.Verify(request.Password, user.PasswordHash);
         // The exact same generic message as the "user doesn't exist" case - the consistency of the message is the important part here
         if (!ok)
+        {
+            await _security.RecordAsync("Login failed", request.Email, "Wrong password");
             return new AuthResponse { Success = false, Message = "Wrong email or password." };
+        }
+        
+        // Checked only AFTER the password was proven correct - so this answer is given only to the person
+        // who registered the account, and an attacker can't use it to find out which emails are registered
+        if (!user.EmailVerified)
+        {
+            await SendVerificationCodeAsync(user);
+            await _security.RecordAsync("Login blocked", user.Email, "Email not verified yet - a new code was sent");
+            return new AuthResponse
+            {
+                Success = false,
+                NeedsVerification = true,
+                Message = "Please verify your email first. We sent you a new code.",
+            };
+        }
+
 
        user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -130,8 +179,10 @@ public class AuthService
         }
         catch (InvalidJwtException)
         {
+            await _security.RecordAsync("Google sign-in failed", null, "The Google token was rejected");
             return new AuthResponse { Success = false, Message = "Google sign-in failed." };
         }
+
 
         if (!payload.EmailVerified)
             return new AuthResponse { Success = false, Message = "Your Google email is not verified." };
@@ -147,6 +198,9 @@ public class AuthService
                 Email = payload.Email,
                 PasswordHash = string.Empty,
                 GoogleId = payload.Subject,
+                // Google already checked this address (payload.EmailVerified above), so we don't ask again
+                EmailVerified = true,
+
             };
             _db.Users.Add(user);
         }
@@ -154,6 +208,18 @@ public class AuthService
         {
             user.GoogleId = payload.Subject;
         }
+        
+        if (!user.EmailVerified)
+        {
+            // Someone registered this address with a password but never proved they own it - it may not
+            // have been this person at all. Google has now proven who the real owner is, so the account
+            // becomes verified and the unproven password is thrown away (an empty hash never matches)
+            user.PasswordHash = string.Empty;
+            user.VerifyCodeHash = null;
+            user.VerifyCodeExpiresAt = null;
+            user.EmailVerified = true;
+        }
+
 
         user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -178,8 +244,15 @@ public class AuthService
         // אותו עיקרון בדיוק כמו ב-LoginAsync: בין אם האימייל קיים ובין אם לא, מחזירים תמיד את
         // אותה הודעה גנרית - אחרת התוקף יכול להשתמש בנקודת הקצה הזו כדי "לגלות" אילו אימיילים
         // בכלל רשומים אצלנו (User Enumeration), רק על ידי צפייה אם קיבל מייל או לא
-        if (user is not null)
+        if (user is null)
         {
+            // Many of these in a row, for different emails, is what "guessing which emails are
+            // registered" looks like from the server's side
+            await _security.RecordAsync("Password reset requested", request.Email, "Unknown email - no code was sent");
+        }
+        else
+        {
+
             string code = GenerateResetCode();
 
             // בדיוק כמו סיסמה - שומרים רק hash של הקוד, לא את הקוד עצמו
@@ -188,11 +261,24 @@ public class AuthService
             user.ResetAttempts = 0;
 
             await _db.SaveChangesAsync();
+            await _security.RecordAsync("Password reset requested", user.Email, "A reset code was sent by email");
 
-            await _email.SendAsync(
-                user.Email,
-                "Your NetSim password reset code",
-                $"Your password reset code is: {code}\n\nThis code expires in 15 minutes. If you didn't request this, you can ignore this email.");
+
+            try
+            {
+                await _email.SendAsync(
+                    user.Email,
+                    "Your NetSim password reset code",
+                    $"Your password reset code is: {code}\n\nThis code expires in 15 minutes. If you didn't request this, you can ignore this email.");
+            }
+            catch (Exception)
+            {
+                // Without this, a failed send crashed the request with a 500 - but only for emails that
+                // ARE registered, which told an attacker exactly what the generic message below hides.
+                // The failure is written to the owner's security log; the client sees no difference
+                await _security.RecordAsync("Password reset email failed", user.Email, "The email could not be sent");
+            }
+
         }
 
         return new AuthResponse { Success = true, Message = "If an account exists for that email, a reset code was sent." };
@@ -207,7 +293,12 @@ public class AuthService
         // שוב, אנטי-אנומרציה: לא לחשוף לתוקף פוטנציאלי אף פרט על למה זה נכשל
         if (user is null || user.ResetCodeHash is null || user.ResetCodeExpiresAt is null
             || user.ResetCodeExpiresAt < DateTime.UtcNow)
+
+        {
+            await _security.RecordAsync("Password reset failed", request.Email, "No active reset code for this email");
             return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+        }
+
 
         // Verify מריץ את אותה השוואה בזמן-קבוע (constant-time) שכבר מכירה מ-LoginAsync - מגנה גם כאן
         // מפני Timing Attack על הקוד עצמו
@@ -215,13 +306,21 @@ public class AuthService
         if (!codeOk)
         {
             user.ResetAttempts++;
-            if (user.ResetAttempts >= MaxResetAttempts)
+            int attempt = user.ResetAttempts;
+            bool locked = attempt >= MaxResetAttempts;
+            if (locked)
             {
                 user.ResetCodeHash = null;
                 user.ResetCodeExpiresAt = null;
                 user.ResetAttempts = 0;
             }
             await _db.SaveChangesAsync();
+
+            await _security.RecordAsync("Password reset failed", user.Email, $"Wrong code (attempt {attempt} of {MaxResetAttempts})");
+            if (locked)
+            {
+                await _security.RecordAsync("Reset code locked", user.Email, "Too many wrong codes - the code was cancelled");
+            }
             return new AuthResponse { Success = false, Message = "Invalid or expired code." };
         }
 
@@ -237,10 +336,115 @@ public class AuthService
         user.ResetCodeHash = null;
         user.ResetCodeExpiresAt = null;
         user.ResetAttempts = 0;
+        // Typing a code that was sent to this address proves ownership of it, exactly like the
+        // verification code does - so a successful reset also counts as verifying the email
+        user.EmailVerified = true;
+
         await _db.SaveChangesAsync();
+        await _security.RecordAsync("Password changed", user.Email, "Reset with an emailed code");
+
 
         return new AuthResponse { Success = true, Message = "Password has been reset." };
     }
+
+        public async Task<AuthResponse> VerifyEmailAsync(VerifyEmailRequest request)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        // One generic message for every reason this can fail (unknown email, already verified, no code,
+        // expired code) - the same anti-enumeration idea as in ResetPasswordAsync
+        if (user is null || user.EmailVerified || user.VerifyCodeHash is null
+            || user.VerifyCodeExpiresAt is null || user.VerifyCodeExpiresAt < DateTime.UtcNow)
+        {
+            await _security.RecordAsync("Email verification failed", request.Email, "No active verification code for this email");
+            return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+        }
+
+        bool codeOk = PasswordHasher.Verify(request.Code, user.VerifyCodeHash);
+        if (!codeOk)
+        {
+            // A 6-digit code has only 1,000,000 options - without a limit it could simply be guessed
+            user.VerifyAttempts++;
+            int attempt = user.VerifyAttempts;
+            bool locked = attempt >= MaxVerifyAttempts;
+            if (locked)
+            {
+                user.VerifyCodeHash = null;
+                user.VerifyCodeExpiresAt = null;
+                user.VerifyAttempts = 0;
+            }
+            await _db.SaveChangesAsync();
+
+            await _security.RecordAsync("Email verification failed", user.Email, $"Wrong code (attempt {attempt} of {MaxVerifyAttempts})");
+            if (locked)
+            {
+                await _security.RecordAsync("Verification code locked", user.Email, "Too many wrong codes - the code was cancelled");
+            }
+            return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+        }
+
+        user.EmailVerified = true;
+        // The code is single-use: once it worked, it is erased
+        user.VerifyCodeHash = null;
+        user.VerifyCodeExpiresAt = null;
+        user.VerifyAttempts = 0;
+        await _db.SaveChangesAsync();
+        await _security.RecordAsync("Email verified", user.Email, "Verified with an emailed code");
+
+        return new AuthResponse { Success = true, Message = "Email verified." };
+    }
+
+    public async Task<AuthResponse> ResendVerificationAsync(ResendVerificationRequest request)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (user is not null && !user.EmailVerified)
+        {
+            // A code lives 15 minutes, so "expires more than 14 minutes from now" means it was sent less
+            // than a minute ago. Refusing to send another one that fast stops this endpoint from being
+            // used to flood someone's inbox
+            bool sentRecently = user.VerifyCodeExpiresAt is not null
+                && user.VerifyCodeExpiresAt > DateTime.UtcNow.AddMinutes(14);
+
+            if (!sentRecently)
+            {
+                await SendVerificationCodeAsync(user);
+                await _security.RecordAsync("Verification code resent", user.Email, "A new code was sent by email");
+            }
+        }
+
+        // Always the same answer - whether the email exists, is already verified, or a code really was sent
+        return new AuthResponse { Success = true, Message = "If that account is waiting for verification, a new code was sent." };
+    }
+
+    // Creates a new verification code, stores only its hash (exactly like the reset code), and emails it.
+    // Returns false if the email could not be sent
+    private async Task<bool> SendVerificationCodeAsync(User user)
+    {
+        string code = GenerateResetCode();
+
+        user.VerifyCodeHash = PasswordHasher.Hash(code);
+        user.VerifyCodeExpiresAt = DateTime.UtcNow.AddMinutes(15);
+        user.VerifyAttempts = 0;
+        await _db.SaveChangesAsync();
+
+        try
+        {
+            await _email.SendAsync(
+                user.Email,
+                "Your NetSim verification code",
+                $"Your email verification code is: {code}\n\nThis code expires in 15 minutes. If you didn't create a NetSim account, you can ignore this email.");
+            return true;
+        }
+        catch (Exception)
+        {
+            // A broken address or an unreachable mail server must not crash the request with a 500
+            await _security.RecordAsync("Verification email failed", user.Email, "The email could not be sent");
+            return false;
+        }
+    }
+
+
 
 
     private static string GenerateResetCode()

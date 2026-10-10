@@ -42,6 +42,10 @@ public sealed class LoginViewModel : ViewModelBase
 
     /// <summary>Raised when the user asks to go to the forgot-password screen.</summary>
     public event Action? SwitchToForgotPasswordRequested;
+    
+    /// <summary>Raised when the password was correct but the email was never verified, carrying that email.</summary>
+    public event Action<string>? VerificationRequired;
+
 
 
     // Action<string> instead of a plain Action because subscribers need the email that signed in -
@@ -133,6 +137,13 @@ public sealed class LoginViewModel : ViewModelBase
                 SignedIn?.Invoke(Email, result.Role, result.Token);
 
             }
+            else if (result.NeedsVerification)
+            {
+                // The password was right, the account is just still locked - so instead of an error,
+                // take the user straight to the screen where they can type the code
+                VerificationRequired?.Invoke(Email);
+            }
+
             else
             {
                 Status = null;

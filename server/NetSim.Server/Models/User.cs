@@ -37,6 +37,14 @@ public class User
     public DateTime? ResetCodeExpiresAt { get; set; }
     public int ResetAttempts { get; set; } //number of attempts for writing the code that the mails sends for reset
     public string? GoogleId { get; set; }
+    
+    // False until the user proves they own the email address, by typing the code we emailed them
+    public bool EmailVerified { get; set; }
+    // Same three fields as the password-reset code above, but for the email-verification code
+    public string? VerifyCodeHash { get; set; }
+    public DateTime? VerifyCodeExpiresAt { get; set; }
+    public int VerifyAttempts { get; set; }
+
 
 
 

@@ -8,7 +8,10 @@
     <Panel>
 
         <!-- ================= FORM ================= -->
-        <StackPanel Spacing="14" IsVisible="{Binding !IsSuccess}">
+            <StackPanel Spacing="14">
+
+                <Button Classes="back" Command="{Binding GoToLoginCommand}" ToolTip.Tip="Back to sign in" />
+
 
             <StackPanel Spacing="5">
                 <TextBlock Classes="title" Text="Create your account" />
@@ -141,20 +144,6 @@
             </StackPanel>
         </StackPanel>
 
-        <!-- ================= SUCCESS ================= -->
-        <StackPanel Spacing="14" IsVisible="{Binding IsSuccess}" HorizontalAlignment="Stretch">
-            <Border Background="{StaticResource OkBg}" CornerRadius="30" Width="60" Height="60"
-                    HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="32" Height="32"
-                          Foreground="{StaticResource Ok}" />
-            </Border>
-            <TextBlock Classes="title" HorizontalAlignment="Center" TextAlignment="Center"
-                       Text="Account created" />
-            <TextBlock Classes="subtitle" HorizontalAlignment="Center" TextAlignment="Center"
-                       Text="Your account is ready. You can sign in now." />
-            <Button Classes="primary" Margin="0,4,0,0"
-                    Content="Continue to sign in"
-                    Command="{Binding GoToLoginCommand}" />
-        </StackPanel>
+        
     </Panel>
 </UserControl>

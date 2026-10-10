@@ -19,6 +19,11 @@ public class AuthResponse
     public string Role { get; set; } = string.Empty;
     public string Token { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    
+    // True only when a login was refused because the email was never verified - tells the client to
+    // open the "verify your email" screen instead of just showing an error
+    public bool NeedsVerification { get; set; }
+
 
 
 }

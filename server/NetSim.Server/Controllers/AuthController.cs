@@ -73,6 +73,24 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("verify-email")]
+    public async Task<ActionResult<AuthResponse>> VerifyEmail(VerifyEmailRequest request)
+    {
+        var result = await _auth.VerifyEmailAsync(request);
+        if (!result.Success)
+            return BadRequest(result);
+        return Ok(result);
+    }
+
+    [HttpPost("resend-verification")]
+    public async Task<ActionResult<AuthResponse>> ResendVerification(ResendVerificationRequest request)
+    {
+        var result = await _auth.ResendVerificationAsync(request);
+        return Ok(result);
+    }
+
+
+
     [HttpPost("google")]
     public async Task<ActionResult<AuthResponse>> Google(GoogleLoginRequest request)
     {

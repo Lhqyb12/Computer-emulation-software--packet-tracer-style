@@ -223,6 +223,36 @@
         <Setter Property="Foreground" Value="{StaticResource AccentHover}" />
     </Style>
 
+
+        <!-- Back arrow (sits at the top-left of an auth card) -->
+    <Style Selector="Button.back">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="-8,-8,0,-6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                    <PathIcon x:Name="i" Width="16" Height="16"
+                              Foreground="{StaticResource TextDim}"
+                              Data="{StaticResource Icon.Back}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.back:pointerover">
+        <Setter Property="Background" Value="#1C2536" />
+    </Style>
+    <Style Selector="Button.back:pointerover /template/ PathIcon#i">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+
+
+
     <!-- ===================== LOADING DOT ===================== -->
     <Style Selector="Ellipse.dot">
         <Setter Property="Width" Value="7" />

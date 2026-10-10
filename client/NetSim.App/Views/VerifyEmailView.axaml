@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.App.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             x:Class="NetSim.App.Views.VerifyEmailView"
+             x:DataType="vm:VerifyEmailViewModel">
+
+    <Panel>
+
+        <!-- ================= ENTER CODE ================= -->
+        <StackPanel Spacing="14" IsVisible="{Binding !IsSuccess}">
+
+            <Button Classes="back" Command="{Binding GoToLoginCommand}" ToolTip.Tip="Back to sign in" />
+
+            <StackPanel Spacing="5">
+                <TextBlock Classes="title" Text="Verify your email" />
+                <TextBlock Classes="subtitle" Text="We sent a 6-digit code to" />
+                <TextBlock Text="{Binding Email}" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource Text}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Border Classes="banner bannerError"
+                    IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                <TextBlock Classes="error" Text="{Binding Error}" />
+            </Border>
+
+            <Border Classes="banner bannerOk"
+                    IsVisible="{Binding Status, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                <TextBlock Classes="ok" Text="{Binding Status}" />
+            </Border>
+
+            <StackPanel Spacing="5">
+                <TextBlock Classes="label" Text="Verification code" />
+                <TextBox Classes="field" PlaceholderText="6-digit code" MaxLength="6" Text="{Binding Code}" />
+            </StackPanel>
+
+            <Button Classes="primary" IsDefault="True" Margin="0,2,0,0" Command="{Binding VerifyCommand}">
+                <Panel>
+                    <TextBlock Text="Verify email" IsVisible="{Binding !IsBusy}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+                        <Ellipse Classes="dot" VerticalAlignment="Center" />
+                        <TextBlock Text="Verifying…" />
+                    </StackPanel>
+                </Panel>
+            </Button>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                <TextBlock Classes="hint" Text="Didn't get the code?" VerticalAlignment="Center" />
+                <Button Classes="link" Content="Send it again" Command="{Binding ResendCodeCommand}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ================= SUCCESS ================= -->
+        <StackPanel Spacing="14" IsVisible="{Binding IsSuccess}">
+            <Border Background="{StaticResource OkBg}" CornerRadius="30" Width="60" Height="60"
+                    HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="32" Height="32"
+                          Foreground="{StaticResource Ok}" />
+            </Border>
+            <TextBlock Classes="title" HorizontalAlignment="Center" TextAlignment="Center" Text="Email verified" />
+            <TextBlock Classes="subtitle" HorizontalAlignment="Center" TextAlignment="Center"
+                       Text="Your account is ready. You can sign in now." />
+            <Button Classes="primary" Margin="0,4,0,0" Content="Continue to sign in" Command="{Binding GoToLoginCommand}" />
+        </StackPanel>
+    </Panel>
+</UserControl>

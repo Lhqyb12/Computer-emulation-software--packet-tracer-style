@@ -19,7 +19,6 @@ public sealed class RegisterViewModel : ViewModelBase
     private string _confirmPassword = string.Empty;
     private bool _isPasswordVisible;
     private bool _isBusy;
-    private bool _isSuccess;
     private string? _error;
     private string? _status;
 
@@ -31,6 +30,11 @@ public sealed class RegisterViewModel : ViewModelBase
 
     /// <summary>Raised when the user asks to go back to the sign-in screen.</summary>
     public event Action? SwitchToLoginRequested;
+
+    
+    /// <summary>Raised after the account was created, carrying the email that now has to be verified.</summary>
+    public event Action<string>? VerificationRequired;
+
 
     // ---- Fields ----
 
@@ -74,12 +78,7 @@ public sealed class RegisterViewModel : ViewModelBase
         }
     }
 
-    /// <summary>When true the view shows the "account created" confirmation instead of the form.</summary>
-    public bool IsSuccess
-    {
-        get => _isSuccess;
-        private set => SetProperty(ref _isSuccess, value);
-    }
+    
 
     // ---- Live password checklist (mirrors the server rules) ----
 
@@ -154,7 +153,8 @@ public sealed class RegisterViewModel : ViewModelBase
             {
                 Error = null;
                 Status = null;
-                IsSuccess = true;
+                VerificationRequired?.Invoke(Email);
+
             }
             else
             {

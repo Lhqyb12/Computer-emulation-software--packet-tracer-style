@@ -116,6 +116,8 @@ public sealed class MainWindowViewModel : ViewModelBase
         login.SwitchToRegisterRequested += ShowRegister;
         login.SignedIn += ShowSignedIn;
         login.SwitchToForgotPasswordRequested += ShowForgotPassword;
+        login.VerificationRequired += ShowVerifyEmail;
+
 
         CurrentPage = login;
     }
@@ -125,8 +127,21 @@ public sealed class MainWindowViewModel : ViewModelBase
         // Same pattern as ShowLogin: a fresh instance, and listen for "user wants to go back to login"
         var register = new RegisterViewModel();
         register.SwitchToLoginRequested += ShowLogin;
+        register.VerificationRequired += ShowVerifyEmail;
+
         CurrentPage = register;
     }
+
+    
+    private void ShowVerifyEmail(string email)
+    {
+        // The register screen hands us the email through its VerificationRequired event, and we pass
+        // it on to the new screen's constructor - so the user doesn't have to type it a second time
+        var verify = new VerifyEmailViewModel(email);
+        verify.SwitchToLoginRequested += ShowLogin;
+        CurrentPage = verify;
+    }
+
 
      private void ShowForgotPassword()
     {
