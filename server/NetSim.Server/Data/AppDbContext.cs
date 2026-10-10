@@ -23,6 +23,10 @@ public class AppDbContext : DbContext
     // EF Core's conventions (the table name is derived from the class name User -> "Users", without me having
     // to define that explicitly)
     public DbSet<User> Users => Set<User>();
+    
+    // The SecurityEvents table - the audit log shown in the dashboard's Security tab (see Models/SecurityEvent.cs)
+    public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
+
 
     // אילוץ ייחודיות אמיתי ברמת המסד עצמו - Postgres ידחה כל ניסיון להכניס שורה שנייה עם אותו Email,
     // גם אם (מסיבה כלשהי) הבדיקה בקוד ב-AuthService פוספסה מכל סיבה שהיא

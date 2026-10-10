@@ -5,6 +5,12 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Avalonia;
+using NetSim.Server.Dashboard;
+using NetSim.Server.Middleware;
+
+
+
 
 
 
@@ -12,6 +18,16 @@ using Microsoft.IdentityModel.Tokens;
 // the compiler generates that behind the scenes. This is the standard Minimal Hosting Model style used in new
 // ASP.NET Core projects. "args" are command-line arguments, passed automatically into CreateBuilder
 var builder = WebApplication.CreateBuilder(args);
+
+
+// The Super Admin dashboard's log: one store object, created here by hand because two different places
+// need the very same instance - the logging system writes into it, and the dashboard window reads from it.
+// AddSingleton(logStore) puts it in the DI container so the dashboard can ask for it later.
+// AddProvider plugs our provider into ASP.NET Core's logging, next to the built-in Console one
+var logStore = new DashboardLogStore();
+builder.Services.AddSingleton(logStore);
+builder.Logging.AddProvider(new DashboardLoggerProvider(logStore));
+
 
 // Controllers host the API surface (see Controllers/). OpenAPI/Swagger is dev-only.
 // AddControllers registers everything the DI container needs so that [ApiController] and attribute routing work
@@ -36,7 +52,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<AuthService>();
 //builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailSender>();
+
+// SecurityLog records security events (see Services/SecurityLog.cs). It needs to know which request is
+// being handled right now, to read the caller's IP address - AddHttpContextAccessor makes that available
+// to classes that are not controllers
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<SecurityLog>();
+
 builder.Services.AddScoped<TokenService>();
+
+
+
 
 string jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is not configured.");
@@ -55,7 +81,42 @@ builder.Services
             ClockSkew = TimeSpan.Zero,
             RoleClaimType = ClaimTypes.Role,
         };
+
+        // Hooks the JWT middleware calls at specific moments. We use two of them to record, in the
+        // security log, every time a protected endpoint ([Authorize]) turned a request away
+        options.Events = new JwtBearerEvents
+        {
+            // "Challenge" = the request did not prove who it is: no token at all, or a token that is
+            // expired / forged / damaged. The client gets 401
+            OnChallenge = async context =>
+            {
+                string reason = context.AuthenticateFailure switch
+                {
+                    null => "No token was sent",
+                    SecurityTokenExpiredException => "The token has expired",
+                    _ => "The token is not valid",
+                };
+
+                // RequestServices = the DI container of this specific request
+                var security = context.HttpContext.RequestServices.GetRequiredService<SecurityLog>();
+                await security.RecordAsync("Unauthorized request", null,
+                    $"{context.Request.Method} {context.Request.Path} - {reason}");
+            },
+
+            // "Forbidden" = the token is fine, so we know exactly who this is - but their role is not
+            // allowed here (a regular User calling an Admin-only endpoint). The client gets 403
+            OnForbidden = async context =>
+            {
+                string? email = context.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+                string? role = context.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+
+                var security = context.HttpContext.RequestServices.GetRequiredService<SecurityLog>();
+                await security.RecordAsync("Access denied", email,
+                    $"Role '{role}' tried {context.Request.Method} {context.Request.Path}");
+            },
+        };
     });
+
 builder.Services.AddAuthorization();
 
 
@@ -90,12 +151,23 @@ if (!string.IsNullOrWhiteSpace(adminSeedEmail))
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    
+    // A deliberate crash, for testing the dashboard's Errors tab: open https://localhost:7089/debug/crash
+    // in a browser. Inside the IsDevelopment block on purpose - it must never exist in production
+    app.MapGet("/debug/crash", string () =>
+        throw new InvalidOperationException("Test crash: thrown on purpose by /debug/crash."));
+
 }
 
 // The server listens on HTTPS only (see Properties/launchSettings.json), so email+password and the
 // JWT never travel as plain text. This redirect is a second layer: if an HTTP address is ever added,
 // requests to it are sent to HTTPS. It is not the protection itself - a redirect only answers after
 // the plain request has already arrived.
+
+// First in the pipeline on purpose: it wraps everything after it, so it sees every request and measures
+// the whole time the server spent on it - including requests that are refused by authentication
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
@@ -114,4 +186,33 @@ app.MapControllers();
 
 // Starts the web server (Kestrel) and starts listening for requests - a blocking call that keeps running
 // until the process is stopped
-app.Run();
+
+// Start() instead of Run(): Run blocks until the server stops, so nothing after it would ever execute.
+// StartAsync starts Kestrel listening in the background and returns immediately, which leaves this
+// thread free to open the Super Admin window
+await app.StartAsync();
+
+
+// The Super Admin window runs on its own thread, next to the web server.
+// A desktop UI on Windows needs an "STA" thread (the client gets this from [STAThread] on Main);
+// here Main is async, so we create a dedicated thread and mark it STA ourselves
+var uiThread = new Thread(() =>
+{
+        AppBuilder.Configure(() => new DashboardApp(app.Services))
+
+        .UsePlatformDetect()
+        .WithInterFont()
+        .LogToTrace()
+        .StartWithClassicDesktopLifetime(args);
+});
+if (OperatingSystem.IsWindows())
+{
+    uiThread.SetApartmentState(ApartmentState.STA);
+}
+uiThread.Start();
+
+// Join waits here until the window is closed - closing the window is what shuts the server down
+uiThread.Join();
+
+await app.StopAsync();
+

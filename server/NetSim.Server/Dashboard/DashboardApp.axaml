@@ -1,0 +1,10 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="NetSim.Server.Dashboard.DashboardApp"
+             RequestedThemeVariant="Dark">
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://NetSim.Server/Dashboard/Styles/Theme.axaml" />
+    </Application.Styles>
+</Application>

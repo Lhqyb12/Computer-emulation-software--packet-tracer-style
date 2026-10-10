@@ -1,0 +1,267 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:NetSim.Server.Dashboard"
+        x:Class="NetSim.Server.Dashboard.DashboardWindow"
+        x:DataType="local:DashboardViewModel"
+        Title="NetSim Server - Super Admin"
+        Width="1100" Height="700"
+        MinWidth="800" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Bg}">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ============ TOP BAR: logo on the left, server state on the right ============ -->
+        <Border Grid.Row="0" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}"
+                BorderThickness="0,0,0,1" Padding="20,12">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="NetSim Server" Classes="logo" VerticalAlignment="Center" />
+                    <Border Classes="chip">
+                        <TextBlock Text="SUPER ADMIN" FontSize="10" FontWeight="Bold"
+                                   Foreground="{StaticResource TextDim}" />
+                    </Border>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Ellipse Width="9" Height="9" Fill="{StaticResource Ok}" VerticalAlignment="Center" />
+                    <TextBlock Text="Running" Classes="label" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding ServerAddress}" Classes="hint" VerticalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============ TABS ============ -->
+        <TabControl Grid.Row="1" Margin="12,8,12,12">
+
+            <!-- ============ OVERVIEW ============ -->
+            <TabItem Header="Overview">
+                <StackPanel Margin="8,16" Spacing="16">
+                    <UniformGrid Columns="4">
+                        <Border Classes="card" Margin="0,0,12,0">
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="label" Text="REGISTERED USERS" />
+                                <TextBlock Classes="stat" Text="{Binding TotalUsers}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card" Margin="0,0,12,0">
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="label" Text="SIGNED IN TODAY" />
+                                <TextBlock Classes="stat" Text="{Binding ActiveToday}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card" Margin="0,0,12,0">
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="label" Text="REQUESTS (LAST HOUR)" />
+                                <TextBlock Classes="stat" Text="{Binding RequestsLastHour}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card">
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="label" Text="ERRORS SINCE START" />
+                                <TextBlock Classes="stat" Text="{Binding ErrorCount}"
+
+                                           Foreground="{StaticResource Danger}" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <Border Classes="card">
+                        <StackPanel Spacing="12">
+                            <TextBlock Classes="title" Text="Server status" />
+                            <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Address" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Classes="cell" Text="{Binding ServerAddress}" />
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Database" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Classes="cell" Text="{Binding DatabaseStatus}"
+                                           Classes.ok="{Binding IsDatabaseOk}"
+                                           Classes.bad="{Binding IsDatabaseDown}" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Running for" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Classes="cell" Text="{Binding Uptime}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
+             <!-- ============ USERS: the Users table of the database ============ -->
+            <TabItem Header="Users">
+                <Grid RowDefinitions="Auto,Auto,*" Margin="8,16">
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+                    <TextBlock Classes="title" Text="Users table" VerticalAlignment="Center" />
+                    <Button Classes="ghost" Content="Refresh" Width="90"
+                            Command="{Binding RefreshUsersCommand}" />
+                </StackPanel>
+
+                <!-- Shown only when reading the database failed -->
+                <Border Grid.Row="1" Classes="bannerError" Margin="0,0,0,12"
+                        IsVisible="{Binding UsersError, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Classes="error" Text="{Binding UsersError}" />
+                </Border>
+
+                <Border Grid.Row="2" Classes="card" Padding="0">
+                    <ScrollViewer>
+                        <StackPanel>
+                            <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*" Margin="16,14">
+                                <TextBlock Grid.Column="0" Classes="label" Text="ID" />
+                                <TextBlock Grid.Column="1" Classes="label" Text="USERNAME" />
+                                <TextBlock Grid.Column="2" Classes="label" Text="EMAIL" />
+                                <TextBlock Grid.Column="3" Classes="label" Text="ROLE" />
+                                <TextBlock Grid.Column="4" Classes="label" Text="SIGN-IN" />
+                                <TextBlock Grid.Column="5" Classes="label" Text="REGISTERED" />
+                                <TextBlock Grid.Column="6" Classes="label" Text="LAST LOGIN" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding Users}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="local:UserRow">
+                                        <Border Classes="row">
+                                            <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*">
+                                                <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Id}" />
+                                                <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Username}" />
+                                                <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Email}" />
+                                                <Border Grid.Column="3" Classes="chip" HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding Role}" FontSize="11"
+                                                               Foreground="{StaticResource TextDim}" />
+                                                </Border>
+                                                <TextBlock Grid.Column="4" Classes="cell" Text="{Binding SignInMethod}" />
+                                                <TextBlock Grid.Column="5" Classes="cell" Text="{Binding CreatedAt}" />
+                                                <TextBlock Grid.Column="6" Classes="cell" Text="{Binding LastLogin}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                </Grid>
+            </TabItem>
+
+
+
+            <!-- ============ LOGS: everything the server does ============ -->
+            <TabItem Header="Logs">
+                <Border Classes="card" Padding="0" Margin="8,16">
+                    <ScrollViewer>
+                        <StackPanel>
+                            <Grid ColumnDefinitions="90,90,100,*" Margin="16,14">
+                                <TextBlock Grid.Column="0" Classes="label" Text="TIME" />
+                                <TextBlock Grid.Column="1" Classes="label" Text="LEVEL" />
+                                <TextBlock Grid.Column="2" Classes="label" Text="SOURCE" />
+                                <TextBlock Grid.Column="3" Classes="label" Text="MESSAGE" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding Logs}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="local:LogRow">
+                                        <Border Classes="row">
+                                            <Grid ColumnDefinitions="90,90,100,*">
+                                                <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Time}"
+                                                           Foreground="{StaticResource TextDim}" />
+                                                <TextBlock Grid.Column="1" Classes="level" Text="{Binding Level}"
+                                                           Classes.warn="{Binding IsWarning}"
+                                                           Classes.error="{Binding IsError}" />
+                                                <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Source}"
+                                                           Foreground="{StaticResource TextDim}" />
+                                                <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Message}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </TabItem>
+
+            <!-- ============ ERRORS: requests that crashed ============ -->
+            <TabItem Header="Errors">
+                <Border Classes="card" Padding="0" Margin="8,16">
+                    <ScrollViewer>
+                        <StackPanel>
+                            <Grid ColumnDefinitions="90,2*,2*,3*" Margin="16,14">
+                                <TextBlock Grid.Column="0" Classes="label" Text="TIME" />
+                                <TextBlock Grid.Column="1" Classes="label" Text="REQUEST" />
+                                <TextBlock Grid.Column="2" Classes="label" Text="EXCEPTION" />
+                                <TextBlock Grid.Column="3" Classes="label" Text="MESSAGE" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding Errors}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="local:ErrorRow">
+                                        <Border Classes="row">
+                                            <StackPanel Spacing="5">
+                                                <Grid ColumnDefinitions="90,2*,2*,3*">
+                                                    <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Time}"
+                                                               Foreground="{StaticResource TextDim}" />
+                                                    <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Request}" />
+                                                    <TextBlock Grid.Column="2" Classes="cell" Text="{Binding ExceptionType}"
+                                                               Foreground="{StaticResource Danger}" />
+                                                    <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Message}" />
+                                                </Grid>
+                                                <!-- Second line of the row: where in the code it was thrown -->
+                                                <TextBlock Classes="hint" Margin="90,0,0,0" Text="{Binding Location}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </TabItem>
+
+            <!-- ============ SECURITY: events the owner should know about ============ -->
+            <TabItem Header="Security">
+                <Grid RowDefinitions="Auto,Auto,*" Margin="8,16">
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+                    <TextBlock Classes="title" Text="Security events" VerticalAlignment="Center" />
+                    <Button Classes="ghost" Content="Refresh" Width="90"
+                            Command="{Binding RefreshSecurityCommand}" />
+                </StackPanel>
+
+                <!-- Shown only when reading the database failed -->
+                <Border Grid.Row="1" Classes="bannerError" Margin="0,0,0,12"
+                        IsVisible="{Binding SecurityError, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Classes="error" Text="{Binding SecurityError}" />
+                </Border>
+
+                <Border Grid.Row="2" Classes="card" Padding="0">
+                    <ScrollViewer>
+                        <StackPanel>
+                            <Grid ColumnDefinitions="120,2*,2*,130,3*" Margin="16,14">
+                                <TextBlock Grid.Column="0" Classes="label" Text="TIME" />
+                                <TextBlock Grid.Column="1" Classes="label" Text="EVENT" />
+                                <TextBlock Grid.Column="2" Classes="label" Text="EMAIL" />
+                                <TextBlock Grid.Column="3" Classes="label" Text="IP ADDRESS" />
+                                <TextBlock Grid.Column="4" Classes="label" Text="DETAILS" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding SecurityEvents}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="local:SecurityEventRow">
+                                        <Border Classes="row">
+                                            <Grid ColumnDefinitions="120,2*,2*,130,3*">
+                                                <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Time}"
+                                                           Foreground="{StaticResource TextDim}" />
+                                                <TextBlock Grid.Column="1" Classes="cell" Text="{Binding EventType}"
+                                                           Foreground="{StaticResource Warn}" />
+                                                <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Email}" />
+                                                <TextBlock Grid.Column="3" Classes="cell" Text="{Binding IpAddress}" />
+                                                <TextBlock Grid.Column="4" Classes="cell" Text="{Binding Details}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

@@ -1,0 +1,143 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- The same palette as the client (client/NetSim.App/Styles/Theme.axaml), so both programs
+         look like one product. Only the styles the dashboard actually uses are copied here. -->
+    <Styles.Resources>
+        <!-- ===================== COLOURS ===================== -->
+        <SolidColorBrush x:Key="Bg"          Color="#0E1420" />
+        <SolidColorBrush x:Key="Card"        Color="#161E2D" />
+        <SolidColorBrush x:Key="Line"        Color="#2A3446" />
+        <SolidColorBrush x:Key="LineStrong"  Color="#3A4661" />
+        <SolidColorBrush x:Key="Text"        Color="#EAEEF6" />
+        <SolidColorBrush x:Key="TextDim"     Color="#9AA7BC" />
+        <SolidColorBrush x:Key="TextMuted"   Color="#63708A" />
+        <SolidColorBrush x:Key="Accent"      Color="#2C6BE0" />
+        <SolidColorBrush x:Key="OnAccent"    Color="#FFFFFF" />
+        <SolidColorBrush x:Key="Ok"          Color="#3BD07E" />
+        <SolidColorBrush x:Key="Warn"        Color="#F5B942" />
+        <SolidColorBrush x:Key="Danger"      Color="#FF6B6B" />
+        <SolidColorBrush x:Key="DangerBg"    Color="#241416" />
+        <SolidColorBrush x:Key="DangerLine"  Color="#4E2529" />
+
+    </Styles.Resources>
+
+    <!-- ===================== TYPOGRAPHY ===================== -->
+    <Style Selector="TextBlock.logo">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+    <Style Selector="TextBlock.title">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+    <Style Selector="TextBlock.label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{StaticResource TextDim}" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+    </Style>
+    <!-- A normal table cell -->
+    <Style Selector="TextBlock.cell">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- A cell that reports a state: green when it is fine, red when it is not -->
+    <Style Selector="TextBlock.cell.ok">
+        <Setter Property="Foreground" Value="{StaticResource Ok}" />
+    </Style>
+    <Style Selector="TextBlock.cell.bad">
+        <Setter Property="Foreground" Value="{StaticResource Danger}" />
+    </Style>
+
+
+    <!-- The big number inside a statistics card -->
+    <Style Selector="TextBlock.stat">
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+
+    <!-- Log severity: grey by default, yellow for a warning, red for an error -->
+    <Style Selector="TextBlock.level">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextDim}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.level.warn">
+        <Setter Property="Foreground" Value="{StaticResource Warn}" />
+    </Style>
+    <Style Selector="TextBlock.level.error">
+        <Setter Property="Foreground" Value="{StaticResource Danger}" />
+    </Style>
+
+    <!-- ===================== CARD, CHIP, TABLE ROW ===================== -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{StaticResource Card}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+    <Style Selector="Border.chip">
+        <Setter Property="Background" Value="#1E2A3E" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="6,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- One line of a table: a thin separator on top -->
+    <Style Selector="Border.row">
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="16,11" />
+    </Style>
+
+
+        <!-- ===================== ERROR BANNER ===================== -->
+    <Style Selector="Border.bannerError">
+        <Setter Property="Background" Value="{StaticResource DangerBg}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DangerLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,10" />
+    </Style>
+    <Style Selector="TextBlock.error">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource Danger}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- ===================== BUTTON ===================== -->
+    <Style Selector="Button.ghost">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#1C2536" />
+    </Style>
+
+
+    <!-- ===================== TABS ===================== -->
+    <Style Selector="TabItem">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinHeight" Value="40" />
+    </Style>
+</Styles>
