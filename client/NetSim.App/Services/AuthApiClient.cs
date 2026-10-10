@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
-using System.Net.Http.Headers;
+using System.Text.Json;
+
 
 
 namespace NetSim.App.Services;
@@ -16,7 +15,7 @@ public class AuthResult
     public string Role { get; set; } = string.Empty;
     public string Token { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-
+    
     // True when the server refused a login only because the email was never verified
     public bool NeedsVerification { get; set; }
 
@@ -35,57 +34,60 @@ public class UserSummaryDto
     public string Role { get; set; } = string.Empty;
 }
 
+// The answer to "get-users" - matches UsersResponse on the server
+public class UsersResult
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public List<UserSummaryDto> Users { get; set; } = new();
+}
+
+
+
 // מדבר עם השרת NetSim.Server דרך HTTP
 public class AuthApiClient
 {
-    private readonly HttpClient _http = new()
-    {
-        BaseAddress = new Uri("https://localhost:7089/")
-
-    };
+    
 
     public Task<AuthResult> RegisterAsync(string username, string email, string password) =>
-        PostAsync("api/auth/register", new { username, email, password });
+        SendAsync("register", new { username, email, password });
+
 
 
     public Task<AuthResult> LoginAsync(string email, string password) =>
-        PostAsync("api/auth/login", new { email, password });
+        SendAsync("login", new { email, password });
+
 
     public Task<AuthResult> ForgotPasswordAsync(string email) =>
-        PostAsync("api/auth/forgot-password", new { email });
+        SendAsync("forgot-password", new { email });
+
 
     public Task<AuthResult> ResetPasswordAsync(string email, string code, string newPassword) =>
-        PostAsync("api/auth/reset-password", new { email, code, newPassword });
+        SendAsync("reset-password", new { email, code, newPassword });
 
+    
     public Task<AuthResult> GoogleLoginAsync(string idToken) =>
-        PostAsync("api/auth/google", new { idToken });
+        SendAsync("google-login", new { idToken });
 
-
+    
+    
     public Task<AuthResult> VerifyEmailAsync(string email, string code) =>
-        PostAsync("api/auth/verify-email", new { email, code });
+        SendAsync("verify-email", new { email, code });
+
 
     public Task<AuthResult> ResendVerificationAsync(string email) =>
-        PostAsync("api/auth/resend-verification", new { email });
+        SendAsync("resend-verification", new { email });
 
-
-
-
-    // callerEmail הוא האימייל של מי שמחובר כרגע - השרת קורא אותו מתוך ה-Header בשם X-User-Email
-    // כדי להחליט אם מותר לגשת לנקודת הקצה הזו (ראי UsersController.GetCallerAsync)
-    public async Task<List<UserSummaryDto>?> GetUsersAsync( string token)
+    // The admin actions send the JWT from login inside the message, so the server knows who is asking
+    public async Task<List<UserSummaryDto>?> GetUsersAsync(string token)
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/users");
+            string replyJson = await SendRawAsync("get-users", new { }, token);
+            var result = JsonSerializer.Deserialize<UsersResult>(replyJson, JsonOptions);
 
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-
-            var response = await _http.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-                return null;
-
-            return await response.Content.ReadFromJsonAsync<List<UserSummaryDto>>();
+            // null tells the screen "could not load" - a refusal by the server or a broken answer
+            return result is { Success: true } ? result.Users : null;
         }
         catch (Exception)
         {
@@ -95,33 +97,47 @@ public class AuthApiClient
 
     public async Task<bool> DeleteUserAsync(int id, string token)
     {
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"api/users/{id}");
-
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-
-            var response = await _http.SendAsync(request);
-            return response.IsSuccessStatusCode;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
+        AuthResult result = await SendAsync("delete-user", new { id }, token);
+        return result.Success;
     }
 
-    private async Task<AuthResult> PostAsync(string path, object body)
+
+
+        // Our own socket connection to the server (see SocketClient.cs)
+    private readonly SocketClient _socket = new();
+
+    // Same JSON options as the server's MessageRouter: camelCase names, reading ignores letter case
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    // Builds one request message, sends it over the socket and returns the server's answer as JSON text.
+    // type = which action ("login"), data = the fields of that action, token = the JWT (empty before login)
+    private async Task<string> SendRawAsync(string type, object data, string token = "")
+    {
+        // Object -> JSON text:  { "type": "login", "token": "", "data": { "email": "...", "password": "..." } }
+        string requestJson = JsonSerializer.Serialize(new { type, token, data }, JsonOptions);
+
+        return await _socket.SendTextAsync(requestJson);
+    }
+
+    // For the actions whose answer has the usual shape (success, message, role, token...)
+    private async Task<AuthResult> SendAsync(string type, object data, string token = "")
     {
         try
         {
-            var response = await _http.PostAsJsonAsync(path, body);//converts the emailand pass to json file, adds the path to the base adress
-            var result = await response.Content.ReadFromJsonAsync<AuthResult>();
-            return result ?? new AuthResult { Success = false, Message = "No response from server." };//??=is null
+            string replyJson = await SendRawAsync(type, data, token);
+
+
+            // JSON text -> AuthResult object
+            var result = JsonSerializer.Deserialize<AuthResult>(replyJson, JsonOptions);
+            return result ?? new AuthResult { Success = false, Message = "No response from server." };
         }
         catch (Exception)
         {
             return new AuthResult { Success = false, Message = "Could not reach the server. Is it running?" };
         }
     }
+
+
+
+   
 }

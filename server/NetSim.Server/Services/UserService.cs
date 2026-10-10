@@ -1,33 +1,25 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetSim.Server.Data;
 using NetSim.Server.Dtos;
-using NetSim.Server.Services;
 
+namespace NetSim.Server.Services;
 
-namespace NetSim.Server.Controllers;
-
-[ApiController]
-[Route("api/users")]
-[Authorize(Roles = "Admin")]
-public class UsersController : ControllerBase
+// The admin actions on user accounts. This logic used to sit inside UsersController;
+// it lives here now so the socket server can call it without any HTTP around it
+public class UserService
 {
     private readonly AppDbContext _db;
     private readonly SecurityLog _security;
 
-    public UsersController(AppDbContext db, SecurityLog security)
+    public UserService(AppDbContext db, SecurityLog security)
     {
         _db = db;
         _security = security;
     }
 
-
-    [HttpGet]
-    public async Task<ActionResult<List<UserSummaryDto>>> GetAll()
+    public async Task<List<UserSummaryDto>> GetAllAsync()
     {
-        var users = await _db.Users
+        return await _db.Users
             .Select(u => new UserSummaryDto
             {
                 Id = u.Id,
@@ -38,30 +30,25 @@ public class UsersController : ControllerBase
                 Role = u.Role
             })
             .ToListAsync();
-
-        return Ok(users);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    // callerId and adminEmail come from the admin's verified token, never from anything they typed
+    public async Task<AuthResponse> DeleteAsync(int id, string? callerId, string? adminEmail)
     {
         var target = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
         if (target is null)
-            return NotFound();
+            return new AuthResponse { Success = false, Message = "User not found." };
 
-        string? callerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (target.Id.ToString() == callerId)
-            return BadRequest("Cannot delete your own account.");
+            return new AuthResponse { Success = false, Message = "Cannot delete your own account." };
 
         _db.Users.Remove(target);
         await _db.SaveChangesAsync();
-        
+
         // A deleted account leaves no trace in the Users table - this row is the only record of who
-        // deleted whom, and when. The admin's email comes from their token, not from anything they typed
-        string? adminEmail = User.FindFirstValue(ClaimTypes.Email);
+        // deleted whom, and when
         await _security.RecordAsync("User deleted", target.Email, $"Deleted by admin {adminEmail}");
 
-
-        return NoContent();
+        return new AuthResponse { Success = true, Message = "User deleted." };
     }
 }

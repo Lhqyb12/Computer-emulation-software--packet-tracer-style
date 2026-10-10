@@ -18,23 +18,22 @@ public class SecurityLog
     private const int MaxFieldLength = 256;
 
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IHttpContextAccessor _http;
+    private readonly ClientInfo _client;
 
     private readonly ILogger _logger;
 
-    public SecurityLog(IServiceScopeFactory scopeFactory, IHttpContextAccessor http, ILoggerFactory loggerFactory)
+    public SecurityLog(IServiceScopeFactory scopeFactory, ClientInfo client, ILoggerFactory loggerFactory)
 
     {
         _scopeFactory = scopeFactory;
-        _http = http;
+        _client = client;
         _logger = loggerFactory.CreateLogger(Category);
     }
 
     public async Task RecordAsync(string eventType, string? email, string details)
     {
-        // IHttpContextAccessor gives access to the request currently being handled, from a class that
-        // is not a controller. From it we take the address the request came from
-        string? ip = _http.HttpContext?.Connection.RemoteIpAddress?.ToString();
+        // The address the request came from. The router wrote it into ClientInfo when the message arrived
+        string? ip = _client.IpAddress;
 
         if (email is not null && email.Length > MaxFieldLength)
         {

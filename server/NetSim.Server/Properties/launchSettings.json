@@ -1,13 +1,10 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "https": {
+    "NetSim.Server": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://localhost:7089",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Development"
       }
     }
   }

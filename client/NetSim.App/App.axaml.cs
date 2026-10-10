@@ -5,6 +5,8 @@ using NetSim.App.Composition; //
 using NetSim.App.ViewModels; //
 using NetSim.App.Views; //
 
+
+
 namespace NetSim.App;
 
 public partial class App : Avalonia.Application
@@ -33,8 +35,14 @@ public partial class App : Avalonia.Application
                 // ShowSignedIn later calls GetRequiredService<ShellViewModel>() on.
                 DataContext = new MainWindowViewModel(services),
             };
+            
+            
+
         }
 
         base.OnFrameworkInitializationCompleted();
     }
+    
+    
+
 }

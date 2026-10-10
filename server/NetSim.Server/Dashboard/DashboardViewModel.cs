@@ -3,11 +3,9 @@ using System.Diagnostics;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
 using NetSim.Server.Data;
-using NetSim.Server.Middleware;
+using NetSim.Server.Networking;
 using NetSim.Server.Services;
 
 namespace NetSim.Server.Dashboard;
@@ -50,10 +48,9 @@ public class DashboardViewModel : ObservableObject
         RefreshUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
         RefreshSecurityCommand = new AsyncRelayCommand(LoadSecurityEventsAsync);
 
-        // The address Kestrel is really listening on, asked from the server itself rather than typed
-        // here by hand - if the port in launchSettings.json ever changes, this stays correct
-        ServerAddress = _services.GetRequiredService<IServer>()
-            .Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault() ?? "(unknown)";
+        // The address our socket server listens on. The port is read from SocketServer itself rather
+        // than typed here by hand - if it ever changes there, this stays correct
+        ServerAddress = $"tcp://127.0.0.1:{SocketServer.Port}";
 
         // Fire-and-forget: loads the tables the moment the window is created, without making the
         // constructor itself async (constructors can't be async in C#)
@@ -263,7 +260,7 @@ public class DashboardViewModel : ObservableObject
         }
 
         // Every handled request is counted for "Requests (last hour)"
-        if (entry.Category == RequestLoggingMiddleware.RequestCategory)
+        if (entry.Category == LogCategories.Requests)
 
         {
             _requestTimes.Enqueue(entry.Time);
@@ -271,7 +268,7 @@ public class DashboardViewModel : ObservableObject
         }
 
         // A crash caught by RequestLoggingMiddleware also gets a row in the Errors tab
-        if (entry.Category == RequestLoggingMiddleware.CrashCategory && entry.Exception is not null)
+        if (entry.Category == LogCategories.Crashes && entry.Exception is not null)
 
         {
             Errors.Insert(0, ToErrorRow(entry, entry.Exception));

@@ -13,3 +13,7 @@ obj/
 [Rr]elease/
 artifacts/
 *.binlog
+
+# --- The server's private RSA key: a secret, never committed ---
+server/NetSim.Server/Keys/server-private.pem
+

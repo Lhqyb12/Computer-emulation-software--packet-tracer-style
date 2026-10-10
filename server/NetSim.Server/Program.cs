@@ -1,40 +1,25 @@
-using Microsoft.EntityFrameworkCore;  // UseNpgsql / AddDbContext - connects EF Core to the PostgreSQL database
-using NetSim.Server.Data;             // AppDbContext
-using NetSim.Server.Services;         // AuthService
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Avalonia;
+using Microsoft.EntityFrameworkCore;  // UseNpgsql / AddDbContext - connects EF Core to the PostgreSQL database
 using NetSim.Server.Dashboard;
-using NetSim.Server.Middleware;
-
-
-
-
-
+using NetSim.Server.Data;             // AppDbContext
+using NetSim.Server.Networking;       // SocketServer, MessageRouter, ServerKeys
+using NetSim.Server.Services;         // AuthService and the other services
 
 // "Top-level statements" (a C# 9+ feature): there's no explicit class Program with a static void Main here -
-// the compiler generates that behind the scenes. This is the standard Minimal Hosting Model style used in new
-// ASP.NET Core projects. "args" are command-line arguments, passed automatically into CreateBuilder
-var builder = WebApplication.CreateBuilder(args);
-
+// the compiler generates that behind the scenes.
+//
+// Host.CreateApplicationBuilder builds the plain .NET "host": configuration (appsettings.json + user-secrets),
+// logging and the DI container. It is what is left of the old WebApplication builder once the web server is
+// taken out - no Kestrel, no HTTP, no controllers. All the communication with clients is our own SocketServer
+var builder = Host.CreateApplicationBuilder(args);
 
 // The Super Admin dashboard's log: one store object, created here by hand because two different places
 // need the very same instance - the logging system writes into it, and the dashboard window reads from it.
 // AddSingleton(logStore) puts it in the DI container so the dashboard can ask for it later.
-// AddProvider plugs our provider into ASP.NET Core's logging, next to the built-in Console one
+// AddProvider plugs our provider into the logging system, next to the built-in Console one
 var logStore = new DashboardLogStore();
 builder.Services.AddSingleton(logStore);
 builder.Logging.AddProvider(new DashboardLoggerProvider(logStore));
-
-
-// Controllers host the API surface (see Controllers/). OpenAPI/Swagger is dev-only.
-// AddControllers registers everything the DI container needs so that [ApiController] and attribute routing work
-builder.Services.AddControllers();
-// AddOpenApi generates API documentation (OpenAPI/Swagger) automatically from the code - useful for manual
-// testing (Swagger UI) during development
-builder.Services.AddOpenApi();
 
 // Registers AppDbContext with the DI container as a "service" - every request that asks for AppDbContext
 // (e.g. AuthService) gets an instance
@@ -45,82 +30,28 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-// AddScoped: a new AuthService instance is created for every HTTP request (not one global Singleton, and not
-// a brand-new one on every single injection like Transient). This has to be Scoped (not Singleton) because
-// AuthService depends on AppDbContext, which is itself Scoped by default - DbContext is not thread-safe, and
-// a single instance of it must never be shared across multiple concurrent requests/threads
+// AddScoped: a new instance is created for every request (MessageRouter opens a scope per message).
+// These have to be Scoped (not Singleton) because they depend on AppDbContext, which is itself Scoped -
+// DbContext is not thread-safe, and a single instance of it must never be shared across concurrent requests
 builder.Services.AddScoped<AuthService>();
-//builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailSender>();
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<UserService>();
 
-// SecurityLog records security events (see Services/SecurityLog.cs). It needs to know which request is
-// being handled right now, to read the caller's IP address - AddHttpContextAccessor makes that available
-// to classes that are not controllers
-builder.Services.AddHttpContextAccessor();
+// ClientInfo holds the address of the client behind the current request; SecurityLog reads it
+builder.Services.AddScoped<ClientInfo>();
 builder.Services.AddScoped<SecurityLog>();
 
-builder.Services.AddScoped<TokenService>();
+// Our own communication layer: one of each for the whole life of the server
+builder.Services.AddSingleton<ServerKeys>();
+builder.Services.AddSingleton<MessageRouter>();
+builder.Services.AddSingleton<SocketServer>();
 
-
-
-
-string jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key is not configured.");
-
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero,
-            RoleClaimType = ClaimTypes.Role,
-        };
-
-        // Hooks the JWT middleware calls at specific moments. We use two of them to record, in the
-        // security log, every time a protected endpoint ([Authorize]) turned a request away
-        options.Events = new JwtBearerEvents
-        {
-            // "Challenge" = the request did not prove who it is: no token at all, or a token that is
-            // expired / forged / damaged. The client gets 401
-            OnChallenge = async context =>
-            {
-                string reason = context.AuthenticateFailure switch
-                {
-                    null => "No token was sent",
-                    SecurityTokenExpiredException => "The token has expired",
-                    _ => "The token is not valid",
-                };
-
-                // RequestServices = the DI container of this specific request
-                var security = context.HttpContext.RequestServices.GetRequiredService<SecurityLog>();
-                await security.RecordAsync("Unauthorized request", null,
-                    $"{context.Request.Method} {context.Request.Path} - {reason}");
-            },
-
-            // "Forbidden" = the token is fine, so we know exactly who this is - but their role is not
-            // allowed here (a regular User calling an Admin-only endpoint). The client gets 403
-            OnForbidden = async context =>
-            {
-                string? email = context.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                string? role = context.HttpContext.User.FindFirstValue(ClaimTypes.Role);
-
-                var security = context.HttpContext.RequestServices.GetRequiredService<SecurityLog>();
-                await security.RecordAsync("Access denied", email,
-                    $"Role '{role}' tried {context.Request.Method} {context.Request.Path}");
-            },
-        };
-    });
-
-builder.Services.AddAuthorization();
-
-
-
+// Fail at startup, with a clear message, rather than on the first login
+if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Key"]))
+{
+    throw new InvalidOperationException("Jwt:Key is not configured.");
+}
 
 // The "Build" step: everything registered above in builder.Services gets "locked in" to a ready-to-run app
 var app = builder.Build();
@@ -145,61 +76,21 @@ if (!string.IsNullOrWhiteSpace(adminSeedEmail))
     }
 }
 
-
-// IsDevelopment checks the ASPNETCORE_ENVIRONMENT environment variable. The OpenAPI docs are exposed only in
-// development - we don't want a production environment to expose the full endpoint map and internal API shape to anyone
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    
-    // A deliberate crash, for testing the dashboard's Errors tab: open https://localhost:7089/debug/crash
-    // in a browser. Inside the IsDevelopment block on purpose - it must never exist in production
-    app.MapGet("/debug/crash", string () =>
-        throw new InvalidOperationException("Test crash: thrown on purpose by /debug/crash."));
-
-}
-
-// The server listens on HTTPS only (see Properties/launchSettings.json), so email+password and the
-// JWT never travel as plain text. This redirect is a second layer: if an HTTP address is ever added,
-// requests to it are sent to HTTPS. It is not the protection itself - a redirect only answers after
-// the plain request has already arrived.
-
-// First in the pipeline on purpose: it wraps everything after it, so it sees every request and measures
-// the whole time the server spent on it - including requests that are refused by authentication
-app.UseMiddleware<RequestLoggingMiddleware>();
-
-
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Simple liveness probe – lets the client (and us) confirm the server is up.
-// A deliberately minimal, unauthenticated endpoint (no [ApiController]/DTOs) - "MapGet" directly on the app,
-// meant for monitoring/deployment checks (e.g. a Docker healthcheck) that only need to know "the server is
-// alive", without exposing any sensitive information
-app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "NetSim.Server" }))
-   .WithName("Health");
-
-// Enables routing to all the controllers marked with [ApiController]/[Route] (here: AuthController) -
-// without this line, /api/auth/register and /api/auth/login wouldn't be reachable at all
-app.MapControllers();
-
-// Starts the web server (Kestrel) and starts listening for requests - a blocking call that keeps running
-// until the process is stopped
-
-// Start() instead of Run(): Run blocks until the server stops, so nothing after it would ever execute.
-// StartAsync starts Kestrel listening in the background and returns immediately, which leaves this
-// thread free to open the Super Admin window
+// Starts the host. StartAsync returns immediately, which leaves this thread free to continue
 await app.StartAsync();
 
+// Start our socket server. ApplicationStopping is the signal that fires when the server shuts down -
+// it is what ends the server's Accept loop
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+var socketServer = app.Services.GetRequiredService<SocketServer>();
+_ = socketServer.RunAsync(lifetime.ApplicationStopping);
 
-// The Super Admin window runs on its own thread, next to the web server.
+// The Super Admin window runs on its own thread, next to the socket server.
 // A desktop UI on Windows needs an "STA" thread (the client gets this from [STAThread] on Main);
 // here Main is async, so we create a dedicated thread and mark it STA ourselves
 var uiThread = new Thread(() =>
 {
-        AppBuilder.Configure(() => new DashboardApp(app.Services))
-
+    AppBuilder.Configure(() => new DashboardApp(app.Services))
         .UsePlatformDetect()
         .WithInterFont()
         .LogToTrace()
@@ -215,4 +106,3 @@ uiThread.Start();
 uiThread.Join();
 
 await app.StopAsync();
-
