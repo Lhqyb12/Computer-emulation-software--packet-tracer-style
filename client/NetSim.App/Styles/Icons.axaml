@@ -1,6 +1,12 @@
+<!-- The icons of the login/register screens. Loaded by App.axaml, so every screen can use them -->
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Vector icon paths (24x24), no image files needed. -->
+    <!-- Vector icon paths (24x24), no image files needed.
+         Each icon is a drawing written as text: M = move the pen to a point, l / h / v = draw a line,
+         c = draw a curve, z = close the shape. x:Key is the name a screen uses: {StaticResource Icon.Eye}.
+         Icon.Hub = the network logo, Icon.Eye / Icon.EyeOff = show / hide the password,
+         Icon.Check = a tick, Icon.CheckCircle = a rule that is met, Icon.Circle = a rule that is not met yet,
+         Icon.Alert = the warning triangle of an error, Icon.Back = the "go back" arrow -->
     <StreamGeometry x:Key="Icon.Hub">M17 16l-4-4V8.82C14.16 8.4 15 7.3 15 6c0-1.66-1.34-3-3-3S9 4.34 9 6c0 1.3.84 2.4 2 2.82V12l-4 4H3v5h5v-3.05l4-4.2 4 4.2V21h5v-5h-4z</StreamGeometry>
     <StreamGeometry x:Key="Icon.Eye">M12 6c3.79 0 7.17 2.13 8.82 5.5C19.17 14.87 15.79 17 12 17s-7.17-2.13-8.82-5.5C4.83 8.13 8.21 6 12 6m0-2C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 5a2.5 2.5 0 0 0 0 5 2.5 2.5 0 0 0 0-5z</StreamGeometry>
     <StreamGeometry x:Key="Icon.EyeOff">M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z</StreamGeometry>

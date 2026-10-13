@@ -1,3 +1,14 @@
+<!-- The Super Admin window: a top bar and five tabs (Overview, Users, Logs, Errors, Security).
+     This file only describes what is on the screen; all the data comes from DashboardViewModel.
+     xmlns = the "dictionary" of Avalonia's own tags (Window, Grid, TextBlock...)
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:DataType...)
+     xmlns:local = lets this file use our own C# classes from the NetSim.Server.Dashboard namespace
+     x:Class = the C# class this file is the other half of (DashboardWindow.axaml.cs)
+     x:DataType = the class the {Binding ...} expressions read from, so the compiler can check their names
+     Title = the text in the window's title bar
+     Width/Height = the size the window opens in; MinWidth/MinHeight = the smallest size it can be dragged to
+     WindowStartupLocation = open in the middle of the screen
+     Background = the colour named "Bg" in Styles/Theme.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="using:NetSim.Server.Dashboard"
@@ -9,52 +20,72 @@
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Bg}">
 
+    <!-- A Grid arranges its children in rows and columns. Two rows here:
+         "Auto" = as tall as its content (the top bar), "*" = all the space that is left (the tabs) -->
     <Grid RowDefinitions="Auto,*">
 
         <!-- ============ TOP BAR: logo on the left, server state on the right ============ -->
+        <!-- Border = a box with a background and an outline. BorderThickness="0,0,0,1" = left, top, right,
+             bottom: a line on the bottom side only. Padding = empty space inside the box -->
         <Border Grid.Row="0" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}"
                 BorderThickness="0,0,0,1" Padding="20,12">
+            <!-- Two columns: "*" = the left one takes the free space, "Auto" = the right one fits its content -->
             <Grid ColumnDefinitions="*,Auto">
+                <!-- StackPanel puts its children one after another; Horizontal = side by side, Spacing = the gap -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <!-- The name of the program. Classes="logo" = use the style "TextBlock.logo" from the theme -->
                     <TextBlock Text="NetSim Server" Classes="logo" VerticalAlignment="Center" />
+                    <!-- A small rounded tag next to the name -->
                     <Border Classes="chip">
                         <TextBlock Text="SUPER ADMIN" FontSize="10" FontWeight="Bold"
                                    Foreground="{StaticResource TextDim}" />
                     </Border>
                 </StackPanel>
+                <!-- The right side: a green dot, the word "Running" and the server's address -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- Ellipse with equal width and height = a circle, filled with the "Ok" (green) colour -->
                     <Ellipse Width="9" Height="9" Fill="{StaticResource Ok}" VerticalAlignment="Center" />
                     <TextBlock Text="Running" Classes="label" VerticalAlignment="Center" />
+                    <!-- {Binding ServerAddress} = show the value of the ServerAddress property of the view model -->
                     <TextBlock Text="{Binding ServerAddress}" Classes="hint" VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- ============ TABS ============ -->
+        <!-- TabControl shows one TabItem at a time. Margin = empty space outside it: left, top, right, bottom -->
         <TabControl Grid.Row="1" Margin="12,8,12,12">
 
             <!-- ============ OVERVIEW ============ -->
+            <!-- Header = the text on the tab itself -->
             <TabItem Header="Overview">
+                <!-- A vertical stack (the default direction): the four cards on top, the status card under them -->
                 <StackPanel Margin="8,16" Spacing="16">
+                    <!-- UniformGrid = a grid whose cells all have the same size; here four columns, one per card -->
                     <UniformGrid Columns="4">
+                        <!-- Card 1: how many users are registered. The right margin is the gap to the next card -->
                         <Border Classes="card" Margin="0,0,12,0">
                             <StackPanel Spacing="6">
                                 <TextBlock Classes="label" Text="REGISTERED USERS" />
+                                <!-- The big number, read from the TotalUsers property -->
                                 <TextBlock Classes="stat" Text="{Binding TotalUsers}" />
                             </StackPanel>
                         </Border>
+                        <!-- Card 2: how many users signed in today -->
                         <Border Classes="card" Margin="0,0,12,0">
                             <StackPanel Spacing="6">
                                 <TextBlock Classes="label" Text="SIGNED IN TODAY" />
                                 <TextBlock Classes="stat" Text="{Binding ActiveToday}" />
                             </StackPanel>
                         </Border>
+                        <!-- Card 3: how many requests the server handled in the last 60 minutes -->
                         <Border Classes="card" Margin="0,0,12,0">
                             <StackPanel Spacing="6">
                                 <TextBlock Classes="label" Text="REQUESTS (LAST HOUR)" />
                                 <TextBlock Classes="stat" Text="{Binding RequestsLastHour}" />
                             </StackPanel>
                         </Border>
+                        <!-- Card 4: how many requests crashed. The number is drawn in red (Danger) -->
                         <Border Classes="card">
                             <StackPanel Spacing="6">
                                 <TextBlock Classes="label" Text="ERRORS SINCE START" />
@@ -65,17 +96,23 @@
                         </Border>
                     </UniformGrid>
 
+                    <!-- The "Server status" card: three lines of name + value -->
                     <Border Classes="card">
                         <StackPanel Spacing="12">
                             <TextBlock Classes="title" Text="Server status" />
+                            <!-- Two columns (a 160-pixel name column and the rest for the value) and three rows -->
                             <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                <!-- Row 0: the address the socket server listens on -->
                                 <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Address" />
                                 <TextBlock Grid.Row="0" Grid.Column="1" Classes="cell" Text="{Binding ServerAddress}" />
+                                <!-- Row 1: the database status. Classes.ok / Classes.bad switch a style class on
+                                     while the bound property is true: green when connected, red when not -->
                                 <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Database" />
                                 <TextBlock Grid.Row="1" Grid.Column="1" Classes="cell" Text="{Binding DatabaseStatus}"
                                            Classes.ok="{Binding IsDatabaseOk}"
                                            Classes.bad="{Binding IsDatabaseDown}" />
 
+                                <!-- Row 2: how long the server has been running -->
                                 <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Running for" />
                                 <TextBlock Grid.Row="2" Grid.Column="1" Classes="cell" Text="{Binding Uptime}" />
                             </Grid>
@@ -86,23 +123,31 @@
 
              <!-- ============ USERS: the Users table of the database ============ -->
             <TabItem Header="Users">
+                <!-- Three rows: the title line, the error banner, and the table (which takes the rest) -->
                 <Grid RowDefinitions="Auto,Auto,*" Margin="8,16">
 
+                <!-- The title and the Refresh button, side by side -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
                     <TextBlock Classes="title" Text="Users table" VerticalAlignment="Center" />
+                    <!-- Command = what a click runs: RefreshUsersCommand, which reads the table again -->
                     <Button Classes="ghost" Content="Refresh" Width="90"
                             Command="{Binding RefreshUsersCommand}" />
                 </StackPanel>
 
-                <!-- Shown only when reading the database failed -->
+                <!-- Shown only when reading the database failed.
+                     IsVisible is bound to UsersError through a converter that turns "not null" into true -->
                 <Border Grid.Row="1" Classes="bannerError" Margin="0,0,0,12"
                         IsVisible="{Binding UsersError, Converter={x:Static ObjectConverters.IsNotNull}}">
                     <TextBlock Classes="error" Text="{Binding UsersError}" />
                 </Border>
 
+                <!-- The table itself, inside a card. Padding="0" so the rows reach the edges of the card -->
                 <Border Grid.Row="2" Classes="card" Padding="0">
+                    <!-- ScrollViewer adds a scroll bar when there are more rows than fit -->
                     <ScrollViewer>
                         <StackPanel>
+                            <!-- The header line. Seven columns: a number = a fixed width in pixels,
+                                 "2*" and "3*" = shares of the free space (3* is one and a half times wider than 2*) -->
                             <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*" Margin="16,14">
                                 <TextBlock Grid.Column="0" Classes="label" Text="ID" />
                                 <TextBlock Grid.Column="1" Classes="label" Text="USERNAME" />
@@ -112,14 +157,18 @@
                                 <TextBlock Grid.Column="5" Classes="label" Text="REGISTERED" />
                                 <TextBlock Grid.Column="6" Classes="label" Text="LAST LOGIN" />
                             </Grid>
+                            <!-- ItemsControl draws one copy of the template below for every item in the Users list -->
                             <ItemsControl ItemsSource="{Binding Users}">
                                 <ItemsControl.ItemTemplate>
+                                    <!-- The look of one row. Inside it the bindings read from a UserRow, not from the view model -->
                                     <DataTemplate x:DataType="local:UserRow">
                                         <Border Classes="row">
+                                            <!-- The same seven column widths as the header, so the cells line up under it -->
                                             <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*">
                                                 <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Id}" />
                                                 <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Username}" />
                                                 <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Email}" />
+                                                <!-- The role is shown inside a small tag instead of plain text -->
                                                 <Border Grid.Column="3" Classes="chip" HorizontalAlignment="Left">
                                                     <TextBlock Text="{Binding Role}" FontSize="11"
                                                                Foreground="{StaticResource TextDim}" />
@@ -146,24 +195,31 @@
                 <Border Classes="card" Padding="0" Margin="8,16">
                     <ScrollViewer>
                         <StackPanel>
+                            <!-- The header line: three fixed columns and the message, which takes the rest -->
                             <Grid ColumnDefinitions="90,90,100,*" Margin="16,14">
                                 <TextBlock Grid.Column="0" Classes="label" Text="TIME" />
                                 <TextBlock Grid.Column="1" Classes="label" Text="LEVEL" />
                                 <TextBlock Grid.Column="2" Classes="label" Text="SOURCE" />
                                 <TextBlock Grid.Column="3" Classes="label" Text="MESSAGE" />
                             </Grid>
+                            <!-- One row for every item in the Logs list (the newest is first) -->
                             <ItemsControl ItemsSource="{Binding Logs}">
                                 <ItemsControl.ItemTemplate>
+                                    <!-- The look of one row; the bindings read from a LogRow -->
                                     <DataTemplate x:DataType="local:LogRow">
                                         <Border Classes="row">
                                             <Grid ColumnDefinitions="90,90,100,*">
+                                                <!-- The time, in the dim colour -->
                                                 <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Time}"
                                                            Foreground="{StaticResource TextDim}" />
+                                                <!-- The level: yellow while IsWarning is true, red while IsError is true -->
                                                 <TextBlock Grid.Column="1" Classes="level" Text="{Binding Level}"
                                                            Classes.warn="{Binding IsWarning}"
                                                            Classes.error="{Binding IsError}" />
+                                                <!-- Which part of the server wrote the message -->
                                                 <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Source}"
                                                            Foreground="{StaticResource TextDim}" />
+                                                <!-- The message itself -->
                                                 <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Message}" />
                                             </Grid>
                                         </Border>
@@ -180,17 +236,22 @@
                 <Border Classes="card" Padding="0" Margin="8,16">
                     <ScrollViewer>
                         <StackPanel>
+                            <!-- The header line -->
                             <Grid ColumnDefinitions="90,2*,2*,3*" Margin="16,14">
                                 <TextBlock Grid.Column="0" Classes="label" Text="TIME" />
                                 <TextBlock Grid.Column="1" Classes="label" Text="REQUEST" />
                                 <TextBlock Grid.Column="2" Classes="label" Text="EXCEPTION" />
                                 <TextBlock Grid.Column="3" Classes="label" Text="MESSAGE" />
                             </Grid>
+                            <!-- One row for every item in the Errors list -->
                             <ItemsControl ItemsSource="{Binding Errors}">
                                 <ItemsControl.ItemTemplate>
+                                    <!-- The look of one row; the bindings read from an ErrorRow -->
                                     <DataTemplate x:DataType="local:ErrorRow">
                                         <Border Classes="row">
+                                            <!-- Each error takes two lines, one under the other -->
                                             <StackPanel Spacing="5">
+                                                <!-- First line: time, request, the kind of exception (in red) and its text -->
                                                 <Grid ColumnDefinitions="90,2*,2*,3*">
                                                     <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Time}"
                                                                Foreground="{StaticResource TextDim}" />
@@ -199,7 +260,9 @@
                                                                Foreground="{StaticResource Danger}" />
                                                     <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Message}" />
                                                 </Grid>
-                                                <!-- Second line of the row: where in the code it was thrown -->
+                                                <!-- Second line of the row: where in the code it was thrown.
+                                                     The left margin of 90 starts it under the REQUEST column;
+                                                     TextWrapping lets a long line continue on the next one -->
                                                 <TextBlock Classes="hint" Margin="90,0,0,0" Text="{Binding Location}"
                                                            TextWrapping="Wrap" />
                                             </StackPanel>
@@ -215,10 +278,13 @@
 
             <!-- ============ SECURITY: events the owner should know about ============ -->
             <TabItem Header="Security">
+                <!-- The same three rows as the Users tab: title line, error banner, table -->
                 <Grid RowDefinitions="Auto,Auto,*" Margin="8,16">
 
+                <!-- The title and the Refresh button -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
                     <TextBlock Classes="title" Text="Security events" VerticalAlignment="Center" />
+                    <!-- A click runs RefreshSecurityCommand, which reads the SecurityEvents table again -->
                     <Button Classes="ghost" Content="Refresh" Width="90"
                             Command="{Binding RefreshSecurityCommand}" />
                 </StackPanel>
@@ -229,9 +295,11 @@
                     <TextBlock Classes="error" Text="{Binding SecurityError}" />
                 </Border>
 
+                <!-- The table -->
                 <Border Grid.Row="2" Classes="card" Padding="0">
                     <ScrollViewer>
                         <StackPanel>
+                            <!-- The header line -->
                             <Grid ColumnDefinitions="120,2*,2*,130,3*" Margin="16,14">
                                 <TextBlock Grid.Column="0" Classes="label" Text="TIME" />
                                 <TextBlock Grid.Column="1" Classes="label" Text="EVENT" />
@@ -239,13 +307,16 @@
                                 <TextBlock Grid.Column="3" Classes="label" Text="IP ADDRESS" />
                                 <TextBlock Grid.Column="4" Classes="label" Text="DETAILS" />
                             </Grid>
+                            <!-- One row for every item in the SecurityEvents list -->
                             <ItemsControl ItemsSource="{Binding SecurityEvents}">
                                 <ItemsControl.ItemTemplate>
+                                    <!-- The look of one row; the bindings read from a SecurityEventRow -->
                                     <DataTemplate x:DataType="local:SecurityEventRow">
                                         <Border Classes="row">
                                             <Grid ColumnDefinitions="120,2*,2*,130,3*">
                                                 <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Time}"
                                                            Foreground="{StaticResource TextDim}" />
+                                                <!-- The name of the event, in the warning (yellow) colour -->
                                                 <TextBlock Grid.Column="1" Classes="cell" Text="{Binding EventType}"
                                                            Foreground="{StaticResource Warn}" />
                                                 <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Email}" />

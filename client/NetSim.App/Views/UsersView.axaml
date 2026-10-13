@@ -1,3 +1,11 @@
+<!-- The admin's "User management" screen: a table of all the users, with a Delete button on every row.
+     It is shown on the whole window (under the top bar), and reads its data from UsersViewModel.
+     xmlns = the "dictionary" of Avalonia's own tags
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:DataType, x:Static)
+     xmlns:vm = lets this file use our classes from the NetSim.App.ViewModels namespace
+     xmlns:conv = Avalonia's ready-made converters (ObjectConverters.IsNotNull)
+     x:Class = the C# class this file is the other half of (UsersView.axaml.cs)
+     x:DataType = the class the {Binding ...} expressions read from, so the compiler can check their names -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:NetSim.App.ViewModels"
@@ -5,42 +13,61 @@
              x:Class="NetSim.App.Views.UsersView"
              x:DataType="vm:UsersViewModel">
 
+    <!-- Three rows: the title line, the error banner (both as tall as their content), and the table,
+         which takes all the space that is left ("*") -->
     <Grid RowDefinitions="Auto,Auto,*" Margin="24">
 
+        <!-- Row 0: the title and the two buttons, side by side -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,16" VerticalAlignment="Center">
             <TextBlock Classes="title" Text="User management" VerticalAlignment="Center" />
+            <!-- Asks the server for the list again -->
             <Button Classes="ghost" Content="Refresh" Width="90" Command="{Binding RefreshCommand}" />
+            <!-- Returns to the simulator workspace -->
             <Button Classes="ghost" Content="Back" Width="90" Command="{Binding GoBackCommand}" />
         </StackPanel>
 
+        <!-- Row 1: the red error box, shown only while the Error property is not null -->
         <Border Grid.Row="1" Classes="banner bannerError" Margin="0,0,0,16"
                 IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
             <TextBlock Classes="error" Text="{Binding Error}" />
         </Border>
 
+        <!-- Row 2: the table, inside a card. Padding="0" so the rows reach the edges of the card -->
         <Border Grid.Row="2" Classes="card" Padding="0">
+            <!-- ScrollViewer adds a scroll bar when there are more rows than fit -->
             <ScrollViewer>
                 <StackPanel>
+                    <!-- The header line. Five columns: "2*", "3*", "1*" = shares of the free space
+                         (3* is three times wider than 1*), "Auto" = as wide as its content -->
                     <Grid ColumnDefinitions="2*,3*,1*,2*,Auto" Margin="16,14">
                         <TextBlock Grid.Column="0" Classes="label" Text="USERNAME" />
                         <TextBlock Grid.Column="1" Classes="label" Text="EMAIL" />
                         <TextBlock Grid.Column="2" Classes="label" Text="ROLE" />
                         <TextBlock Grid.Column="3" Classes="label" Text="LAST LOGIN" />
+                        <!-- An empty header, 90 pixels wide, above the column of the Delete buttons -->
                         <TextBlock Grid.Column="4" Classes="label" Text="" Width="90" />
                     </Grid>
 
+                    <!-- ItemsControl draws one copy of the template below for every item in the Users list -->
                     <ItemsControl ItemsSource="{Binding Users}">
                         <ItemsControl.ItemTemplate>
+                            <!-- The look of one row. Inside it the bindings read from a UserRowViewModel -->
                             <DataTemplate x:DataType="vm:UserRowViewModel">
+                                <!-- "0,1,0,0" = a thin line on the top side only, which separates the rows -->
                                 <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="16,12">
+                                    <!-- The same five column widths as the header, so the cells line up under it -->
                                     <Grid ColumnDefinitions="2*,3*,1*,2*,Auto">
                                         <TextBlock Grid.Column="0" Text="{Binding Username}"
                                                    Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="1" Text="{Binding Email}" Classes="hint" VerticalAlignment="Center" />
+                                        <!-- The role is shown inside a small tag instead of plain text -->
                                         <Border Grid.Column="2" Classes="chip" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Role}" FontSize="11" Foreground="{StaticResource TextDim}" />
                                         </Border>
+                                        <!-- A formatted date, or the word "Never" -->
                                         <TextBlock Grid.Column="3" Text="{Binding LastLoginDisplay}" Classes="hint" VerticalAlignment="Center" />
+                                        <!-- The Delete button of this row, with red text. Its command belongs to the
+                                             row itself, so it deletes exactly this user -->
                                         <Button Grid.Column="4" Classes="ghost" Content="Delete" Width="90" MinHeight="34"
                                                 Foreground="{StaticResource Danger}"
                                                 Command="{Binding DeleteCommand}" VerticalAlignment="Center" />

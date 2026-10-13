@@ -1,23 +1,26 @@
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Markup.Xaml;
+using Avalonia;                                  // Application - the base class of an Avalonia app
+using Avalonia.Controls.ApplicationLifetimes;    // IClassicDesktopStyleApplicationLifetime - a normal desktop app with a main window
+using Avalonia.Markup.Xaml;                      // AvaloniaXamlLoader - reads .axaml files
 
 namespace NetSim.Server.Dashboard;
 
 // The desktop (Avalonia) application that lives inside the server process - the Super Admin screen.
-// It is the server-side twin of the client's App class, but it shows what the server is doing
+// It is the server-side twin of the client's App class, but it shows what the server is doing.
+// "partial" = the other half of this class is generated from DashboardApp.axaml at build time
 public partial class DashboardApp : Application
 {
     // The server's DI container, handed over by Program.cs. This is the bridge between the two
     // halves of the process: through it the window can reach the database
     private readonly IServiceProvider _services;
 
+    // The constructor: keep the container
     public DashboardApp(IServiceProvider services)
     {
         _services = services;
     }
 
     // Loads DashboardApp.axaml (the theme and styles).
+    // "override" = we replace the empty version that Application has
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -26,8 +29,10 @@ public partial class DashboardApp : Application
     // Runs once, after Avalonia is ready. We create the dashboard window here.
     public override void OnFrameworkInitializationCompleted()
     {
+        // Check that we run as a normal desktop application; if so, "desktop" is the object that manages its windows
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Create the window and make it the main one (closing it ends the application)
             desktop.MainWindow = new DashboardWindow
             {
                 // The window's DataContext is the object its bindings read from
@@ -35,6 +40,7 @@ public partial class DashboardApp : Application
             };
         }
 
+        // Let the base class finish its own part of the start-up
         base.OnFrameworkInitializationCompleted();
     }
 }

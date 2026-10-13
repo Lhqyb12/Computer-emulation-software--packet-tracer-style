@@ -1,27 +1,38 @@
+<!-- The look of the login/register screens: their colours and their styles. Loaded once by App.axaml,
+     so every screen can use them.
+     A Style has a Selector (which controls it applies to) and Setters (which properties it sets).
+     "TextBlock.title" = every TextBlock that has Classes="title".
+     ":pointerover", ":focus", ":pressed"... = the same control while it is in that state.
+     "/template/ Name" = reaches a named inner part of a control (the part that actually draws it) -->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Styles.Resources>
         <!-- ===================== COLOURS ===================== -->
-        <SolidColorBrush x:Key="Bg"          Color="#0E1420" />
-        <SolidColorBrush x:Key="Card"        Color="#161E2D" />
-        <SolidColorBrush x:Key="Field"       Color="#1B2434" />
-        <SolidColorBrush x:Key="Line"        Color="#2A3446" />
-        <SolidColorBrush x:Key="LineStrong"  Color="#3A4661" />
-        <SolidColorBrush x:Key="Text"        Color="#EAEEF6" />
-        <SolidColorBrush x:Key="TextDim"     Color="#9AA7BC" />
-        <SolidColorBrush x:Key="TextMuted"   Color="#63708A" />
-        <SolidColorBrush x:Key="Accent"      Color="#2C6BE0" />
-        <SolidColorBrush x:Key="AccentHover" Color="#3D7BF0" />
-        <SolidColorBrush x:Key="AccentPress" Color="#2158C4" />
-        <SolidColorBrush x:Key="OnAccent"    Color="#FFFFFF" />
-        <SolidColorBrush x:Key="Ok"          Color="#3BD07E" />
-        <SolidColorBrush x:Key="OkBg"        Color="#10261C" />
-        <SolidColorBrush x:Key="OkLine"      Color="#1E4C37" />
-        <SolidColorBrush x:Key="Danger"      Color="#FF6B6B" />
-        <SolidColorBrush x:Key="DangerBg"    Color="#241416" />
-        <SolidColorBrush x:Key="DangerLine"  Color="#4E2529" />
+        <!-- Each line gives a colour a name (x:Key). Other files use it as {StaticResource Name}.
+             A colour is written as # and six hexadecimal digits: two for red, two for green, two for blue -->
+        <SolidColorBrush x:Key="Bg"          Color="#0E1420" />   <!-- the window background -->
+        <SolidColorBrush x:Key="Card"        Color="#161E2D" />   <!-- the background of cards and of the top bar -->
+        <SolidColorBrush x:Key="Field"       Color="#1B2434" />   <!-- the background of text boxes -->
+        <SolidColorBrush x:Key="Line"        Color="#2A3446" />   <!-- thin outlines and separators -->
+        <SolidColorBrush x:Key="LineStrong"  Color="#3A4661" />   <!-- a more visible outline -->
+        <SolidColorBrush x:Key="Text"        Color="#EAEEF6" />   <!-- normal text -->
+        <SolidColorBrush x:Key="TextDim"     Color="#9AA7BC" />   <!-- less important text (labels) -->
+        <SolidColorBrush x:Key="TextMuted"   Color="#63708A" />   <!-- the least important text (hints) -->
+        <SolidColorBrush x:Key="Accent"      Color="#2C6BE0" />   <!-- the blue of the main buttons and links -->
+        <SolidColorBrush x:Key="AccentHover" Color="#3D7BF0" />   <!-- a lighter blue, while the mouse is over a button -->
+        <SolidColorBrush x:Key="AccentPress" Color="#2158C4" />   <!-- a darker blue, while a button is pressed -->
+        <SolidColorBrush x:Key="OnAccent"    Color="#FFFFFF" />   <!-- text drawn on top of the accent colour -->
+        <SolidColorBrush x:Key="Ok"          Color="#3BD07E" />   <!-- green: success -->
+        <SolidColorBrush x:Key="OkBg"        Color="#10261C" />   <!-- the dark green background of a success banner -->
+        <SolidColorBrush x:Key="OkLine"      Color="#1E4C37" />   <!-- the outline of a success banner -->
+        <SolidColorBrush x:Key="Danger"      Color="#FF6B6B" />   <!-- red: an error -->
+        <SolidColorBrush x:Key="DangerBg"    Color="#241416" />   <!-- the dark red background of an error banner -->
+        <SolidColorBrush x:Key="DangerLine"  Color="#4E2529" />   <!-- the outline of an error banner -->
 
+        <!-- The background of the branding panel: a colour that changes gradually from the top
+             (0%,0%) to the bottom (0%,100%). Each GradientStop is a colour at a point along the way:
+             Offset 0 = the start, Offset 1 = the end -->
         <LinearGradientBrush x:Key="BrandGradient" StartPoint="0%,0%" EndPoint="0%,100%">
             <GradientStop Offset="0" Color="#151D2D" />
             <GradientStop Offset="1" Color="#0B111C" />
@@ -29,43 +40,51 @@
     </Styles.Resources>
 
     <!-- ===================== TYPOGRAPHY ===================== -->
+    <!-- The program's name: large and bold -->
     <Style Selector="TextBlock.logo">
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
+    <!-- The title of a screen ("Welcome back"). Wrap = a long title continues on the next line -->
     <Style Selector="TextBlock.title">
         <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <!-- The sentence under a title. LineHeight = the distance between its lines -->
     <Style Selector="TextBlock.subtitle">
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Foreground" Value="{StaticResource TextDim}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="LineHeight" Value="19" />
     </Style>
+    <!-- The small caption above a text box ("Email") -->
     <Style Selector="TextBlock.label">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Foreground" Value="{StaticResource TextDim}" />
     </Style>
+    <!-- The smallest, most muted text -->
     <Style Selector="TextBlock.hint">
         <Setter Property="FontSize" Value="11.5" />
         <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <!-- Red error text -->
     <Style Selector="TextBlock.error">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource Danger}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <!-- Green success text -->
     <Style Selector="TextBlock.ok">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource Ok}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <!-- One line of the feature list in the branding panel -->
     <Style Selector="TextBlock.feature">
         <Setter Property="FontSize" Value="12.5" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -73,6 +92,7 @@
     </Style>
 
     <!-- ===================== CARD & CHIP ===================== -->
+    <!-- A card: a box with a background, a thin outline, rounded corners and space inside -->
     <Style Selector="Border.card">
         <Setter Property="Background" Value="{StaticResource Card}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
@@ -80,6 +100,7 @@
         <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Padding" Value="30" />
     </Style>
+    <!-- A chip: a small rounded tag around a short word ("LABS", the role) -->
     <Style Selector="Border.chip">
         <Setter Property="Background" Value="#1E2A3E" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
@@ -90,21 +111,25 @@
     </Style>
 
     <!-- ===================== BANNERS ===================== -->
+    <!-- What every message box shares: the outline width, the rounded corners and the space inside -->
     <Style Selector="Border.banner">
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,10" />
     </Style>
+    <!-- Added on top of "banner" for an error: the red colours -->
     <Style Selector="Border.bannerError">
         <Setter Property="Background" Value="{StaticResource DangerBg}" />
         <Setter Property="BorderBrush" Value="{StaticResource DangerLine}" />
     </Style>
+    <!-- Added on top of "banner" for a success message: the green colours -->
     <Style Selector="Border.bannerOk">
         <Setter Property="Background" Value="{StaticResource OkBg}" />
         <Setter Property="BorderBrush" Value="{StaticResource OkLine}" />
     </Style>
 
     <!-- ===================== TEXT INPUT ===================== -->
+    <!-- A text box. CaretBrush = the colour of the blinking typing cursor -->
     <Style Selector="TextBox.field">
         <Setter Property="Background" Value="{StaticResource Field}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -117,6 +142,8 @@
         <Setter Property="FontSize" Value="14" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
+    <!-- A Transition makes a change happen gradually instead of at once: when the outline colour of
+         the text box changes, it fades to the new colour over 0.15 seconds -->
     <Style Selector="TextBox.field /template/ Border#PART_BorderElement">
         <Setter Property="Transitions">
             <Transitions>
@@ -124,14 +151,17 @@
             </Transitions>
         </Setter>
     </Style>
+    <!-- While the mouse is over the text box: a more visible outline -->
     <Style Selector="TextBox.field:pointerover /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{StaticResource Field}" />
         <Setter Property="BorderBrush" Value="{StaticResource LineStrong}" />
     </Style>
+    <!-- While the text box is being typed in (":focus"): a blue outline -->
     <Style Selector="TextBox.field:focus /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{StaticResource Field}" />
         <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
     </Style>
+    <!-- A text box that also has the "invalid" class: a red outline -->
     <Style Selector="TextBox.field.invalid /template/ Border#PART_BorderElement">
         <Setter Property="BorderBrush" Value="{StaticResource Danger}" />
     </Style>
@@ -145,6 +175,9 @@
         <Setter Property="Padding" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <!-- Template = replaces the whole inside of the button with our own drawing: a rounded box
+             with the eye icon in it. TemplateBinding = use the value the button itself has.
+             x:Name="i" names the icon, so the two styles below can change it -->
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Background="{TemplateBinding Background}" CornerRadius="6">
@@ -155,15 +188,18 @@
             </ControlTemplate>
         </Setter>
     </Style>
+    <!-- While the mouse is over the eye button: a brighter icon -->
     <Style Selector="ToggleButton.eye:pointerover /template/ PathIcon#i">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
+    <!-- While the button is pressed in (":checked" = the password is visible): the crossed-out eye, in blue -->
     <Style Selector="ToggleButton.eye:checked /template/ PathIcon#i">
         <Setter Property="Data" Value="{StaticResource Icon.EyeOff}" />
         <Setter Property="Foreground" Value="{StaticResource Accent}" />
     </Style>
 
     <!-- ===================== BUTTONS ===================== -->
+    <!-- The main button of a screen: filled with blue, as wide as the card ("Stretch"), text in the middle -->
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{StaticResource Accent}" />
         <Setter Property="Foreground" Value="{StaticResource OnAccent}" />
@@ -175,6 +211,7 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
+    <!-- The background colour of the button fades to a new colour over 0.12 seconds -->
     <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Transitions">
             <Transitions>
@@ -182,17 +219,22 @@
             </Transitions>
         </Setter>
     </Style>
+    <!-- While the mouse is over it: the lighter blue -->
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource AccentHover}" />
     </Style>
+    <!-- While it is pressed: the darker blue -->
     <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource AccentPress}" />
     </Style>
+    <!-- While it is disabled (for example, while waiting for the server): the same blue but faded.
+         Opacity 0.45 = 45% visible -->
     <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource Accent}" />
         <Setter Property="Opacity" Value="0.45" />
     </Style>
 
+    <!-- A "ghost" button: no fill, only an outline ("Continue with Google", "Sign out") -->
     <Style Selector="Button.ghost">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -205,10 +247,12 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
+    <!-- While the mouse is over it: a slightly lighter background -->
     <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#1C2536" />
     </Style>
 
+    <!-- A button that looks like a link: no background, no outline, blue text -->
     <Style Selector="Button.link">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
@@ -218,13 +262,15 @@
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
+    <!-- While the mouse is over it: lighter blue text, and still no background -->
     <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource AccentHover}" />
     </Style>
 
 
-        <!-- Back arrow (sits at the top-left of an auth card) -->
+        <!-- Back arrow (sits at the top-left of an auth card).
+             The negative margins pull it a little outside its place, closer to the corner of the card -->
     <Style Selector="Button.back">
         <Setter Property="Width" Value="32" />
         <Setter Property="Height" Value="32" />
@@ -234,6 +280,7 @@
         <Setter Property="Margin" Value="-8,-8,0,-6" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="HorizontalAlignment" Value="Left" />
+        <!-- Template = replaces the whole inside of the button with a rounded box and the arrow icon -->
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Background="{TemplateBinding Background}" CornerRadius="6">
@@ -244,9 +291,11 @@
             </ControlTemplate>
         </Setter>
     </Style>
+    <!-- While the mouse is over the back button: a visible background... -->
     <Style Selector="Button.back:pointerover">
         <Setter Property="Background" Value="#1C2536" />
     </Style>
+    <!-- ...and a brighter arrow -->
     <Style Selector="Button.back:pointerover /template/ PathIcon#i">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
@@ -254,10 +303,14 @@
 
 
     <!-- ===================== LOADING DOT ===================== -->
+    <!-- The small white dot shown inside a button while waiting for the server -->
     <Style Selector="Ellipse.dot">
         <Setter Property="Width" Value="7" />
         <Setter Property="Height" Value="7" />
         <Setter Property="Fill" Value="{StaticResource OnAccent}" />
+        <!-- An animation that never stops (INFINITE): every 0.9 seconds the dot goes from faint (0.3)
+             to fully visible (1) and back, so it seems to pulse. A KeyFrame is the value at one moment
+             of the animation; SineEaseInOut makes the change start and end gently -->
         <Style.Animations>
             <Animation Duration="0:0:0.9" IterationCount="INFINITE" Easing="SineEaseInOut">
                 <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.3" /></KeyFrame>
@@ -268,6 +321,7 @@
     </Style>
 
     <!-- ===================== CHECKBOX ===================== -->
+    <!-- A small check box with dim text -->
     <Style Selector="CheckBox.small">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource TextDim}" />

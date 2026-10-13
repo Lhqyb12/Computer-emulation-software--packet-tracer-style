@@ -1,3 +1,12 @@
+<!-- The "verify your email" screen: the user types the 6-digit code that was emailed to them.
+     It holds two panels in the same place and shows one at a time: the code form, and the success message.
+     It is shown inside the card of MainWindow, and reads its data from VerifyEmailViewModel.
+     xmlns = the "dictionary" of Avalonia's own tags
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:DataType, x:Static)
+     xmlns:vm = lets this file use our classes from the NetSim.App.ViewModels namespace
+     xmlns:conv = Avalonia's ready-made converters (ObjectConverters.IsNotNull)
+     x:Class = the C# class this file is the other half of (VerifyEmailView.axaml.cs)
+     x:DataType = the class the {Binding ...} expressions read from, so the compiler can check their names -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:NetSim.App.ViewModels"
@@ -5,13 +14,18 @@
              x:Class="NetSim.App.Views.VerifyEmailView"
              x:DataType="vm:VerifyEmailViewModel">
 
+    <!-- A Panel puts its children one on top of the other; IsVisible decides which of the two is seen -->
     <Panel>
 
         <!-- ================= ENTER CODE ================= -->
+        <!-- Shown until the email was verified ("!IsSuccess" = the opposite of IsSuccess) -->
         <StackPanel Spacing="14" IsVisible="{Binding !IsSuccess}">
 
+            <!-- The round "back" arrow; a click returns to the sign-in screen -->
             <Button Classes="back" Command="{Binding GoToLoginCommand}" ToolTip.Tip="Back to sign in" />
 
+            <!-- The title, a sentence, and the email address the code was sent to (in bold).
+                 TextWrapping = a long address continues on the next line -->
             <StackPanel Spacing="5">
                 <TextBlock Classes="title" Text="Verify your email" />
                 <TextBlock Classes="subtitle" Text="We sent a 6-digit code to" />
@@ -19,21 +33,28 @@
                            Foreground="{StaticResource Text}" TextWrapping="Wrap" />
             </StackPanel>
 
+            <!-- The red error box, shown only while the Error property is not null -->
             <Border Classes="banner bannerError"
                     IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
                 <TextBlock Classes="error" Text="{Binding Error}" />
             </Border>
 
+            <!-- The green message box ("A new code was sent"), shown only while Status is not null -->
             <Border Classes="banner bannerOk"
                     IsVisible="{Binding Status, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
                 <TextBlock Classes="ok" Text="{Binding Status}" />
             </Border>
 
+            <!-- The code box. MaxLength = no more than 6 characters can be typed.
+                 The binding works both ways: every typed digit is written into Code -->
             <StackPanel Spacing="5">
                 <TextBlock Classes="label" Text="Verification code" />
                 <TextBox Classes="field" PlaceholderText="6-digit code" MaxLength="6" Text="{Binding Code}" />
             </StackPanel>
 
+            <!-- The main button. IsDefault = pressing Enter clicks it.
+                 Inside it, two contents share the same place: the normal text, and a dot with "Verifying…"
+                 while IsBusy is true -->
             <Button Classes="primary" IsDefault="True" Margin="0,2,0,0" Command="{Binding VerifyCommand}">
                 <Panel>
                     <TextBlock Text="Verify email" IsVisible="{Binding !IsBusy}" />
@@ -44,6 +65,7 @@
                 </Panel>
             </Button>
 
+            <!-- The bottom line: a question and a link that asks the server for a new code -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
                 <TextBlock Classes="hint" Text="Didn't get the code?" VerticalAlignment="Center" />
                 <Button Classes="link" Content="Send it again" Command="{Binding ResendCodeCommand}" />
@@ -51,15 +73,19 @@
         </StackPanel>
 
         <!-- ================= SUCCESS ================= -->
+        <!-- Shown after the code was accepted (IsSuccess) -->
         <StackPanel Spacing="14" IsVisible="{Binding IsSuccess}">
+            <!-- A 60x60 box with a corner radius of 30 = a circle, with a big green tick inside -->
             <Border Background="{StaticResource OkBg}" CornerRadius="30" Width="60" Height="60"
                     HorizontalAlignment="Center">
                 <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="32" Height="32"
                           Foreground="{StaticResource Ok}" />
             </Border>
+            <!-- The title and a sentence under it, both centred -->
             <TextBlock Classes="title" HorizontalAlignment="Center" TextAlignment="Center" Text="Email verified" />
             <TextBlock Classes="subtitle" HorizontalAlignment="Center" TextAlignment="Center"
                        Text="Your account is ready. You can sign in now." />
+            <!-- Returns to the sign-in screen -->
             <Button Classes="primary" Margin="0,4,0,0" Content="Continue to sign in" Command="{Binding GoToLoginCommand}" />
         </StackPanel>
     </Panel>

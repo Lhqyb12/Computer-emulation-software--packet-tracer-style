@@ -1,3 +1,10 @@
+<!-- The sign-in screen. It is shown inside the card of MainWindow, and reads its data from LoginViewModel.
+     xmlns = the "dictionary" of Avalonia's own tags
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:DataType, x:Static)
+     xmlns:vm = lets this file use our classes from the NetSim.App.ViewModels namespace
+     xmlns:conv = Avalonia's ready-made converters (ObjectConverters.IsNotNull)
+     x:Class = the C# class this file is the other half of (LoginView.axaml.cs)
+     x:DataType = the class the {Binding ...} expressions read from, so the compiler can check their names -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:NetSim.App.ViewModels"
@@ -5,14 +12,18 @@
              x:Class="NetSim.App.Views.LoginView"
              x:DataType="vm:LoginViewModel">
 
+    <!-- StackPanel puts its children one under the other; Spacing = the gap between them -->
     <StackPanel Spacing="16">
 
+        <!-- The title and a line of explanation under it -->
         <StackPanel Spacing="5">
             <TextBlock Classes="title" Text="Welcome back" />
             <TextBlock Classes="subtitle" Text="Sign in to continue to your workspace." />
         </StackPanel>
 
-        <!-- error banner -->
+        <!-- error banner: a red box with a warning icon and the text of the Error property.
+             IsVisible passes Error through a converter that gives true when it is not null,
+             so the box appears only while there is an error -->
         <Border Classes="banner bannerError"
                 IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
             <StackPanel Orientation="Horizontal" Spacing="9">
@@ -22,7 +33,7 @@
             </StackPanel>
         </Border>
 
-        <!-- success banner -->
+        <!-- success banner: the same idea in green, shown only while Status is not null -->
         <Border Classes="banner bannerOk"
                 IsVisible="{Binding Status, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
             <StackPanel Orientation="Horizontal" Spacing="9">
@@ -32,22 +43,30 @@
             </StackPanel>
         </Border>
 
-        <!-- email -->
+        <!-- email: a caption and a text box. PlaceholderText = the grey example shown while the box is empty.
+             Text="{Binding Email}" works both ways: every typed letter is written into the Email property -->
         <StackPanel Spacing="5">
             <TextBlock Classes="label" Text="Email" />
             <TextBox Classes="field" PlaceholderText="you@example.com" Text="{Binding Email}" />
         </StackPanel>
 
-        <!-- password -->
+        <!-- password: a caption, and a text box with an "eye" button on top of its right edge -->
         <StackPanel Spacing="5">
             <TextBlock Classes="label" Text="Password" />
+            <!-- A Panel puts the button on top of the text box -->
             <Panel>
+                <!-- PasswordChar = the dot shown instead of every typed letter.
+                     RevealPassword = show the real letters while IsPasswordVisible is true.
+                     The right padding of 42 keeps the text from running under the eye button -->
                 <TextBox Classes="field"
                          PlaceholderText="Your password"
                          PasswordChar="●"
                          RevealPassword="{Binding IsPasswordVisible}"
                          Text="{Binding Password}"
                          Padding="12,0,42,0" />
+                <!-- A ToggleButton stays pressed until it is clicked again. IsChecked is bound to
+                     IsPasswordVisible, so pressing it shows the password and pressing again hides it.
+                     ToolTip.Tip = the small text shown when the mouse rests on the button -->
                 <ToggleButton Classes="eye"
                               HorizontalAlignment="Right" Margin="0,0,6,0"
                               IsChecked="{Binding IsPasswordVisible}"
@@ -55,15 +74,20 @@
             </Panel>
         </StackPanel>
 
+        <!-- A button that looks like a link; a click opens the "forgot my password" screen -->
         <Button Classes="link" HorizontalAlignment="Right" Content="Forgot password?"
                 Command="{Binding GoToForgotPasswordCommand}" />
 
 
-        <!-- submit -->
+        <!-- submit: the main button. IsDefault = pressing Enter anywhere on the screen clicks it.
+             Command = what a click runs; the command also disables the button while IsBusy is true -->
         <Button Classes="primary" IsDefault="True" Margin="0,4,0,0"
                 Command="{Binding SignInCommand}">
+            <!-- Two contents in the same place, one visible at a time -->
             <Panel>
+                <!-- The normal text. "!IsBusy" = the opposite of IsBusy -->
                 <TextBlock Text="Sign In" IsVisible="{Binding !IsBusy}" />
+                <!-- While waiting for the server: a small animated dot and "Signing in…" -->
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"
                             IsVisible="{Binding IsBusy}">
                     <Ellipse Classes="dot" VerticalAlignment="Center" />
@@ -72,13 +96,16 @@
             </Panel>
         </Button>
 
+        <!-- The word "or" between the two ways of signing in -->
         <TextBlock Classes="hint" HorizontalAlignment="Center" Text="or" />
 
+        <!-- Opens Google's sign-in page in the browser -->
         <Button Classes="ghost" Command="{Binding GoogleSignInCommand}" Content="Continue with Google" />
 
 
 
 
+        <!-- The bottom line: a question and a link to the "create account" screen, side by side -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
             <TextBlock Classes="hint" Text="Don't have an account?" VerticalAlignment="Center" />
             <Button Classes="link" Content="Create one" Command="{Binding GoToRegisterCommand}" />

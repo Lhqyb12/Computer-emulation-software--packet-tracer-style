@@ -1,29 +1,42 @@
+<!-- A simple "You're signed in" confirmation screen, with the email and a Sign out button.
+     It reads its data from SignedInViewModel.
+     xmlns = the "dictionary" of Avalonia's own tags
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:DataType)
+     xmlns:vm = lets this file use our classes from the NetSim.App.ViewModels namespace
+     x:Class = the C# class this file is the other half of (SignedInView.axaml.cs)
+     x:DataType = the class the {Binding ...} expressions read from, so the compiler can check their names -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:NetSim.App.ViewModels"
              x:Class="NetSim.App.Views.SignedInView"
              x:DataType="vm:SignedInViewModel">
 
+    <!-- StackPanel puts its children one under the other; Spacing = the gap between them -->
     <StackPanel Spacing="14">
+        <!-- A 60x60 box with a corner radius of 30 = a circle, with a big green tick inside -->
         <Border Background="{StaticResource OkBg}" CornerRadius="30" Width="60" Height="60"
                 HorizontalAlignment="Center">
             <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="32" Height="32"
                       Foreground="{StaticResource Ok}" />
         </Border>
 
+        <!-- The title and a sentence under it, both centred -->
         <TextBlock Classes="title" HorizontalAlignment="Center" TextAlignment="Center"
                    Text="You're signed in" />
         <TextBlock Classes="subtitle" HorizontalAlignment="Center" TextAlignment="Center"
                    Text="The network simulator workspace isn't part of this preview build." />
 
+        <!-- A box with "Signed in as" and the email, side by side -->
         <Border Background="{StaticResource Field}" BorderBrush="{StaticResource Line}"
                 BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,4,0,0">
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Classes="label" Text="Signed in as" />
+                <!-- The email, read from the Email property of the view model -->
                 <TextBlock FontSize="12.5" Foreground="{StaticResource Text}" Text="{Binding Email}" />
             </StackPanel>
         </Border>
 
+        <!-- Command = what a click runs: SignOutCommand, which raises the SignOutRequested event -->
         <Button Classes="ghost" Margin="0,4,0,0"
                 Content="Sign out" Command="{Binding SignOutCommand}" />
     </StackPanel>

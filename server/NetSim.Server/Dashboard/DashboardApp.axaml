@@ -1,10 +1,19 @@
+<!-- The root of the dashboard application. This file holds no window, only what all the windows share:
+     the theme and the styles.
+     xmlns = the "dictionary" of Avalonia's own tags (Application, Window, Button...)
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:Name...)
+     x:Class = the C# class this file is the other half of (DashboardApp.axaml.cs)
+     RequestedThemeVariant="Dark" = always use the dark colours, whatever Windows is set to -->
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="NetSim.Server.Dashboard.DashboardApp"
              RequestedThemeVariant="Dark">
 
+    <!-- The styles that apply to every window of this application -->
     <Application.Styles>
+        <!-- Avalonia's built-in modern look for buttons, text boxes, tabs and so on -->
         <FluentTheme />
+        <!-- Our own colours and styles on top of it. "avares://" = a file packed inside the program -->
         <StyleInclude Source="avares://NetSim.Server/Dashboard/Styles/Theme.axaml" />
     </Application.Styles>
 </Application>

@@ -1,6 +1,6 @@
-using Avalonia;
+using Avalonia;                       // AppBuilder - starts the desktop window of the dashboard
 using Microsoft.EntityFrameworkCore;  // UseNpgsql / AddDbContext - connects EF Core to the PostgreSQL database
-using NetSim.Server.Dashboard;
+using NetSim.Server.Dashboard;        // DashboardApp, DashboardLogStore, DashboardLoggerProvider
 using NetSim.Server.Data;             // AppDbContext
 using NetSim.Server.Networking;       // SocketServer, MessageRouter, ServerKeys
 using NetSim.Server.Services;         // AuthService and the other services
@@ -47,7 +47,8 @@ builder.Services.AddSingleton<ServerKeys>();
 builder.Services.AddSingleton<MessageRouter>();
 builder.Services.AddSingleton<SocketServer>();
 
-// Fail at startup, with a clear message, rather than on the first login
+// Fail at startup, with a clear message, rather than on the first login.
+// "Jwt:Key" is the secret that signs the login tokens; without it no token can be created
 if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Key"]))
 {
     throw new InvalidOperationException("Jwt:Key is not configured.");
@@ -60,17 +61,25 @@ var app = builder.Build();
 // never committed to git), and that user exists in the DB and isn't already an Admin, promote them.
 // This lets us create the very first Admin without ever touching the database by hand - just configuration.
 string? adminSeedEmail = builder.Configuration["AdminSeed:Email"];
+
+// Only if such an email is configured
 if (!string.IsNullOrWhiteSpace(adminSeedEmail))
 {
     // CreateScope is needed here because AppDbContext is Scoped (see the registration above) - it can only be
     // resolved from inside a scope, and outside of a request there is no scope automatically available,
     // so we create one manually just for this one-off startup task
     using var scope = app.Services.CreateScope();
+
+    // Ask the scope for a database connection
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+    // Find the user with that email. null = nobody registered with it yet
     var adminUser = await db.Users.FirstOrDefaultAsync(u => u.Email == adminSeedEmail);
+
+    // The user exists and is not an admin yet
     if (adminUser is not null && adminUser.Role != "Admin")
     {
+        // Promote them and save the change
         adminUser.Role = "Admin";
         await db.SaveChangesAsync();
     }
@@ -82,7 +91,11 @@ await app.StartAsync();
 // Start our socket server. ApplicationStopping is the signal that fires when the server shuts down -
 // it is what ends the server's Accept loop
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+
+// Ask the DI container for the one SocketServer (it is built now, together with its router and keys)
 var socketServer = app.Services.GetRequiredService<SocketServer>();
+
+// "_ =" means: start it in the background and do not wait for it to finish
 _ = socketServer.RunAsync(lifetime.ApplicationStopping);
 
 // The Super Admin window runs on its own thread, next to the socket server.
@@ -90,19 +103,26 @@ _ = socketServer.RunAsync(lifetime.ApplicationStopping);
 // here Main is async, so we create a dedicated thread and mark it STA ourselves
 var uiThread = new Thread(() =>
 {
+    // The code this thread runs: build the dashboard application and show its window.
+    // app.Services is passed in so the dashboard can reach the database and the log store
     AppBuilder.Configure(() => new DashboardApp(app.Services))
-        .UsePlatformDetect()
-        .WithInterFont()
-        .LogToTrace()
-        .StartWithClassicDesktopLifetime(args);
+        .UsePlatformDetect()                      // choose the right drawing backend for this operating system
+        .WithInterFont()                          // use the Inter font
+        .LogToTrace()                             // send Avalonia's own log messages to the debug output
+        .StartWithClassicDesktopLifetime(args);   // open the window and stay here until it is closed
 });
+
+// SetApartmentState exists only on Windows, so it is called only there
 if (OperatingSystem.IsWindows())
 {
     uiThread.SetApartmentState(ApartmentState.STA);
 }
+
+// Start running the thread
 uiThread.Start();
 
 // Join waits here until the window is closed - closing the window is what shuts the server down
 uiThread.Join();
 
+// Stop the host: this raises ApplicationStopping, which ends the socket server's loop
 await app.StopAsync();

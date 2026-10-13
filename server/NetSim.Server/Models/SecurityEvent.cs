@@ -22,7 +22,7 @@ public class SecurityEvent
     // Note it is NOT a foreign key to Users - a failed login can be for an email that isn't registered at all
     public string? Email { get; set; }
 
-    // The network address the request came from. Nullable: unknown if there was no HTTP request
+    // The network address the request came from. Nullable: unknown if the event did not come from a client connection
     public string? IpAddress { get; set; }
 
     // The specific reason, for the owner's eyes only (e.g. "Wrong password" vs "Unknown email") -

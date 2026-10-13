@@ -1,12 +1,12 @@
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
-using NetSim.Server.Data;
-using NetSim.Server.Networking;
-using NetSim.Server.Services;
+using System.Collections.ObjectModel;       // ObservableCollection - a list that tells the screen when it changes
+using System.Diagnostics;                   // Process - information about this running program
+using Avalonia.Threading;                   // Dispatcher and DispatcherTimer - running code on the UI thread
+using CommunityToolkit.Mvvm.ComponentModel; // ObservableObject, SetProperty
+using CommunityToolkit.Mvvm.Input;          // IRelayCommand, AsyncRelayCommand - what a button runs
+using Microsoft.EntityFrameworkCore;        // AsNoTracking / ToListAsync - asynchronous DB queries
+using NetSim.Server.Data;                   // AppDbContext
+using NetSim.Server.Networking;             // SocketServer, LogCategories
+using NetSim.Server.Services;               // SecurityLog
 
 namespace NetSim.Server.Dashboard;
 
@@ -17,7 +17,7 @@ namespace NetSim.Server.Dashboard;
 // it stores a new value AND tells the screen "this property changed", so the number on screen updates
 public class DashboardViewModel : ObservableObject
 {
-    // The server's DI container - the same one the controllers get their services from.
+    // The server's DI container - the same one the socket server gets its services from.
     // The dashboard uses it to ask for an AppDbContext, exactly like the admin seed in Program.cs
     private readonly IServiceProvider _services;
 
@@ -31,20 +31,27 @@ public class DashboardViewModel : ObservableObject
     // Ticks once a second on the UI thread - keeps "Running for" and "Requests (last hour)" current
     private readonly DispatcherTimer _clock;
 
-    private int _totalUsers;
-    private int _activeToday;
-    private int _requestsLastHour;
-    private int _errorCount;
-    private string _uptime = string.Empty;
-    private string _databaseStatus = "Checking...";
+    // The "backing fields": the real storage behind the public properties further down.
+    // Each property reads its field in "get" and changes it through SetProperty in "set"
+    private int _totalUsers;                          // how many users are registered
+    private int _activeToday;                         // how many of them signed in today
+    private int _requestsLastHour;                    // how many requests arrived in the last 60 minutes
+    private int _errorCount;                          // how many requests crashed since the server started
+    private string _uptime = string.Empty;            // the "Running for" text
+    private string _databaseStatus = "Checking...";   // the database status text
     // null = not checked yet, true = the last database read worked, false = it failed
     private bool? _databaseOk;
-    private string? _usersError;
-    private string? _securityError;
+    private string? _usersError;                      // the error text above the Users table (null = no error)
+    private string? _securityError;                   // the error text above the Security table (null = no error)
 
+    // The constructor. services = the server's DI container, passed in by DashboardApp
     public DashboardViewModel(IServiceProvider services)
     {
+        // Keep the container for the methods that read the database
         _services = services;
+
+        // Connect each Refresh button to the method it runs. AsyncRelayCommand wraps an async method
+        // so a button can call it
         RefreshUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
         RefreshSecurityCommand = new AsyncRelayCommand(LoadSecurityEventsAsync);
 
@@ -60,23 +67,34 @@ public class DashboardViewModel : ObservableObject
         // Connects to the server's log: Listen returns what was logged before the window opened
         // (oldest first) and from now on calls OnLogAdded for every new message
         var logStore = _services.GetRequiredService<DashboardLogStore>();
+
+        // Show every message that already exists, one by one
         foreach (LogEntry entry in logStore.Listen(OnLogAdded))
         {
             ShowLogEntry(entry);
         }
 
+        // Fill "Running for" right away, instead of waiting a second for the first tick
+        UpdateClock();
+
         // DispatcherTimer (not a plain Timer): its Tick runs on the UI thread, so it may update
         // properties the screen is bound to without any Dispatcher.Post
-        UpdateClock();
         _clock = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+
+        // "+=" adds code to run on every tick. "(_, _) =>" = a small method whose two parameters we ignore
         _clock.Tick += (_, _) => UpdateClock();
+
+        // Start ticking
         _clock.Start();
     }
 
     // ----- Overview tab -----
+    // The text "tcp://127.0.0.1:9000". "{ get; }" = set once in the constructor, then only read
     public string ServerAddress { get; }
 
-    // How long the server has been running, e.g. "2h 14m"
+    // How long the server has been running, e.g. "2h 14m".
+    // "get => _uptime" returns the field. "private set" = only this class can change it;
+    // SetProperty stores the new value in the field and tells the screen to redraw this text
     public string Uptime
     {
         get => _uptime;
@@ -101,6 +119,7 @@ public class DashboardViewModel : ObservableObject
         private set => SetProperty(ref _totalUsers, value);
     }
 
+    // How many users signed in since midnight
     public int ActiveToday
     {
         get => _activeToday;
@@ -124,7 +143,11 @@ public class DashboardViewModel : ObservableObject
     // Runs once a second
     private void UpdateClock()
     {
+        // The time that passed since the server started
         TimeSpan running = DateTime.Now - _startedAt;
+
+        // Choose the format by how long it is: "2h 14m" from an hour, "14m 5s" from a minute, otherwise "5s".
+        // "(int)" drops the fraction of the hours
         Uptime = running.TotalHours >= 1 ? $"{(int)running.TotalHours}h {running.Minutes}m"
             : running.TotalMinutes >= 1 ? $"{running.Minutes}m {running.Seconds}s"
             : $"{running.Seconds}s";
@@ -132,10 +155,15 @@ public class DashboardViewModel : ObservableObject
         // Requests older than an hour leave the queue. They are in time order, so it is enough to
         // look at the front: once the oldest one is recent enough, all the others are too
         DateTime oneHourAgo = DateTime.Now.AddHours(-1);
+
+        // Peek = look at the oldest time without removing it
         while (_requestTimes.Count > 0 && _requestTimes.Peek() < oneHourAgo)
         {
+            // Dequeue = remove the oldest time
             _requestTimes.Dequeue();
         }
+
+        // What is left in the queue is the number of requests of the last hour
         RequestsLastHour = _requestTimes.Count;
     }
 
@@ -145,10 +173,14 @@ public class DashboardViewModel : ObservableObject
     // around the clock for nothing. So the status means "the result of the last real read"
     private void ReportDatabase(bool ok)
     {
+        // Remember the result
         _databaseOk = ok;
+
+        // Build the status text with the current time, e.g. "Connected (checked 18:42:10)"
         DatabaseStatus = (ok ? "Connected" : "Not reachable") + $" (checked {DateTime.Now:HH:mm:ss})";
 
-        // These two have no setter of their own, so the screen is told by hand that they changed
+        // These two have no setter of their own, so the screen is told by hand that they changed.
+        // nameof(X) = the name of X as text, checked by the compiler
         OnPropertyChanged(nameof(IsDatabaseOk));
         OnPropertyChanged(nameof(IsDatabaseDown));
     }
@@ -168,12 +200,16 @@ public class DashboardViewModel : ObservableObject
     // What the "Refresh" button runs
     public IRelayCommand RefreshUsersCommand { get; }
 
+    // Reads the Users table from the database and fills the Users list and the two numbers
     private async Task LoadUsersAsync()
     {
+        // Clear the error of the previous attempt
         UsersError = null;
+
+        // Reading the database can fail, so it runs inside "try"
         try
         {
-            // AppDbContext is Scoped (one per HTTP request). The dashboard is not inside any request,
+            // AppDbContext is Scoped (one per request). The dashboard is not inside any request,
             // so it opens a scope of its own, uses the context, and disposes both when the method ends
             using var scope = _services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -184,8 +220,8 @@ public class DashboardViewModel : ObservableObject
             // AsNoTracking: we only read, so EF Core doesn't need to track these rows for changes
             var users = await db.Users
                 .AsNoTracking()
-                .OrderBy(u => u.Id)
-                .Select(u => new
+                .OrderBy(u => u.Id)                        // sorted by id, oldest account first
+                .Select(u => new                           // "new { ... }" = a small nameless object with these fields
                 {
                     u.Id,
                     u.Username,
@@ -193,14 +229,19 @@ public class DashboardViewModel : ObservableObject
                     u.Role,
                     u.CreatedAt,
                     u.LastLoginAt,
-                    HasPassword = u.PasswordHash != "",
-                    HasGoogle = u.GoogleId != null,
+                    HasPassword = u.PasswordHash != "",    // true if the account has a password
+                    HasGoogle = u.GoogleId != null,        // true if the account is linked to Google
                 })
-                .ToListAsync();
+                .ToListAsync();                            // run the query and collect the results
 
+            // Empty the table on screen before filling it again
             Users.Clear();
+
+            // One round for every user that was read
             foreach (var u in users)
             {
+                // Choose the "sign-in method" text from the two yes/no values together.
+                // "_" = any other combination
                 string signIn = (u.HasPassword, u.HasGoogle) switch
                 {
                     (true, true) => "Password + Google",
@@ -208,7 +249,8 @@ public class DashboardViewModel : ObservableObject
                     _ => "Password",
                 };
 
-                // The database stores UTC; ToLocalTime converts to this computer's clock for display
+                // The database stores UTC; ToLocalTime converts to this computer's clock for display.
+                // The last line: a date and time if the user ever signed in, otherwise the word "Never"
                 Users.Add(new UserRow(
                     u.Id,
                     u.Username,
@@ -219,23 +261,31 @@ public class DashboardViewModel : ObservableObject
                     u.LastLoginAt.HasValue ? u.LastLoginAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "Never"));
             }
 
+            // The number for the "Total users" card
             TotalUsers = users.Count;
 
             // "Today" starts at local midnight; converted to UTC to compare with the stored values
             DateTime startOfToday = DateTime.Today.ToUniversalTime();
+
+            // Count the users whose last sign-in is after midnight
             ActiveToday = users.Count(u => u.LastLoginAt >= startOfToday);
 
+            // The read worked - show "Connected"
             ReportDatabase(true);
         }
+        // Any error while reading
         catch (Exception ex)
         {
             // For example: the database is not reachable. The window stays open and says what went wrong
             UsersError = "Could not read the Users table: " + ex.Message;
+
+            // Show "Not reachable"
             ReportDatabase(false);
         }
     }
 
     // ----- Logs tab (live messages from the running server) -----
+    // The rows of the Logs table, newest first
     public ObservableCollection<LogRow> Logs { get; } = new();
 
     // The table keeps only the newest rows, so the window stays fast after days of running
@@ -253,7 +303,10 @@ public class DashboardViewModel : ObservableObject
     // Insert(0, ...) adds the row at the top, so the newest message is always the first line
     private void ShowLogEntry(LogEntry entry)
     {
+        // Turn the entry into a table row and put it first
         Logs.Insert(0, ToLogRow(entry));
+
+        // Too many rows?
         if (Logs.Count > MaxLogRows)
         {
             Logs.RemoveAt(Logs.Count - 1);   // drop the oldest (the last line)
@@ -263,19 +316,25 @@ public class DashboardViewModel : ObservableObject
         if (entry.Category == LogCategories.Requests)
 
         {
+            // Add its time to the back of the queue and update the number on screen
             _requestTimes.Enqueue(entry.Time);
             RequestsLastHour = _requestTimes.Count;
         }
 
-        // A crash caught by RequestLoggingMiddleware also gets a row in the Errors tab
+        // A crash caught by MessageRouter also gets a row in the Errors tab
         if (entry.Category == LogCategories.Crashes && entry.Exception is not null)
 
         {
+            // Put the new error first
             Errors.Insert(0, ToErrorRow(entry, entry.Exception));
+
+            // Keep the Errors table short too
             if (Errors.Count > MaxLogRows)
             {
                 Errors.RemoveAt(Errors.Count - 1);
             }
+
+            // One more crash for the "Errors" card
             ErrorCount++;
         }
 
@@ -290,6 +349,7 @@ public class DashboardViewModel : ObservableObject
     // Turns a raw log entry into the ready-to-show text of one table row
     private static LogRow ToLogRow(LogEntry entry)
     {
+        // The level as one of three words. "_" = everything else (Information, Debug, Trace)
         string level = entry.Level switch
         {
             LogLevel.Warning => "Warning",
@@ -297,7 +357,8 @@ public class DashboardViewModel : ObservableObject
             _ => "Info",
         };
 
-        // "NetSim.Requests" -> "Requests": only the last part of the category name fits the column
+        // "NetSim.Requests" -> "Requests": only the last part of the category name fits the column.
+        // LastIndexOf('.') finds the last dot; "[(that + 1)..]" = everything after it
         string source = entry.Category[(entry.Category.LastIndexOf('.') + 1)..];
 
         // When the message came with an exception, its type and text are the most useful part
@@ -305,29 +366,34 @@ public class DashboardViewModel : ObservableObject
             ? entry.Message
             : $"{entry.Message} | {entry.Exception.GetType().Name}: {entry.Exception.Message}";
 
+        // Build the row; the time is shown as hours:minutes:seconds
         return new LogRow(entry.Time.ToString("HH:mm:ss"), level, source, message);
     }
 
     // ----- Errors tab (requests that crashed since the server started) -----
+    // The rows of the Errors table, newest first
     public ObservableCollection<ErrorRow> Errors { get; } = new();
 
+    // Turns a crash log entry into one row of the Errors table
     private static ErrorRow ToErrorRow(LogEntry entry, Exception exception)
     {
         // The stack trace lists the chain of method calls that led to the exception, innermost first.
         // Its first line is where the exception was actually thrown - the place to start looking.
-        // (The complete stack trace is printed in the terminal window by the Console logger)
+        // (The complete stack trace is printed in the terminal window by the Console logger).
+        // "?." and "??" = if there is no stack trace at all, use the text "(no stack trace)"
         string location = exception.StackTrace?.Split('\n')[0].Trim() ?? "(no stack trace)";
 
-        // The middleware logs crashes with the message "{Method} {Path}", e.g. "POST /api/auth/login"
+        // MessageRouter logs a crash with the message type as its text, e.g. "login"
         return new ErrorRow(
-            entry.Time.ToString("HH:mm:ss"),
-            entry.Message,
-            exception.GetType().Name,
-            exception.Message,
-            location);
+            entry.Time.ToString("HH:mm:ss"),   // when it happened
+            entry.Message,                     // which request crashed
+            exception.GetType().Name,          // the kind of exception, e.g. "NullReferenceException"
+            exception.Message,                 // the exception's own text
+            location);                         // where it was thrown
     }
 
     // ----- Security tab (read from the SecurityEvents table) -----
+    // The rows of the Security table, newest first
     public ObservableCollection<SecurityEventRow> SecurityEvents { get; } = new();
 
     // The table shows only the newest events; the database keeps all of them
@@ -343,11 +409,16 @@ public class DashboardViewModel : ObservableObject
     // What the "Refresh" button of the Security tab runs
     public IRelayCommand RefreshSecurityCommand { get; }
 
+    // Reads the newest security events from the database and fills the SecurityEvents list
     private async Task LoadSecurityEventsAsync()
     {
+        // Clear the error of the previous attempt
         SecurityError = null;
+
+        // Reading the database can fail, so it runs inside "try"
         try
         {
+            // A scope of our own with its own database connection (same reason as in LoadUsersAsync)
             using var scope = _services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
@@ -359,10 +430,14 @@ public class DashboardViewModel : ObservableObject
                 .Take(MaxSecurityRows)
                 .ToListAsync();
 
+            // Empty the table on screen before filling it again
             SecurityEvents.Clear();
+
+            // One round for every event that was read
             foreach (var e in events)
             {
-                // Unlike the Logs tab these rows can be days old, so the date is shown too
+                // Unlike the Logs tab these rows can be days old, so the date is shown too.
+                // "??" = show "-" where the email or the address is unknown
                 SecurityEvents.Add(new SecurityEventRow(
                     e.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm:ss"),
                     e.EventType,
@@ -371,11 +446,16 @@ public class DashboardViewModel : ObservableObject
                     e.Details));
             }
 
+            // The read worked - show "Connected"
             ReportDatabase(true);
         }
+        // Any error while reading
         catch (Exception ex)
         {
+            // The window stays open and says what went wrong
             SecurityError = "Could not read the SecurityEvents table: " + ex.Message;
+
+            // Show "Not reachable"
             ReportDatabase(false);
         }
     }

@@ -5,6 +5,8 @@ namespace NetSim.App.Services;
 // private key can open what we encrypt with this key. A public key is not a secret, so it may live in the code
 public static class ServerPublicKey
 {
+    // The key as PEM text: the key's bytes written in Base64, between a BEGIN line and an END line.
+    // The three quote marks open a "raw string" - text that may span several lines exactly as it is written
     public const string Pem = """
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw34Rgm8pd7SKFss1p4SJ

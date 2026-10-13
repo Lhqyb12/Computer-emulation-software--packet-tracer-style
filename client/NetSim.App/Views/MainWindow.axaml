@@ -1,3 +1,17 @@
+<!-- The client's only window. It has two layouts, and shows one of them at a time:
+       1. signed in  = a top bar and the simulator workspace on the whole window
+       2. signed out = a branding panel on the left and the current screen (login, register...) in a card
+     All the data comes from MainWindowViewModel.
+     xmlns = the "dictionary" of Avalonia's own tags (Window, Grid, Button...)
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:DataType, x:Name...)
+     xmlns:vm = lets this file use our classes from the NetSim.App.ViewModels namespace
+     xmlns:app = the same for the NetSim.App namespace (the WidthToBool converter)
+     x:Class = the C# class this file is the other half of (MainWindow.axaml.cs)
+     x:DataType = the class the {Binding ...} expressions read from, so the compiler can check their names
+     Title = the text in the window's title bar
+     Width/Height = the size the window opens in; MinWidth/MinHeight = the smallest size it can be dragged to
+     WindowStartupLocation = open in the middle of the screen
+     Background = the colour named "Bg" in Styles/Theme.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:NetSim.App.ViewModels"
@@ -10,35 +24,56 @@
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Bg}">
 
+    <!-- A Panel puts its children one on top of the other. The two layouts below share the same
+         space, and IsVisible decides which one is seen -->
     <Panel>
 
     <!-- ============ SIGNED-IN: the simulator workspace, full window ============ -->
+    <!-- Two rows: "Auto" = the top bar, as tall as its content; "*" = the workspace takes the rest.
+         Shown only while IsWorkspaceActive is true -->
     <Grid RowDefinitions="Auto,*" IsVisible="{Binding IsWorkspaceActive}">
+        <!-- The top bar. BorderThickness="0,0,0,1" = left, top, right, bottom: a line on the bottom only -->
         <Border Grid.Row="0" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}"
                 BorderThickness="0,0,0,1" Padding="16,10">
+            <!-- Two columns: the logo takes the free space, the buttons on the right fit their content -->
             <Grid ColumnDefinitions="*,Auto">
+                <!-- Left: the logo. StackPanel + Horizontal = its children sit side by side -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <!-- A small rounded blue square with the network icon inside -->
                     <Border Background="{StaticResource Accent}" CornerRadius="7" Padding="5">
+                        <!-- PathIcon draws one of the shapes from Styles/Icons.axaml -->
                         <PathIcon Data="{StaticResource Icon.Hub}" Width="15" Height="15"
                                   Foreground="{StaticResource OnAccent}" />
                     </Border>
                     <TextBlock Text="NetSim" Classes="logo" VerticalAlignment="Center" />
                 </StackPanel>
+                <!-- Right: who is signed in, and the two buttons -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <!-- The email of the signed-in user -->
                     <TextBlock Classes="hint" VerticalAlignment="Center" Text="{Binding SignedInEmail}" />
+                    <!-- Opens the user management screen. Shown only to admins (IsAdmin) -->
                     <Button Classes="ghost" Content="Manage users" Command="{Binding ManageUsersCommand}"
                             IsVisible="{Binding IsAdmin}" />
+                    <!-- Signs out and returns to the login screen -->
                     <Button Classes="ghost" Content="Sign out" Command="{Binding SignOutCommand}" />
                 </StackPanel>
             </Grid>
         </Border>
+        <!-- ContentControl shows whatever object CurrentPage holds. It holds a view model; the
+             ViewLocator (see App.axaml) finds the matching view and that view is what gets drawn -->
         <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
     </Grid>
 
     <!-- ============ SIGNED-OUT: login / register, narrow branding+card layout ============ -->
+    <!-- Two columns: the branding panel fits its own width, the screen takes the rest.
+         Shown only while IsAuthActive is true -->
     <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsAuthActive}">
 
         <!-- ============ LEFT: branding (hidden on narrow windows) ============ -->
+        <!-- A 360-pixel panel with a gradient background and a line on its right side.
+             ClipToBounds = anything that sticks out of the panel is cut off.
+             IsVisible: "$parent[Window].Bounds.Width" = the current width of the window; the converter
+             turns it into true when it is 700 or more, so the panel disappears on a narrow window -->
         <Border Grid.Column="0"
                 Width="360"
                 Background="{StaticResource BrandGradient}"
@@ -47,9 +82,10 @@
                 ClipToBounds="True"
                 IsVisible="{Binding $parent[Window].Bounds.Width, Converter={x:Static app:WidthToBool.AtLeast700}}">
             <Panel>
+                <!-- Three rows: the logo on top, the pitch in the middle (takes the free space), a note at the bottom -->
                 <Grid Margin="40" RowDefinitions="Auto,*,Auto">
 
-                    <!-- logo lockup -->
+                    <!-- logo lockup: the icon, the name and a small "LABS" tag -->
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <Border Background="{StaticResource Accent}" CornerRadius="9" Padding="7">
                             <PathIcon Data="{StaticResource Icon.Hub}" Width="18" Height="18"
@@ -62,13 +98,15 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- pitch -->
+                    <!-- pitch: a headline, one sentence, and three lines with a tick icon -->
                     <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="16" MaxWidth="280">
                         <TextBlock Classes="title" FontSize="26"
                                    Text="Design, simulate, and understand networks." />
                         <TextBlock Classes="subtitle"
                                    Text="Build topologies and watch protocols work — packet by packet." />
+                        <!-- The three feature lines, one under the other -->
                         <StackPanel Spacing="11" Margin="0,6,0,0">
+                            <!-- Each line: a tick icon and a text, side by side -->
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="15" Height="15"
                                           Foreground="{StaticResource Accent}" VerticalAlignment="Center" />
@@ -87,19 +125,24 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <!-- A small note at the bottom of the panel -->
                     <TextBlock Grid.Row="2" Classes="hint" Text="Local preview build" />
                 </Grid>
             </Panel>
         </Border>
 
         <!-- ============ RIGHT: the current screen, in a centered card ============ -->
+        <!-- ScrollViewer adds a vertical scroll bar when the screen is taller than the window ("Auto" =
+             only when needed) and never a horizontal one. x:Name gives it a name other tags can refer to -->
         <ScrollViewer Grid.Column="1" x:Name="Scroll"
                       HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto">
+            <!-- "#Scroll.Bounds.Height" = the height of the control named Scroll. Making the panel at least
+                 that tall is what lets the card sit in the vertical middle of the window -->
             <Panel MinHeight="{Binding #Scroll.Bounds.Height}">
                 <StackPanel Margin="24,32" VerticalAlignment="Center" Spacing="16">
 
-                    <!-- compact logo, only when the side panel is hidden -->
+                    <!-- compact logo, only when the side panel is hidden (the window is narrower than 700) -->
                     <StackPanel Orientation="Horizontal" Spacing="9" HorizontalAlignment="Center"
                                 IsVisible="{Binding $parent[Window].Bounds.Width, Converter={x:Static app:WidthToBool.Below700}}">
                         <Border Background="{StaticResource Accent}" CornerRadius="7" Padding="5">
@@ -109,6 +152,9 @@
                         <TextBlock Text="NetSim" Classes="logo" VerticalAlignment="Center" />
                     </StackPanel>
 
+                    <!-- The card, at most 400 pixels wide, with the current screen inside it.
+                         CurrentPage holds a view model (LoginViewModel, RegisterViewModel...); the
+                         ViewLocator turns it into the matching view -->
                     <Border Classes="card" MaxWidth="400" HorizontalAlignment="Center">
                         <ContentControl Content="{Binding CurrentPage}" />
                     </Border>

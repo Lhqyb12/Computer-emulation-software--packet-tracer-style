@@ -1,5 +1,5 @@
-using System;
-using CommunityToolkit.Mvvm.Input;
+using System;                      // Action
+using CommunityToolkit.Mvvm.Input; // RelayCommand, IRelayCommand - what a button runs
 
 namespace NetSim.App.ViewModels;
 
@@ -9,15 +9,22 @@ namespace NetSim.App.ViewModels;
 /// </summary>
 public sealed class SignedInViewModel : ViewModelBase
 {
+    // The constructor. email = the address that signed in
     public SignedInViewModel(string email)
     {
+        // Keep the email so the screen can show it
         Email = email;
+
+        // The "Sign out" button only raises an event. "?.Invoke()" = call whoever subscribed, if anybody did
         SignOutCommand = new RelayCommand(() => SignOutRequested?.Invoke());
     }
 
+    // Raised when the user presses "Sign out"; whoever owns navigation decides what happens next
     public event Action? SignOutRequested;
 
+    // The email shown on the screen. "{ get; }" = set once in the constructor, then only read
     public string Email { get; }
 
+    // The command the "Sign out" button is bound to
     public IRelayCommand SignOutCommand { get; }
 }

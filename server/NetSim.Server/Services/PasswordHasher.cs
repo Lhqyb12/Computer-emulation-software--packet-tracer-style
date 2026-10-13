@@ -17,8 +17,9 @@ public static class PasswordHasher
     // static readonly (not const) because HashAlgorithmName is a struct, not a primitive type - const requires a primitive/string type
     private static readonly HashAlgorithmName Algorithm = HashAlgorithmName.SHA256;
 
-    // Returns a single "iterations.salt.hash" string that we'll store in the database
-    // Called once, during registration only (AuthService.RegisterAsync)
+    // Returns a single "iterations.salt.hash" string that we'll store in the database.
+    // Called when a password is set (AuthService.RegisterAsync / ResetPasswordAsync), and also for the
+    // emailed 6-digit codes, which are stored hashed in exactly the same way
     public static string Hash(string password)
     {
         // GetBytes uses the operating system's cryptographically secure random number generator (CSPRNG) -
@@ -36,8 +37,8 @@ public static class PasswordHasher
         return $"{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
     }
 
-    // Checks a password against what's stored
-    // Called on every login attempt (AuthService.LoginAsync)
+    // Checks a password (or an emailed code) against what's stored. Returns true if they match.
+    // Called on every login attempt (AuthService.LoginAsync) and whenever a code is typed in
     public static bool Verify(string password, string stored)
     {
         // Split('.', 3) - splits into at most 3 parts (the second parameter) - this way, even if there somehow
@@ -50,9 +51,9 @@ public static class PasswordHasher
         // Reads back the three parts we stored - they are *not* secret (the salt and iteration count are
         // fully known, even to anyone with access to the database) - the only secrecy here is the password
         // itself that the user is typing right now
-        int iterations = int.Parse(parts[0]);
-        byte[] salt = Convert.FromBase64String(parts[1]);
-        byte[] expected = Convert.FromBase64String(parts[2]);
+        int iterations = int.Parse(parts[0]);                    // text -> number
+        byte[] salt = Convert.FromBase64String(parts[1]);        // Base64 text -> the original salt bytes
+        byte[] expected = Convert.FromBase64String(parts[2]);    // Base64 text -> the hash we stored
 
         // Runs the exact same PBKDF2 computation (with the same stored salt and iteration count) on the password just provided
         byte[] actual = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, Algorithm, HashSize);

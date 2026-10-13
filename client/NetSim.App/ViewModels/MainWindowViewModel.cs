@@ -1,4 +1,4 @@
-using System;
+using System;                                      // IServiceProvider
 using CommunityToolkit.Mvvm.Input;               // RelayCommand / IRelayCommand - a ready-made "invoke this method" command, bindable from XAML
 using Microsoft.Extensions.DependencyInjection;    // GetRequiredService<T>() - ask the DI container to build/hand us an instance of T
 using NetSim.UI.ViewModels;                        // ShellViewModel - the signed-in simulator workspace, ported from NetSim.UI
@@ -17,19 +17,31 @@ public sealed class MainWindowViewModel : ViewModelBase
     // already knows how to do that - we don't want to wire that tree up by hand here
     private readonly IServiceProvider _services;
 
+    // The screen shown right now. "= null!" = it starts as null, but we promise the compiler it is
+    // filled before anyone reads it (the constructor calls ShowLogin)
     private object _currentPage = null!;
-    private string? _signedInEmail; //?=can be null
+
+    // Who is signed in. "string?" = can be null; null = nobody is signed in
+    private string? _signedInEmail;
+
+    // The role of the signed-in user: "User" or "Admin"
     private string? _signedInRole;
+
+    // The JWT the server gave at login; sent with the admin requests
     private string? _signedInToken;
 
 
-    public MainWindowViewModel(IServiceProvider services) //constructor
+    // The constructor. services = the DI container built in App.axaml.cs
+    public MainWindowViewModel(IServiceProvider services)
     {
+        // Keep the container for ShowWorkspace
         _services = services;
 
         // Wraps ShowLogin so it can be bound to a button's Command in XAML (the "Sign out" button) -
         // in MVVM the View never calls C# methods directly, it only binds to Commands/Properties
         SignOutCommand = new RelayCommand(ShowLogin);
+
+        // The same for the "Manage users" button
         ManageUsersCommand = new RelayCommand(ShowUsers);
 
         // Runs once so the app actually has something to show on first launch; without this,
@@ -37,8 +49,9 @@ public sealed class MainWindowViewModel : ViewModelBase
         ShowLogin();
     }
 
-    public IRelayCommand SignOutCommand { get; }
-    public IRelayCommand ManageUsersCommand { get; }
+    // The commands the buttons of the top bar are bound to. "{ get; }" = set once in the constructor
+    public IRelayCommand SignOutCommand { get; }       // the "Sign out" button
+    public IRelayCommand ManageUsersCommand { get; }   // the "Manage users" button (admins only)
 
     /// <summary>The screen shown right now. The window binds its content to this. Typed as
     /// <see cref="object"/> because the auth screens (<see cref="ViewModelBase"/>) and the
@@ -49,12 +62,14 @@ public sealed class MainWindowViewModel : ViewModelBase
         get => _currentPage;
         // Private on purpose - which screen is showing is this ViewModel's own decision, nothing
         // outside this class should be able to force a screen change directly
-        private set 
-        {//set creates value(type: object)
+        private set
+        {
+            // Inside "set", the word "value" is the new value that was assigned.
             // SetProperty (from the base ViewModelBase) stores the value and raises
             // PropertyChanged("CurrentPage") - this is literally how Avalonia's binding system
-            // knows to refresh the window and display the new page
-             SetProperty(ref _currentPage, value);//ref=command to give access to the currentpage value itself ve lo lishloh otek
+            // knows to refresh the window and display the new page.
+            // "ref" hands SetProperty the field itself, not a copy of its value, so it can change it
+             SetProperty(ref _currentPage, value);
 
             // IsWorkspaceActive/IsAuthActive are computed from CurrentPage below, but C# has no way
             // of knowing that automatically - changing CurrentPage doesn't by itself notify anything
@@ -67,7 +82,8 @@ public sealed class MainWindowViewModel : ViewModelBase
     /// <summary>True once signed in - the window shows the full-window simulator workspace
     /// instead of the narrow branding+card auth layout.</summary>
     // Computed rather than a stored bool flag, so it can never drift out of sync with reality -
-    // CurrentPage is the single source of truth, this just asks what's currently sitting in it
+    // CurrentPage is the single source of truth, this just asks what's currently sitting in it.
+    // "is X or Y" = the current page is an object of class X or of class Y
     public bool IsWorkspaceActive => CurrentPage is ShellViewModel or UsersViewModel;
 
 
@@ -76,18 +92,23 @@ public sealed class MainWindowViewModel : ViewModelBase
     // IsWorkspaceActive inside markup
     public bool IsAuthActive => !IsWorkspaceActive;
 
+    // The email of the signed-in user, shown in the top bar. null = nobody is signed in
     public string? SignedInEmail
     {
         get => _signedInEmail;
         private set => SetProperty(ref _signedInEmail, value);
     }
-    
+
+    // The role of the signed-in user
     public string? SignedInRole
     {
         get => _signedInRole;
         private set
         {
+            // Store the new role and tell the screen
             SetProperty(ref _signedInRole, value);
+
+            // IsAdmin is computed from the role, so the screen is told by hand that it changed too
             OnPropertyChanged(nameof(IsAdmin));
         }
     }
@@ -96,6 +117,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public bool IsAdmin => SignedInRole == "Admin";
 
 
+    // Shows the sign-in screen
     private void ShowLogin()
     {
         // Also reached from sign-out (via SignOutCommand), so this has to actively reset state back
@@ -112,54 +134,74 @@ public sealed class MainWindowViewModel : ViewModelBase
 
         // LoginViewModel doesn't know anything about navigation or about this class - it just raises
         // an event when the user wants to switch screens, and whoever owns navigation (us) decides
-        // what that actually means. This is what keeps the screen and the navigation logic decoupled
-        login.SwitchToRegisterRequested += ShowRegister;
-        login.SignedIn += ShowSignedIn;
-        login.SwitchToForgotPasswordRequested += ShowForgotPassword;
-        login.VerificationRequired += ShowVerifyEmail;
+        // what that actually means. This is what keeps the screen and the navigation logic decoupled.
+        // "+=" = when this event is raised, call this method
+        login.SwitchToRegisterRequested += ShowRegister;              // "Create an account" was pressed
+        login.SignedIn += ShowSignedIn;                               // the login succeeded
+        login.SwitchToForgotPasswordRequested += ShowForgotPassword;  // "Forgot password?" was pressed
+        login.VerificationRequired += ShowVerifyEmail;                // the email still has to be verified
 
 
+        // Put the screen in the window
         CurrentPage = login;
     }
 
+    // Shows the "create account" screen
     private void ShowRegister()
     {
         // Same pattern as ShowLogin: a fresh instance, and listen for "user wants to go back to login"
         var register = new RegisterViewModel();
         register.SwitchToLoginRequested += ShowLogin;
+
+        // After the account is created, continue to the "enter your code" screen
         register.VerificationRequired += ShowVerifyEmail;
 
+        // Put the screen in the window
         CurrentPage = register;
     }
 
-    
+
+    // Shows the "enter the code we emailed you" screen. email = the address that has to be verified
     private void ShowVerifyEmail(string email)
     {
         // The register screen hands us the email through its VerificationRequired event, and we pass
         // it on to the new screen's constructor - so the user doesn't have to type it a second time
         var verify = new VerifyEmailViewModel(email);
+
+        // After a successful verification (or "Back"), return to the sign-in screen
         verify.SwitchToLoginRequested += ShowLogin;
+
+        // Put the screen in the window
         CurrentPage = verify;
     }
 
 
+    // Shows the "forgot my password" screen
      private void ShowForgotPassword()
     {
+        // A fresh instance, and listen for "go back to the sign-in screen"
         var forgot = new ForgotPasswordViewModel();
         forgot.SwitchToLoginRequested += ShowLogin;
+
+        // Put the screen in the window
         CurrentPage = forgot;
     }
 
 
+    // Called by the SignedIn event of the login screen, with the three values the server returned
     private void ShowSignedIn(string email, string role, string token)
     {
+        // Remember who signed in
         SignedInEmail = email;
         SignedInRole = role;
         _signedInToken = token;
+
+        // And open the simulator
         ShowWorkspace();
     }
 
 
+    // Shows the simulator workspace
     private void ShowWorkspace()
     {
         // GetRequiredService walks the dependency graph registered at startup in CompositionRoot and
@@ -173,14 +215,20 @@ public sealed class MainWindowViewModel : ViewModelBase
         CurrentPage = _services.GetRequiredService<ShellViewModel>();
     }
 
+    // Shows the admin's "Manage users" screen
     private void ShowUsers()
     {
+        // Without a token the server would refuse anyway, so there is nothing to show
         if ( _signedInToken is null)
             return;
 
+        // The screen gets the token so it can prove to the server that an admin is asking
          var users = new UsersViewModel( _signedInToken);
+
         // When the user clicks "Back" on the users screen, go back to the simulator workspace
         users.BackRequested += ShowWorkspace;
+
+        // Put the screen in the window
         CurrentPage = users;
     }
 

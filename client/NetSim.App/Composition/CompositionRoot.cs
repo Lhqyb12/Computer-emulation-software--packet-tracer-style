@@ -1,9 +1,9 @@
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using NetSim.Application.DependencyInjection;
-using NetSim.Application.Persistence;
-using NetSim.App.Persistence;
-using NetSim.UI.DependencyInjection;
+using System;                                    // IServiceProvider
+using Microsoft.Extensions.DependencyInjection;  // ServiceCollection, AddSingleton, BuildServiceProvider
+using NetSim.Application.DependencyInjection;    // AddApplicationServices
+using NetSim.Application.Persistence;            // IProjectRepository
+using NetSim.App.Persistence;                    // InMemoryProjectRepository
+using NetSim.UI.DependencyInjection;             // AddUIServices
 
 namespace NetSim.App.Composition;
 
@@ -14,8 +14,10 @@ namespace NetSim.App.Composition;
 /// NetSim.Infrastructure/database layer yet. Login/register stay outside this container; they
 /// are plain view models constructed directly by <see cref="ViewModels.MainWindowViewModel"/>.
 /// </summary>
+// "static" = there is no object to create; the method is called directly on the class name
 public static class CompositionRoot
 {
+    // Builds the container and returns it. Called once, from App.OnFrameworkInitializationCompleted
     public static IServiceProvider BuildServiceProvider()
     {
         // ServiceCollection is just a list of "recipes" at this point - nothing gets built yet,

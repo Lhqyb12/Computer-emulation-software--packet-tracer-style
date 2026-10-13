@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;  // ObservableObject
 
 namespace NetSim.App.ViewModels;
 
@@ -9,6 +9,8 @@ namespace NetSim.App.ViewModels;
 /// a helper that stores a new value AND notifies the UI so bindings refresh.
 /// </para>
 /// </summary>
-public abstract class ViewModelBase : ObservableObject //abstract=its forbidden to create an object directly from this class
+// "abstract" = it is forbidden to create an object directly from this class; it exists only to be inherited.
+// The body is empty on purpose: everything it offers comes from ObservableObject
+public abstract class ViewModelBase : ObservableObject
 {
 }

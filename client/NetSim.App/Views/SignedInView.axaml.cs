@@ -1,11 +1,17 @@
-using Avalonia.Controls;
+using Avalonia.Controls;  // UserControl
 
 namespace NetSim.App.Views;
 
+// Code-behind of SignedInView.axaml - the screen shown after a successful sign-in.
+// "partial" = the other half of this class is generated from the .axaml file at build time.
+// ": UserControl" = a reusable piece of screen that is shown inside a window.
+// There is no logic here on purpose: everything the screen does lives in its view model
 public partial class SignedInView : UserControl
 {
+    // The constructor, run when the screen is created
     public SignedInView()
     {
+        // Builds the controls described in SignedInView.axaml
         InitializeComponent();
     }
 }

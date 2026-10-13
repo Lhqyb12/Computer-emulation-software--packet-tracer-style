@@ -14,8 +14,9 @@ public class User
     // The user's display name - a plain text field, also used in the PasswordPolicy check (that the password doesn't contain it)
     public string Username { get; set; } = string.Empty;
 
-    // The email is effectively a unique business "key" - the uniqueness is actually enforced at the code level
-    // (the check in AuthService.RegisterAsync before adding the user), not as a database constraint right now
+    // The email is effectively a unique business "key" - the uniqueness is enforced twice: at the code level
+    // (the check in AuthService.RegisterAsync before adding the user) and by a unique index in the database
+    // itself (see AppDbContext.OnModelCreating)
     public string Email { get; set; } = string.Empty;
 
     // The actual password is *never* stored here - only the string returned by PasswordHasher.Hash
@@ -31,16 +32,30 @@ public class User
     // confusion/bugs when comparing timestamps created in different environments (e.g. a server in Israel vs a
     // cloud server in the US)
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? LastLoginAt { get; set; } 
+
+    // When the user last signed in. "DateTime?" = a date or null; null = never signed in yet
+    public DateTime? LastLoginAt { get; set; }
+
+    // "User" or "Admin". Every new account starts as "User"; an admin can open the Users screen
     public string Role { get; set; } = "User";
+
+    // The hash of the password-reset code that was emailed (never the code itself). null = no active reset request
     public string? ResetCodeHash { get; set; }
+
+    // When that reset code stops being valid (15 minutes after it was sent)
     public DateTime? ResetCodeExpiresAt { get; set; }
-    public int ResetAttempts { get; set; } //number of attempts for writing the code that the mails sends for reset
+
+    // How many wrong reset codes were typed so far. At 5 the code is cancelled
+    public int ResetAttempts { get; set; }
+
+    // Google's permanent id for this person. null = the account was never used with Google sign-in
     public string? GoogleId { get; set; }
-    
+
     // False until the user proves they own the email address, by typing the code we emailed them
     public bool EmailVerified { get; set; }
-    // Same three fields as the password-reset code above, but for the email-verification code
+
+    // Same three fields as the password-reset code above, but for the email-verification code:
+    // the hash of the code, when it expires, and how many wrong codes were typed
     public string? VerifyCodeHash { get; set; }
     public DateTime? VerifyCodeExpiresAt { get; set; }
     public int VerifyAttempts { get; set; }

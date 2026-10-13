@@ -1,3 +1,11 @@
+<!-- The "create account" screen. It is shown inside the card of MainWindow, and reads its data
+     from RegisterViewModel.
+     xmlns = the "dictionary" of Avalonia's own tags
+     xmlns:x = the dictionary of the general XAML keywords (x:Class, x:DataType, x:Static)
+     xmlns:vm = lets this file use our classes from the NetSim.App.ViewModels namespace
+     xmlns:conv = Avalonia's ready-made converters (ObjectConverters.IsNotNull)
+     x:Class = the C# class this file is the other half of (RegisterView.axaml.cs)
+     x:DataType = the class the {Binding ...} expressions read from, so the compiler can check their names -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:NetSim.App.ViewModels"
@@ -8,16 +16,22 @@
     <Panel>
 
         <!-- ================= FORM ================= -->
+        <!-- StackPanel puts its children one under the other; Spacing = the gap between them -->
             <StackPanel Spacing="14">
 
+                <!-- The round "back" arrow in the corner; a click returns to the sign-in screen -->
                 <Button Classes="back" Command="{Binding GoToLoginCommand}" ToolTip.Tip="Back to sign in" />
 
 
+            <!-- The title and a line of explanation under it -->
             <StackPanel Spacing="5">
                 <TextBlock Classes="title" Text="Create your account" />
                 <TextBlock Classes="subtitle" Text="Join the network simulation workspace." />
             </StackPanel>
 
+            <!-- The error banner: a red box with a warning icon and the text of the Error property.
+                 IsVisible passes Error through a converter that gives true when it is not null,
+                 so the box appears only while there is an error -->
             <Border Classes="banner bannerError"
                     IsVisible="{Binding Error, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
                 <StackPanel Orientation="Horizontal" Spacing="9">
@@ -27,7 +41,8 @@
                 </StackPanel>
             </Border>
 
-            <!-- username -->
+            <!-- username: a caption and a text box. PlaceholderText = the grey example shown while the box
+                 is empty. The binding works both ways: every typed letter is written into Username -->
             <StackPanel Spacing="5">
                 <TextBlock Classes="label" Text="Username" />
                 <TextBox Classes="field" PlaceholderText="net_architect" Text="{Binding Username}" />
@@ -39,26 +54,35 @@
                 <TextBox Classes="field" PlaceholderText="you@example.com" Text="{Binding Email}" />
             </StackPanel>
 
-            <!-- password -->
+            <!-- password: a text box with an "eye" button on top of its right edge -->
             <StackPanel Spacing="5">
                 <TextBlock Classes="label" Text="Password" />
+                <!-- A Panel puts the button on top of the text box -->
                 <Panel>
+                    <!-- PasswordChar = the dot shown instead of every typed letter.
+                         RevealPassword = show the real letters while IsPasswordVisible is true.
+                         The right padding of 42 keeps the text from running under the eye button -->
                     <TextBox Classes="field"
                              PlaceholderText="Create a password"
                              PasswordChar="●"
                              RevealPassword="{Binding IsPasswordVisible}"
                              Text="{Binding Password}"
                              Padding="12,0,42,0" />
+                    <!-- A ToggleButton stays pressed until it is clicked again; it switches IsPasswordVisible -->
                     <ToggleButton Classes="eye" HorizontalAlignment="Right" Margin="0,0,6,0"
                                   IsChecked="{Binding IsPasswordVisible}"
                                   ToolTip.Tip="Show or hide password" />
                 </Panel>
             </StackPanel>
 
-            <!-- live requirements -->
+            <!-- live requirements: a box with four rules that update while the user types.
+                 Every rule line works the same way: a 15x15 Panel holds two icons in the same place,
+                 a green tick shown while the rule is met and a grey circle shown while it is not
+                 ("!" before a name = its opposite), and next to it the text of the rule -->
             <Border Background="{StaticResource Field}" BorderBrush="{StaticResource Line}"
                     BorderThickness="1" CornerRadius="8" Padding="12,10">
                 <StackPanel Spacing="6">
+                    <!-- Rule 1: at least 8 characters (HasMinLength) -->
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Panel Width="15" Height="15" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="14" Height="14"
@@ -69,6 +93,7 @@
                         <TextBlock Text="At least 8 characters" FontSize="12"
                                    Foreground="{StaticResource TextDim}" VerticalAlignment="Center" />
                     </StackPanel>
+                    <!-- Rule 2: contains a digit (HasNumber) -->
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Panel Width="15" Height="15" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="14" Height="14"
@@ -79,6 +104,7 @@
                         <TextBlock Text="Contains a number" FontSize="12"
                                    Foreground="{StaticResource TextDim}" VerticalAlignment="Center" />
                     </StackPanel>
+                    <!-- Rule 3: contains a special character (HasSpecial) -->
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Panel Width="15" Height="15" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="14" Height="14"
@@ -89,6 +115,7 @@
                         <TextBlock Text="Contains a special character" FontSize="12"
                                    Foreground="{StaticResource TextDim}" VerticalAlignment="Center" />
                     </StackPanel>
+                    <!-- Rule 4: does not contain the username (NotContainsUsername) -->
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Panel Width="15" Height="15" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource Icon.CheckCircle}" Width="14" Height="14"
@@ -102,7 +129,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- confirm password -->
+            <!-- confirm password: the same kind of box as the password, bound to ConfirmPassword -->
             <StackPanel Spacing="5">
                 <TextBlock Classes="label" Text="Confirm password" />
                 <Panel>
@@ -116,20 +143,26 @@
                                   IsChecked="{Binding IsPasswordVisible}"
                                   ToolTip.Tip="Show or hide password" />
                 </Panel>
+                <!-- A green tick and "Passwords match", shown only while PasswordsMatch is true -->
                 <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding PasswordsMatch}">
                     <PathIcon Data="{StaticResource Icon.Check}" Width="13" Height="13"
                               Foreground="{StaticResource Ok}" VerticalAlignment="Center" />
                     <TextBlock Classes="ok" Text="Passwords match" />
                 </StackPanel>
+                <!-- A red warning, shown only while the two boxes differ -->
                 <TextBlock Classes="error" Text="Passwords do not match"
                            IsVisible="{Binding ShowPasswordMismatch}" />
             </StackPanel>
 
-            <!-- submit -->
+            <!-- submit: the main button. IsDefault = pressing Enter anywhere on the screen clicks it.
+                 Command = what a click runs; the command also disables the button while IsBusy is true -->
             <Button Classes="primary" IsDefault="True" Margin="0,2,0,0"
                     Command="{Binding CreateAccountCommand}">
+                <!-- Two contents in the same place, one visible at a time -->
                 <Panel>
+                    <!-- The normal text. "!IsBusy" = the opposite of IsBusy -->
                     <TextBlock Text="Create Account" IsVisible="{Binding !IsBusy}" />
+                    <!-- While waiting for the server: a small animated dot and "Creating account…" -->
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"
                                 IsVisible="{Binding IsBusy}">
                         <Ellipse Classes="dot" VerticalAlignment="Center" />
@@ -138,12 +171,13 @@
                 </Panel>
             </Button>
 
+            <!-- The bottom line: a question and a link back to the sign-in screen, side by side -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
                 <TextBlock Classes="hint" Text="Already have an account?" VerticalAlignment="Center" />
                 <Button Classes="link" Content="Sign in" Command="{Binding GoToLoginCommand}" />
             </StackPanel>
         </StackPanel>
 
-        
+
     </Panel>
 </UserControl>

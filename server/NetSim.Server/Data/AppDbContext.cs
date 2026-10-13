@@ -28,14 +28,21 @@ public class AppDbContext : DbContext
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
 
 
-    // אילוץ ייחודיות אמיתי ברמת המסד עצמו - Postgres ידחה כל ניסיון להכניס שורה שנייה עם אותו Email,
-    // גם אם (מסיבה כלשהי) הבדיקה בקוד ב-AuthService פוספסה מכל סיבה שהיא
+    // Called by EF Core once, when it builds its picture of the database. This is where rules are added
+    // that the conventions cannot guess. "protected override" = we replace the empty version DbContext has.
+    //
+    // A real uniqueness constraint at the level of the database itself - Postgres will refuse any attempt
+    // to insert a second row with the same Email, even if (for whatever reason) the check in the code in
+    // AuthService was missed
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // On the Users table: an index on the Email column, and no two rows may have the same value in it
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
-            
+
+        // The same for GoogleId: one Google account can belong to one user only.
+        // (Rows where GoogleId is null do not clash with each other)
         modelBuilder.Entity<User>()
             .HasIndex(u => u.GoogleId)
             .IsUnique();

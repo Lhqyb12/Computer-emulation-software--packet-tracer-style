@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Text.Json;  // JsonElement - a piece of JSON that was not turned into a class yet
 
 namespace NetSim.Server.Networking;
 
@@ -7,6 +7,7 @@ namespace NetSim.Server.Networking;
 public class RequestMessage
 {
     // Which action the client asks for: "login", "register", ...
+    // "= string.Empty" = the value when the JSON has no such field (an empty text instead of null)
     public string Type { get; set; } = string.Empty;
 
     // The JWT the client received at login. Empty for actions that need no login (like "login" itself).

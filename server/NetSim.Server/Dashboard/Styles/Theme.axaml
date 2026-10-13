@@ -1,3 +1,7 @@
+<!-- The dashboard's look: its colours and its styles. Loaded once by DashboardApp.axaml, so every
+     window of the dashboard can use them.
+     A Style has a Selector (which controls it applies to) and Setters (which properties it sets).
+     "TextBlock.title" = every TextBlock that has Classes="title" -->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -5,44 +9,50 @@
          look like one product. Only the styles the dashboard actually uses are copied here. -->
     <Styles.Resources>
         <!-- ===================== COLOURS ===================== -->
-        <SolidColorBrush x:Key="Bg"          Color="#0E1420" />
-        <SolidColorBrush x:Key="Card"        Color="#161E2D" />
-        <SolidColorBrush x:Key="Line"        Color="#2A3446" />
-        <SolidColorBrush x:Key="LineStrong"  Color="#3A4661" />
-        <SolidColorBrush x:Key="Text"        Color="#EAEEF6" />
-        <SolidColorBrush x:Key="TextDim"     Color="#9AA7BC" />
-        <SolidColorBrush x:Key="TextMuted"   Color="#63708A" />
-        <SolidColorBrush x:Key="Accent"      Color="#2C6BE0" />
-        <SolidColorBrush x:Key="OnAccent"    Color="#FFFFFF" />
-        <SolidColorBrush x:Key="Ok"          Color="#3BD07E" />
-        <SolidColorBrush x:Key="Warn"        Color="#F5B942" />
-        <SolidColorBrush x:Key="Danger"      Color="#FF6B6B" />
-        <SolidColorBrush x:Key="DangerBg"    Color="#241416" />
-        <SolidColorBrush x:Key="DangerLine"  Color="#4E2529" />
+        <!-- Each line gives a colour a name (x:Key). Other files use it as {StaticResource Name}.
+             A colour is written as # and six hexadecimal digits: two for red, two for green, two for blue -->
+        <SolidColorBrush x:Key="Bg"          Color="#0E1420" />   <!-- the window background -->
+        <SolidColorBrush x:Key="Card"        Color="#161E2D" />   <!-- the background of cards and of the top bar -->
+        <SolidColorBrush x:Key="Line"        Color="#2A3446" />   <!-- thin outlines and separators -->
+        <SolidColorBrush x:Key="LineStrong"  Color="#3A4661" />   <!-- a more visible outline (buttons) -->
+        <SolidColorBrush x:Key="Text"        Color="#EAEEF6" />   <!-- normal text -->
+        <SolidColorBrush x:Key="TextDim"     Color="#9AA7BC" />   <!-- less important text (labels) -->
+        <SolidColorBrush x:Key="TextMuted"   Color="#63708A" />   <!-- the least important text (hints) -->
+        <SolidColorBrush x:Key="Accent"      Color="#2C6BE0" />   <!-- the blue highlight colour -->
+        <SolidColorBrush x:Key="OnAccent"    Color="#FFFFFF" />   <!-- text drawn on top of the accent colour -->
+        <SolidColorBrush x:Key="Ok"          Color="#3BD07E" />   <!-- green: everything is fine -->
+        <SolidColorBrush x:Key="Warn"        Color="#F5B942" />   <!-- yellow: a warning -->
+        <SolidColorBrush x:Key="Danger"      Color="#FF6B6B" />   <!-- red: an error -->
+        <SolidColorBrush x:Key="DangerBg"    Color="#241416" />   <!-- the dark red background of an error banner -->
+        <SolidColorBrush x:Key="DangerLine"  Color="#4E2529" />   <!-- the outline of an error banner -->
 
     </Styles.Resources>
 
     <!-- ===================== TYPOGRAPHY ===================== -->
+    <!-- The program's name in the top bar: large and bold -->
     <Style Selector="TextBlock.logo">
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
+    <!-- The title of a section, e.g. "Users table" -->
     <Style Selector="TextBlock.title">
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
+    <!-- A small dim caption: column headers and the names of the cards -->
     <Style Selector="TextBlock.label">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Foreground" Value="{StaticResource TextDim}" />
     </Style>
+    <!-- The smallest, most muted text -->
     <Style Selector="TextBlock.hint">
         <Setter Property="FontSize" Value="11.5" />
         <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
     </Style>
-    <!-- A normal table cell -->
+    <!-- A normal table cell. TextTrimming = text that is too long for its column ends with "..." -->
     <Style Selector="TextBlock.cell">
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -50,7 +60,8 @@
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
-    <!-- A cell that reports a state: green when it is fine, red when it is not -->
+    <!-- A cell that reports a state: green when it is fine, red when it is not.
+         "TextBlock.cell.ok" = a TextBlock that has both the "cell" and the "ok" classes -->
     <Style Selector="TextBlock.cell.ok">
         <Setter Property="Foreground" Value="{StaticResource Ok}" />
     </Style>
@@ -73,14 +84,17 @@
         <Setter Property="Foreground" Value="{StaticResource TextDim}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <!-- Added on top of "level" while the row is a warning -->
     <Style Selector="TextBlock.level.warn">
         <Setter Property="Foreground" Value="{StaticResource Warn}" />
     </Style>
+    <!-- Added on top of "level" while the row is an error -->
     <Style Selector="TextBlock.level.error">
         <Setter Property="Foreground" Value="{StaticResource Danger}" />
     </Style>
 
     <!-- ===================== CARD, CHIP, TABLE ROW ===================== -->
+    <!-- A card: a box with a background, a thin outline, rounded corners and space inside -->
     <Style Selector="Border.card">
         <Setter Property="Background" Value="{StaticResource Card}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
@@ -88,6 +102,7 @@
         <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Padding" Value="20" />
     </Style>
+    <!-- A chip: a small rounded tag around a short word (the role, "SUPER ADMIN") -->
     <Style Selector="Border.chip">
         <Setter Property="Background" Value="#1E2A3E" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
@@ -96,7 +111,7 @@
         <Setter Property="Padding" Value="6,2" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <!-- One line of a table: a thin separator on top -->
+    <!-- One line of a table: a thin separator on top ("0,1,0,0" = left, top, right, bottom) -->
     <Style Selector="Border.row">
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="0,1,0,0" />
@@ -105,6 +120,7 @@
 
 
         <!-- ===================== ERROR BANNER ===================== -->
+    <!-- The red box shown above a table when the database could not be read -->
     <Style Selector="Border.bannerError">
         <Setter Property="Background" Value="{StaticResource DangerBg}" />
         <Setter Property="BorderBrush" Value="{StaticResource DangerLine}" />
@@ -112,6 +128,7 @@
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,10" />
     </Style>
+    <!-- The red text inside that box. Wrap = a long message continues on the next line -->
     <Style Selector="TextBlock.error">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource Danger}" />
@@ -119,6 +136,7 @@
     </Style>
 
     <!-- ===================== BUTTON ===================== -->
+    <!-- A "ghost" button: no fill, only an outline (the Refresh buttons). Cursor = the hand pointer over it -->
     <Style Selector="Button.ghost">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -130,12 +148,15 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
+    <!-- The same button while the mouse is over it (":pointerover"): a slightly lighter background.
+         "/template/ ContentPresenter" reaches the inner part of the button that actually draws the background -->
     <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#1C2536" />
     </Style>
 
 
     <!-- ===================== TABS ===================== -->
+    <!-- Every tab header: a smaller font and a fixed minimum height -->
     <Style Selector="TabItem">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="MinHeight" Value="40" />
