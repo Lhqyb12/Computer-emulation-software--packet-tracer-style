@@ -15,12 +15,18 @@ public class TokenService
     // The server's settings; the secret signing key ("Jwt:Key") is read from here
     private readonly IConfiguration _config;
 
+    // Purpose: Builds the token service.
+    // Input:   config - the server's settings (the JWT signing key is read from it).
+    // Output:  none (a constructor) - a new TokenService.
     // The constructor. Dependency injection passes in the settings
     public TokenService(IConfiguration config)
     {
         _config = config;
     }
 
+    // Purpose: Creates a signed JWT that holds the user's id, email and role.
+    // Input:   user - the user who just signed in.
+    // Output:  the token as text ("header.payload.signature").
     // Builds a signed token for a user who just logged in
     public string CreateToken(User user)
     {
@@ -50,6 +56,9 @@ public class TokenService
         return new JsonWebTokenHandler().CreateToken(descriptor);
     }
 
+    // Purpose: Checks a JWT's signature and expiry and reads the identity inside it.
+    // Input:   token - the token the client sent (may be empty).
+    // Output:  the identity (id, email, role), or null if the token is missing, forged, damaged or expired.
     // Checks a token a client sent. Returns the identity written inside it (id, email, role),
     // or null if the token is missing, forged, damaged or expired
     public async Task<ClaimsIdentity?> ValidateTokenAsync(string token)

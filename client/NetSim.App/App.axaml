@@ -1,15 +1,17 @@
 <!-- The root of the client application. This file holds no window, only what all the screens share:
-     icons, the view locators and the styles.
+     icons, the view locator and the styles.
      xmlns = the "dictionary" of Avalonia's own tags
      xmlns:x = the dictionary of the general XAML keywords (x:Class, x:Key...)
      xmlns:local = lets this file use our C# classes from the NetSim.App namespace
-     xmlns:uiviews = the same for the NetSim.UI.Views namespace (the simulator workspace)
+    xmlns:uiviews = the same for the NetSim.UI.Views namespace (the simulator workspace)
+
      x:Class = the C# class this file is the other half of (App.axaml.cs)
      RequestedThemeVariant="Dark" = always use the dark colours, whatever Windows is set to -->
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:NetSim.App"
-             xmlns:uiviews="using:NetSim.UI.Views"
+            xmlns:uiviews="using:NetSim.UI.Views"
+
              x:Class="NetSim.App.App"
              RequestedThemeVariant="Dark">
 
@@ -24,7 +26,7 @@
         </ResourceDictionary>
     </Application.Resources>
 
-    <!-- Turn a ViewModel object into its matching View. Two locators coexist because the
+       <!-- Turn a ViewModel object into its matching View. Two locators coexist because the
          login/register screens (NetSim.App.ViewModels.ViewModelBase) and the simulator
          workspace ported from NetworkSimulator (NetSim.UI.Common.ViewModelBase) are separate
          base types - see ViewLocator.cs and NetSim.UI/Views/ViewLocator.cs. -->
@@ -35,6 +37,7 @@
         <uiviews:ViewLocator />
     </Application.DataTemplates>
 
+
     <!-- The styles that apply to every screen, applied in this order -->
     <Application.Styles>
         <!-- Avalonia's built-in modern look for buttons, text boxes and so on -->
@@ -43,5 +46,6 @@
         <StyleInclude Source="avares://NetSim.App/Styles/Theme.axaml" />
         <!-- The styles of the simulator workspace -->
         <StyleInclude Source="avares://NetSim.UI/Theme/Index.axaml" />
+
     </Application.Styles>
 </Application>

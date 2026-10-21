@@ -3,12 +3,13 @@ using CommunityToolkit.Mvvm.Input;               // RelayCommand / IRelayCommand
 using Microsoft.Extensions.DependencyInjection;    // GetRequiredService<T>() - ask the DI container to build/hand us an instance of T
 using NetSim.UI.ViewModels;                        // ShellViewModel - the signed-in simulator workspace, ported from NetSim.UI
 
+
 namespace NetSim.App.ViewModels;
 
 /// <summary>
 /// The view model for the whole window. Its only job is <b>navigation</b>:
 /// it holds whichever screen is currently visible (login / register / the signed-in
-/// simulator workspace) in <see cref="CurrentPage"/>, and swaps it when asked.
+/// screen) in <see cref="CurrentPage"/>, and swaps it when asked.
 /// </summary>
 public sealed class MainWindowViewModel : ViewModelBase
 {
@@ -16,6 +17,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     // other services underneath it (canvas engine, device services, etc.), and the DI container
     // already knows how to do that - we don't want to wire that tree up by hand here
     private readonly IServiceProvider _services;
+
 
     // The screen shown right now. "= null!" = it starts as null, but we promise the compiler it is
     // filled before anyone reads it (the constructor calls ShowLogin)
@@ -29,13 +31,22 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     // The JWT the server gave at login; sent with the admin requests
     private string? _signedInToken;
+    
+    // The "box" that holds this sign-in's Shell and navigation service (both registered as Scoped).
+    // Opened on sign-in, disposed on sign-out. null = nobody is signed in
+    private IServiceScope? _workspaceScope;
 
 
+
+    // Purpose: Builds the main window's view model, creates the top-bar commands and shows the sign-in screen.
+        // Input:   services - the DI container built in App.axaml.cs.
+    // Output:  none (a constructor) - a new MainWindowViewModel.
     // The constructor. services = the DI container built in App.axaml.cs
     public MainWindowViewModel(IServiceProvider services)
     {
         // Keep the container for ShowWorkspace
         _services = services;
+
 
         // Wraps ShowLogin so it can be bound to a button's Command in XAML (the "Sign out" button) -
         // in MVVM the View never calls C# methods directly, it only binds to Commands/Properties
@@ -53,10 +64,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public IRelayCommand SignOutCommand { get; }       // the "Sign out" button
     public IRelayCommand ManageUsersCommand { get; }   // the "Manage users" button (admins only)
 
-    /// <summary>The screen shown right now. The window binds its content to this. Typed as
-    /// <see cref="object"/> because the auth screens (<see cref="ViewModelBase"/>) and the
-    /// simulator workspace ported from NetworkSimulator (<c>NetSim.UI.Common.ViewModelBase</c>)
-    /// are unrelated view-model hierarchies - see the two ViewLocators in App.axaml.</summary>
+    /// <summary>The screen shown right now. The window binds its content to this.</summary>
     public object CurrentPage
     {
         get => _currentPage;
@@ -79,7 +87,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    /// <summary>True once signed in - the window shows the full-window simulator workspace
+    /// <summary>True once signed in - the window shows the full-window signed-in layout
     /// instead of the narrow branding+card auth layout.</summary>
     // Computed rather than a stored bool flag, so it can never drift out of sync with reality -
     // CurrentPage is the single source of truth, this just asks what's currently sitting in it.
@@ -117,6 +125,9 @@ public sealed class MainWindowViewModel : ViewModelBase
     public bool IsAdmin => SignedInRole == "Admin";
 
 
+    // Purpose: Clears the signed-in user and shows a fresh sign-in screen.
+    // Input:   nothing.
+    // Output:  nothing (CurrentPage becomes a new LoginViewModel).
     // Shows the sign-in screen
     private void ShowLogin()
     {
@@ -124,6 +135,12 @@ public sealed class MainWindowViewModel : ViewModelBase
         // to "nobody signed in" - it's not just a startup-only path
         SignedInEmail = null;
         SignedInRole = null;
+        
+        // Throw away the previous user's Shell and navigation history, so the next sign-in starts clean.
+        // "?." = only if there is a scope (there isn't one on first launch)
+        _workspaceScope?.Dispose();
+        _workspaceScope = null;
+
         _signedInToken = null;
 
 
@@ -146,6 +163,9 @@ public sealed class MainWindowViewModel : ViewModelBase
         CurrentPage = login;
     }
 
+    // Purpose: Shows a fresh create-account screen and listens to its events.
+    // Input:   nothing.
+    // Output:  nothing (CurrentPage becomes a new RegisterViewModel).
     // Shows the "create account" screen
     private void ShowRegister()
     {
@@ -161,6 +181,9 @@ public sealed class MainWindowViewModel : ViewModelBase
     }
 
 
+    // Purpose: Shows the email-verification screen for one email address.
+    // Input:   email - the address that has to be verified.
+    // Output:  nothing (CurrentPage becomes a new VerifyEmailViewModel).
     // Shows the "enter the code we emailed you" screen. email = the address that has to be verified
     private void ShowVerifyEmail(string email)
     {
@@ -176,6 +199,9 @@ public sealed class MainWindowViewModel : ViewModelBase
     }
 
 
+    // Purpose: Shows a fresh forgot-password screen.
+    // Input:   nothing.
+    // Output:  nothing (CurrentPage becomes a new ForgotPasswordViewModel).
     // Shows the "forgot my password" screen
      private void ShowForgotPassword()
     {
@@ -188,6 +214,9 @@ public sealed class MainWindowViewModel : ViewModelBase
     }
 
 
+    // Purpose: Remembers who signed in and opens the signed-in screen.
+    // Input:   email, role, token - the three values the server returned at login.
+    // Output:  nothing.
     // Called by the SignedIn event of the login screen, with the three values the server returned
     private void ShowSignedIn(string email, string role, string token)
     {
@@ -197,10 +226,14 @@ public sealed class MainWindowViewModel : ViewModelBase
         _signedInToken = token;
 
         // And open the simulator
+
         ShowWorkspace();
     }
 
 
+    // Purpose: Shows the simulator workspace, built by the DI container.
+    // Input:   nothing.
+    // Output:  nothing (CurrentPage becomes the ShellViewModel).
     // Shows the simulator workspace
     private void ShowWorkspace()
     {
@@ -212,9 +245,20 @@ public sealed class MainWindowViewModel : ViewModelBase
         //
         // Hand off to the simulator workspace ported from NetworkSimulator (stage 1: UI only,
         // in-memory - no server/database wiring yet)
-        CurrentPage = _services.GetRequiredService<ShellViewModel>();
+        // Open a new box for this sign-in - but only if there isn't one yet: coming back from the
+        // "Manage users" screen also calls ShowWorkspace, and must return to the same Shell.
+        // "??=" = assign only if the left side is still null
+        _workspaceScope ??= _services.CreateScope();
+
+        // Build the Shell from inside the box, not from the main container, so it belongs to this sign-in
+        CurrentPage = _workspaceScope.ServiceProvider.GetRequiredService<ShellViewModel>();
+
     }
 
+
+    // Purpose: Shows the admin's user-management screen.
+    // Input:   nothing (it uses the saved token).
+    // Output:  nothing (CurrentPage becomes a new UsersViewModel; does nothing if nobody is signed in).
     // Shows the admin's "Manage users" screen
     private void ShowUsers()
     {

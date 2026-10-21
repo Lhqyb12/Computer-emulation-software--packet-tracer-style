@@ -38,6 +38,10 @@ public class AuthService
     // Records security events (failed logins, password resets...) for the Super Admin dashboard
     private readonly SecurityLog _security;
 
+    // Purpose: Builds the auth service with the objects it needs.
+    // Input:   db - the database; email - sends mail; tokens - creates JWTs; config - the settings;
+    //          security - the security event log.
+    // Output:  none (a constructor) - a new AuthService.
     // The constructor. Dependency Injection: we do not create these five objects ourselves; the DI
     // container (see Program.cs) creates them and passes them in, so this class doesn't know/care
     // how the database connection or the mail sender are actually built
@@ -54,6 +58,10 @@ public class AuthService
 
 
 
+    // Purpose: Validates a registration, saves a new unverified user and emails them a verification code.
+    // Input:   request - the username, email and password the client sent.
+    // Output:  an AuthResponse: Success = true if the account was created, otherwise false with the reason
+    //          (invalid email, weak password, email taken, email could not be sent).
     // Creates a new account from the username, email and password the client sent.
     // "async Task<AuthResponse>" = the method can pause at an "await" without blocking a thread,
     // and in the end it gives back an AuthResponse (success or failure + a message)
@@ -140,6 +148,10 @@ public class AuthService
 
     }
 
+    // Purpose: Checks an email and a password and signs the user in.
+    // Input:   request - the email and password the client sent.
+    // Output:  an AuthResponse: on success holds the Role and a JWT Token; NeedsVerification = true if the email
+    //          is not verified yet; otherwise Success = false with "Wrong email or password."
     // Checks an email and a password, and on success returns a token that proves who the user is
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
@@ -210,6 +222,9 @@ public class AuthService
 
     }
 
+    // Purpose: Checks a Google ID token and signs in the matching user, creating the account if it is new.
+    // Input:   request - the ID token the client got from Google.
+    // Output:  an AuthResponse: on success holds the Email, Role and Token; otherwise Success = false with the reason.
     // Sign-in with a Google account. The client sends an "ID token" it received from Google;
     // we check that Google really signed it, and then find (or create) the matching user
     public async Task<AuthResponse> GoogleLoginAsync(GoogleLoginRequest request)
@@ -307,6 +322,9 @@ public class AuthService
 
 
 
+    // Purpose: Creates a password reset code, stores its hash and emails it to the user.
+    // Input:   request - the email the user typed.
+    // Output:  an AuthResponse that always reports success, so it never reveals whether the email is registered.
     // Step 1 of "forgot my password": creates a 6-digit code and emails it to the user
     public async Task<AuthResponse> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
@@ -371,6 +389,10 @@ public class AuthService
     }
 
 
+    // Purpose: Checks the reset code and, if it is right, replaces the user's password.
+    // Input:   request - the email, the code and the new password.
+    // Output:  an AuthResponse: Success = true if the password was replaced, otherwise false with the reason
+    //          (invalid or expired code, too many attempts, weak password).
     // Step 2 of "forgot my password": checks the code the user typed and, if it is right, sets the new password
     public async Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request)
     {
@@ -465,6 +487,9 @@ public class AuthService
         return new AuthResponse { Success = true, Message = "Password has been reset." };
     }
 
+    // Purpose: Checks the email verification code and, if it is right, unlocks the account.
+    // Input:   request - the email and the code the user typed.
+    // Output:  an AuthResponse: Success = true if the email was verified, otherwise false ("Invalid or expired code.").
     // Checks the code a new user received by email, and if it is right unlocks the account
     public async Task<AuthResponse> VerifyEmailAsync(VerifyEmailRequest request)
     {
@@ -539,6 +564,9 @@ public class AuthService
         return new AuthResponse { Success = true, Message = "Email verified." };
     }
 
+    // Purpose: Sends a new verification code to an account that is still waiting for verification.
+    // Input:   request - the account's email.
+    // Output:  an AuthResponse that always reports success, so it never reveals whether the account exists.
     // Sends a new verification code to a user who did not receive (or lost) the first one
     public async Task<AuthResponse> ResendVerificationAsync(ResendVerificationRequest request)
     {
@@ -569,6 +597,9 @@ public class AuthService
         return new AuthResponse { Success = true, Message = "If that account is waiting for verification, a new code was sent." };
     }
 
+    // Purpose: Creates a new verification code, saves its hash and expiry on the user, and emails the code.
+    // Input:   user - the user to send the code to.
+    // Output:  true if the email was sent, false if sending failed.
     // Creates a new verification code, stores only its hash (exactly like the reset code), and emails it.
     // Returns false if the email could not be sent
     private async Task<bool> SendVerificationCodeAsync(User user)
@@ -614,6 +645,9 @@ public class AuthService
 
 
 
+    // Purpose: Creates a random 6-digit code.
+    // Input:   nothing.
+    // Output:  the code as text, with leading zeros kept (for example "004217").
     // Creates a random 6-digit code as text, for example "004217".
     // Used for both the reset code and the verification code
     private static string GenerateResetCode()

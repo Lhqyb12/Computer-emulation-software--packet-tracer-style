@@ -22,6 +22,9 @@ public sealed class UsersViewModel : ViewModelBase
     private bool _isBusy;      // true while the list is loading
     private string? _error;    // the red error text (null = no error)
 
+    // Purpose: Builds the user-management screen's view model and starts loading the user list.
+    // Input:   token - the admin's JWT from login.
+    // Output:  none (a constructor) - a new UsersViewModel.
     // The constructor. token = the JWT the server gave at login
     public UsersViewModel(string token)
     {
@@ -63,6 +66,9 @@ public sealed class UsersViewModel : ViewModelBase
     public IRelayCommand RefreshCommand { get; }   // the "Refresh" button
     public IRelayCommand GoBackCommand { get; }    // the "Back" button
 
+    // Purpose: Asks the server for all the users and fills the table.
+    // Input:   nothing (it uses the saved token).
+    // Output:  nothing (a Task). Fills Users, or sets Error if the list could not be loaded.
     // Asks the server for all the users and fills the table
     private async Task LoadAsync()
     {
@@ -97,6 +103,9 @@ public sealed class UsersViewModel : ViewModelBase
         }
     }
 
+    // Purpose: Asks the server to delete the user of one row and removes the row on success.
+    // Input:   row - the table row whose Delete button was pressed.
+    // Output:  nothing (a Task). Sets Error if the server refused.
     // Deletes the user of one row. Called by the Delete button of that row
     private async Task DeleteAsync(UserRowViewModel row)
     {
@@ -122,6 +131,9 @@ public sealed class UserRowViewModel : ViewModelBase
     // "Func<UserRowViewModel, Task>" = a method that receives a row and returns a Task (an async method)
     private readonly Func<UserRowViewModel, Task> _delete;
 
+    // Purpose: Builds one table row from the user's details.
+    // Input:   dto - the user's details from the server; delete - the method that deletes a row.
+    // Output:  none (a constructor) - a new UserRowViewModel.
     // The constructor. dto = the user's details as the server sent them,
     // delete = UsersViewModel.DeleteAsync, handed in so the row can ask its parent to delete it
     public UserRowViewModel(UserSummaryDto dto, Func<UserRowViewModel, Task> delete)

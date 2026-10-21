@@ -24,6 +24,9 @@ public class SocketServer
     // Holds the server's RSA private key, needed for the handshake with every client
     private readonly ServerKeys _keys;
 
+    // Purpose: Builds the socket server with the objects it needs.
+    // Input:   logger - writes to the log; router - answers messages; keys - holds the RSA private key.
+    // Output:  none (a constructor) - a new SocketServer.
     // The constructor. We do not create these three objects ourselves; dependency injection
     // creates them and passes them in when it builds the SocketServer
     public SocketServer(ILogger<SocketServer> logger, MessageRouter router, ServerKeys keys)
@@ -35,6 +38,9 @@ public class SocketServer
     }
 
 
+    // Purpose: Opens the listening socket on port 9000 and accepts clients until the server shuts down.
+    // Input:   stop - the signal that is raised when the server shuts down.
+    // Output:  nothing (a Task that ends when the server stops or fails).
     // The main loop of the server: open the listening socket and accept clients forever.
     // stop = a signal that is raised when the server shuts down, and ends the waiting
     public async Task RunAsync(CancellationToken stop)
@@ -88,6 +94,9 @@ public class SocketServer
 
     }
 
+    // Purpose: Runs the whole conversation with one client: the handshake, then a request/answer loop.
+    // Input:   client - the socket of this client's connection; stop - the shutdown signal.
+    // Output:  nothing (a Task that ends when the client disconnects or the connection fails).
     // The whole conversation with one client: handshake, then read a message, answer it, and wait
     // for the next one, until the client disconnects
     private async Task HandleClientAsync(Socket client, CancellationToken stop)

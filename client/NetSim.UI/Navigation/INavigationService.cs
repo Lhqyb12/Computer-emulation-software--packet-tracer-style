@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NetSim.UI.Common;
 
 namespace NetSim.UI.Navigation;

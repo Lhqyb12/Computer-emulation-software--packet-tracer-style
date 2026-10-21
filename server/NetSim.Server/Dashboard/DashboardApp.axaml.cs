@@ -13,12 +13,18 @@ public partial class DashboardApp : Application
     // halves of the process: through it the window can reach the database
     private readonly IServiceProvider _services;
 
+    // Purpose: Builds the dashboard application and keeps the server's DI container.
+    // Input:   services - the server's DI container, from Program.cs.
+    // Output:  none (a constructor) - a new DashboardApp.
     // The constructor: keep the container
     public DashboardApp(IServiceProvider services)
     {
         _services = services;
     }
 
+    // Purpose: Loads the dashboard's theme and styles from DashboardApp.axaml.
+    // Input:   nothing.
+    // Output:  nothing.
     // Loads DashboardApp.axaml (the theme and styles).
     // "override" = we replace the empty version that Application has
     public override void Initialize()
@@ -26,6 +32,9 @@ public partial class DashboardApp : Application
         AvaloniaXamlLoader.Load(this);
     }
 
+    // Purpose: Creates the dashboard window with its view model and makes it the main window.
+    // Input:   nothing (Avalonia calls it once at start-up).
+    // Output:  nothing.
     // Runs once, after Avalonia is ready. We create the dashboard window here.
     public override void OnFrameworkInitializationCompleted()
     {

@@ -1,9 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using NetSim.UI.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using NetSim.UI.Navigation;
-using NetSim.UI.Theming;
 using NetSim.UI.ViewModels;
-using NetSim.UI.Views;
 
 namespace NetSim.UI.DependencyInjection;
 
@@ -15,28 +12,14 @@ public static class UIServiceCollectionExtensions
 {
     public static IServiceCollection AddUIServices(this IServiceCollection services)
     {
-        services.AddSingleton<INavigationService, NavigationService>();
-        services.AddSingleton<IThemeVariantWriter, AvaloniaThemeVariantWriter>();
-        services.AddSingleton<IThemeService, ThemeService>();
+        // Scoped, not Singleton: one per signed-in session. MainWindowViewModel opens a new scope on
+        // sign-in and disposes it on sign-out, so the next user gets a fresh Shell and an empty
+        // navigation history instead of the previous user's
+        services.AddScoped<INavigationService, NavigationService>();
 
-        // One dialog host/overlay for the app's single window - see UI/Dialogs/IDialogHost.cs.
-        // The individual dialog ViewModels (NewProjectDialogViewModel, ...) are constructed
-        // directly by DialogService (they take result/cancel callbacks, not DI dependencies),
-        // so they are not registered here.
-        services.AddSingleton<IDialogHost, DialogHost>();
-        services.AddSingleton<IDialogService, DialogService>();
+        services.AddScoped<ShellViewModel>();
 
-        services.AddSingleton<ShellViewModel>();
         services.AddTransient<HomeViewModel>();
-        services.AddTransient<ProjectsViewModel>();
-        services.AddTransient<NetworkCanvasViewModel>();
-        services.AddTransient<DeviceLibraryViewModel>();
-        services.AddTransient<DevicePropertiesViewModel>();
-        services.AddTransient<NetworkWorkspaceViewModel>();
-        services.AddTransient<SettingsViewModel>();
-        services.AddTransient<DesignSystemDemoViewModel>();
-
-        services.AddTransient<MainWindow>();
 
         return services;
     }

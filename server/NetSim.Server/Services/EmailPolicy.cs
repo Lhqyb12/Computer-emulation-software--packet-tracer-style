@@ -11,6 +11,9 @@ public static class EmailPolicy
     // The longest address the email standard allows - anything longer is junk, not a typo
     public const int MaxLength = 254;
 
+    // Purpose: Checks whether a text is an acceptable email address (length, format, domain with a dot).
+    // Input:   email - the text to check (may be null).
+    // Output:  true if it is a valid email address, otherwise false.
     // Returns true if the text is an acceptable email address, false otherwise
     public static bool IsValid(string? email)
     {

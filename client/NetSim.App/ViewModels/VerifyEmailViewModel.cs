@@ -22,6 +22,9 @@ public sealed class VerifyEmailViewModel : ViewModelBase
     private string? _error;                // the red error text (null = no error)
     private string? _status;               // a neutral status text (null = nothing to show)
 
+    // Purpose: Builds the email-verification screen's view model for one email address.
+    // Input:   email - the address that has to be verified.
+    // Output:  none (a constructor) - a new VerifyEmailViewModel.
     // The email arrives from outside (from the register screen, through MainWindowViewModel) -
     // this screen never asks the user to type it again
     public VerifyEmailViewModel(string email)
@@ -100,6 +103,9 @@ public sealed class VerifyEmailViewModel : ViewModelBase
     public IRelayCommand ResendCodeCommand { get; }   // the "Resend code" button
     public IRelayCommand GoToLoginCommand { get; }    // the "Back to sign in" link
 
+    // Purpose: Checks that a code was typed and sends it to the server to verify the email.
+    // Input:   nothing (it reads Email and Code).
+    // Output:  nothing (a Task). On success sets IsSuccess = true; otherwise sets Error.
     // Runs when the user presses "Verify"
     private async Task VerifyAsync()
     {
@@ -138,6 +144,9 @@ public sealed class VerifyEmailViewModel : ViewModelBase
         }
     }
 
+    // Purpose: Asks the server to email a new verification code.
+    // Input:   nothing (it reads Email).
+    // Output:  nothing (a Task). Sets Status on success, or Error if the server could not be reached.
     // Runs when the user presses "Resend code"
     private async Task ResendCodeAsync()
     {

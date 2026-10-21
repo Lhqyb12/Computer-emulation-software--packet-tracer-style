@@ -26,6 +26,9 @@ public sealed class LoginViewModel : ViewModelBase
     private string? _error;                    // the red error text (null = no error)
     private string? _status;                   // the neutral status text (null = nothing to show)
 
+    // Purpose: Builds the sign-in screen's view model and connects each button to its command.
+    // Input:   nothing.
+    // Output:  none (a constructor) - a new LoginViewModel with empty boxes.
     // The constructor: connects every button to the code it runs
     public LoginViewModel()
     {
@@ -130,6 +133,10 @@ public sealed class LoginViewModel : ViewModelBase
 
 
 
+    // Purpose: Checks the typed email and password, sends them to the server and acts on the answer.
+    // Input:   nothing (it reads the Email and Password properties).
+    // Output:  nothing (a Task). On success raises SignedIn; on an unverified email raises VerificationRequired;
+    //          otherwise sets Error to the server's message.
     // Runs when the user presses "Sign in"
     private async Task SignInAsync()
     {
@@ -196,6 +203,9 @@ public sealed class LoginViewModel : ViewModelBase
     }
 
 
+    // Purpose: Signs the user in with Google: gets an ID token in the browser and sends it to the server.
+    // Input:   nothing.
+    // Output:  nothing (a Task). On success raises SignedIn with the email from the server; otherwise sets Error.
     // Runs when the user presses "Continue with Google"
     private async Task SignInWithGoogleAsync()
     {

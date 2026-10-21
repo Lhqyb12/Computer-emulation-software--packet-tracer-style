@@ -9,6 +9,9 @@ namespace NetSim.App.ViewModels;
 /// </summary>
 public sealed class SignedInViewModel : ViewModelBase
 {
+    // Purpose: Builds the signed-in screen's view model and its Sign out command.
+    // Input:   email - the address that signed in.
+    // Output:  none (a constructor) - a new SignedInViewModel.
     // The constructor. email = the address that signed in
     public SignedInViewModel(string email)
     {

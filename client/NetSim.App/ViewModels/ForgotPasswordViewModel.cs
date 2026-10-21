@@ -27,6 +27,9 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     private string? _error;                           // the red error text (null = no error)
     private string? _status;                          // a neutral status text (null = nothing to show)
 
+    // Purpose: Builds the forgot-password screen's view model and connects each button to its command.
+    // Input:   nothing.
+    // Output:  none (a constructor) - a new ForgotPasswordViewModel at step 1.
     // The constructor: connects every button to the code it runs
     public ForgotPasswordViewModel()
     {
@@ -145,6 +148,9 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     // Something was typed in the second box and it is different - the screen shows a warning
     public bool ShowPasswordMismatch => ConfirmPassword.Length > 0 && NewPassword != ConfirmPassword;
 
+    // Purpose: Tells the screen to re-read all five password-checklist properties.
+    // Input:   nothing.
+    // Output:  nothing.
     // The five properties above have no "set", so the screen cannot know by itself that they changed.
     // This tells it, by name, to read each of them again
     private void RaiseChecks()
@@ -179,6 +185,9 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     public IRelayCommand ResetPasswordCommand { get; }   // step 2: "Reset password"
     public IRelayCommand GoToLoginCommand { get; }       // "Back to sign in"
 
+    // Purpose: Checks the typed email and asks the server to email a reset code.
+    // Input:   nothing (it reads the Email property).
+    // Output:  nothing (a Task). Shows a neutral status and moves the screen to step 2 (IsCodeSent = true).
     // Step 1: runs when the user presses "Send code"
     private async Task SendCodeAsync()
     {
@@ -216,6 +225,9 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
         }
     }
 
+    // Purpose: Checks the code and the new password and asks the server to replace the password.
+    // Input:   nothing (it reads Email, Code, NewPassword and ConfirmPassword).
+    // Output:  nothing (a Task). On success sets IsSuccess = true; otherwise sets Error.
     // Step 2: runs when the user presses "Reset password"
     private async Task ResetPasswordAsync()
     {

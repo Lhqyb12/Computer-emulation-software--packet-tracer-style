@@ -8,6 +8,9 @@ namespace NetSim.App.Views;
 // There is no logic here on purpose: everything the screen does lives in its view model
 public partial class UsersView : UserControl
 {
+    // Purpose: Builds the UsersView screen's controls from UsersView.axaml.
+    // Input:   nothing.
+    // Output:  none (a constructor) - a new screen object.
     // The constructor, run when the screen is created
     public UsersView()
     {

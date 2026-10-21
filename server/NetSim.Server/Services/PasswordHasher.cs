@@ -17,6 +17,9 @@ public static class PasswordHasher
     // static readonly (not const) because HashAlgorithmName is a struct, not a primitive type - const requires a primitive/string type
     private static readonly HashAlgorithmName Algorithm = HashAlgorithmName.SHA256;
 
+    // Purpose: Hashes a password (or a code) with a new random salt using PBKDF2.
+    // Input:   password - the plain text to hash.
+    // Output:  one "iterations.salt.hash" string to store in the database.
     // Returns a single "iterations.salt.hash" string that we'll store in the database.
     // Called when a password is set (AuthService.RegisterAsync / ResetPasswordAsync), and also for the
     // emailed 6-digit codes, which are stored hashed in exactly the same way
@@ -37,6 +40,9 @@ public static class PasswordHasher
         return $"{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
     }
 
+    // Purpose: Checks a plain password (or code) against a stored hash.
+    // Input:   password - the plain text the user typed; stored - the "iterations.salt.hash" string from the database.
+    // Output:  true if they match, otherwise false.
     // Checks a password (or an emailed code) against what's stored. Returns true if they match.
     // Called on every login attempt (AuthService.LoginAsync) and whenever a code is typed in
     public static bool Verify(string password, string stored)

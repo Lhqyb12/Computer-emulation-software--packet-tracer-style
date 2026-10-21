@@ -65,42 +65,66 @@ public class AuthApiClient
     // the JSON { "username": "...", "email": "...", "password": "..." }.
     // "=>" = a one-line method that returns the Task that SendAsync returns
 
+    // Purpose: Asks the server to create a new account.
+    // Input:   username, email, password - what the user typed on the register screen.
+    // Output:  an AuthResult - Success and the Message to show (never throws).
     // Creates a new account
     public Task<AuthResult> RegisterAsync(string username, string email, string password) =>
         SendAsync("register", new { username, email, password });
 
 
 
+    // Purpose: Asks the server to sign the user in with an email and a password.
+    // Input:   email, password - what the user typed on the login screen.
+    // Output:  an AuthResult - on success it holds the Role and the JWT Token; NeedsVerification if the email is not verified.
     // Signs in with an email and a password
     public Task<AuthResult> LoginAsync(string email, string password) =>
         SendAsync("login", new { email, password });
 
 
+    // Purpose: Asks the server to email a password reset code.
+    // Input:   email - the account's email address.
+    // Output:  an AuthResult with the Message to show.
     // Asks the server to email a password reset code
     public Task<AuthResult> ForgotPasswordAsync(string email) =>
         SendAsync("forgot-password", new { email });
 
 
+    // Purpose: Sends the reset code and the new password so the server can change the password.
+    // Input:   email - the account; code - the code from the email; newPassword - the new password.
+    // Output:  an AuthResult - Success and the Message to show.
     // Sends the reset code together with the new password
     public Task<AuthResult> ResetPasswordAsync(string email, string code, string newPassword) =>
         SendAsync("reset-password", new { email, code, newPassword });
 
 
+    // Purpose: Asks the server to sign the user in with a Google ID token.
+    // Input:   idToken - the token GoogleSignInService got from Google.
+    // Output:  an AuthResult - on success it holds the Role, the Token and the user's Email.
     // Signs in with the ID token that Google gave us (see GoogleSignInService)
     public Task<AuthResult> GoogleLoginAsync(string idToken) =>
         SendAsync("google-login", new { idToken });
 
 
 
+    // Purpose: Sends the email verification code to the server to confirm a new account.
+    // Input:   email - the new account's email; code - the code the user typed.
+    // Output:  an AuthResult - Success and the Message to show.
     // Sends the email verification code a new user typed
     public Task<AuthResult> VerifyEmailAsync(string email, string code) =>
         SendAsync("verify-email", new { email, code });
 
 
+    // Purpose: Asks the server to send a new email verification code.
+    // Input:   email - the account's email address.
+    // Output:  an AuthResult with the Message to show.
     // Asks the server to email a new verification code
     public Task<AuthResult> ResendVerificationAsync(string email) =>
         SendAsync("resend-verification", new { email });
 
+    // Purpose: Asks the server for the list of all users (admin only).
+    // Input:   token - the admin's JWT from login.
+    // Output:  the list of users, or null if the server refused or could not be reached.
     // The admin actions send the JWT from login inside the message, so the server knows who is asking.
     // Returns the list of all users, or null if it could not be loaded
     public async Task<List<UserSummaryDto>?> GetUsersAsync(string token)
@@ -125,6 +149,9 @@ public class AuthApiClient
         }
     }
 
+    // Purpose: Asks the server to delete one user (admin only).
+    // Input:   id - the id of the user to delete; token - the admin's JWT.
+    // Output:  true if the user was deleted, otherwise false.
     // Asks the server to delete one user. Returns true if the user was deleted
     public async Task<bool> DeleteUserAsync(int id, string token)
     {
@@ -141,6 +168,9 @@ public class AuthApiClient
     // Same JSON options as the server's MessageRouter: camelCase names, reading ignores letter case
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    // Purpose: Wraps an action into one JSON request, sends it and returns the raw answer.
+    // Input:   type - the action name; data - the action's fields; token - the JWT (optional, empty before login).
+    // Output:  the server's answer as JSON text. Throws if the server cannot be reached.
     // Builds one request message, sends it over the socket and returns the server's answer as JSON text.
     // type = which action ("login"), data = the fields of that action, token = the JWT (empty before login)
     private async Task<string> SendRawAsync(string type, object data, string token = "")
@@ -152,6 +182,9 @@ public class AuthApiClient
         return await _socket.SendTextAsync(requestJson);
     }
 
+    // Purpose: Sends one action and turns the answer into an AuthResult.
+    // Input:   type - the action name; data - the action's fields; token - the JWT (optional).
+    // Output:  an AuthResult; any error becomes a failed result with a message (never throws).
     // For the actions whose answer has the usual shape (success, message, role, token...)
     private async Task<AuthResult> SendAsync(string type, object data, string token = "")
     {

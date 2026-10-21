@@ -12,6 +12,9 @@ namespace NetSim.App.Services;
 // The token is then sent to our server (AuthApiClient.GoogleLoginAsync), which checks Google's signature
 public class GoogleSignInService
 {
+    // Purpose: Opens Google's sign-in page in the browser and gets the ID token Google signs for the user.
+    // Input:   nothing (the Google client id and secret are read from the user secrets).
+    // Output:  the ID token as text. Throws if the settings are missing or the user does not finish within 2 minutes.
     // Runs the Google sign-in and returns the ID token. Throws if the settings are missing,
     // or if the user does not finish signing in
     public async Task<string> GetIdTokenAsync()

@@ -8,6 +8,9 @@ namespace NetSim.App.Views;
 // There is no logic here on purpose: everything the screen does lives in its view model
 public partial class VerifyEmailView : UserControl
 {
+    // Purpose: Builds the VerifyEmailView screen's controls from VerifyEmailView.axaml.
+    // Input:   nothing.
+    // Output:  none (a constructor) - a new screen object.
     // The constructor, run when the screen is created
     public VerifyEmailView()
     {

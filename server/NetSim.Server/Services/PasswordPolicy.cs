@@ -11,6 +11,9 @@ public static class PasswordPolicy
     // and so it can also be reused inside the error message itself ($"...{MinLength}...") without duplicating the number
     public const int MinLength = 8;
 
+    // Purpose: Checks a password against the password rules.
+    // Input:   password - the password to check; username - the user's name (the password must not contain it).
+    // Output:  null if the password is fine, otherwise the error message to show.
     // Choosing string? (nullable string) as the return type is the central design decision of this function:
     // null = "no error, the password is fine", a non-null string = the error message to display.
     // This is a lighter alternative to throwing an Exception - because a weak password is an *expected and

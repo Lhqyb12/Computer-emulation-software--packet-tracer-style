@@ -24,6 +24,9 @@ public class DashboardLogStore
     // "Action<LogEntry>" = a method that receives a LogEntry and returns nothing
     private Action<LogEntry>? _listener;
 
+    // Purpose: Stores one log message (keeping only the newest 500) and passes it to the listener.
+    // Input:   entry - the log message.
+    // Output:  nothing.
     // Called by the logger for every message
     public void Add(LogEntry entry)
     {
@@ -51,6 +54,9 @@ public class DashboardLogStore
         listener?.Invoke(entry);
     }
 
+    // Purpose: Registers the dashboard as the listener for new messages and returns the old ones.
+    // Input:   listener - the method to call for every new message.
+    // Output:  a copy of every message stored so far, oldest first.
     // Called once by the dashboard when its window opens. Returns everything logged so far (the server
     // starts before the window, so some messages already exist) and from now on calls "listener" for
     // each new message. Both happen under the same lock, so no message is missed or received twice

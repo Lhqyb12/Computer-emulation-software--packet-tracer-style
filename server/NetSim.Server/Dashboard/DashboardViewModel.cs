@@ -44,6 +44,9 @@ public class DashboardViewModel : ObservableObject
     private string? _usersError;                      // the error text above the Users table (null = no error)
     private string? _securityError;                   // the error text above the Security table (null = no error)
 
+    // Purpose: Builds the dashboard's view model: commands, first data load, log listening and the 1-second clock.
+    // Input:   services - the server's DI container, passed in by DashboardApp.
+    // Output:  none (a constructor) - a new DashboardViewModel.
     // The constructor. services = the server's DI container, passed in by DashboardApp
     public DashboardViewModel(IServiceProvider services)
     {
@@ -140,6 +143,9 @@ public class DashboardViewModel : ObservableObject
         private set => SetProperty(ref _errorCount, value);
     }
 
+    // Purpose: Updates the uptime text and the number of requests in the last hour.
+    // Input:   nothing.
+    // Output:  nothing.
     // Runs once a second
     private void UpdateClock()
     {
@@ -167,6 +173,9 @@ public class DashboardViewModel : ObservableObject
         RequestsLastHour = _requestTimes.Count;
     }
 
+    // Purpose: Updates the database status text from the result of the last database read.
+    // Input:   ok - true if the read worked, false if it failed.
+    // Output:  nothing.
     // Called after every database read the dashboard makes, with whether it worked.
     // The dashboard deliberately does NOT ping the database on a timer: the database is hosted in the
     // cloud and goes to sleep when nobody uses it - a ping every few seconds would keep it awake
@@ -200,6 +209,9 @@ public class DashboardViewModel : ObservableObject
     // What the "Refresh" button runs
     public IRelayCommand RefreshUsersCommand { get; }
 
+    // Purpose: Reads all the users from the database and fills the Users table and its counters.
+    // Input:   nothing.
+    // Output:  nothing (a Task). Sets UsersError if the database could not be read.
     // Reads the Users table from the database and fills the Users list and the two numbers
     private async Task LoadUsersAsync()
     {
@@ -291,6 +303,9 @@ public class DashboardViewModel : ObservableObject
     // The table keeps only the newest rows, so the window stays fast after days of running
     private const int MaxLogRows = 500;
 
+    // Purpose: Receives a new log message from any thread and hands it to the UI thread.
+    // Input:   entry - the new log message.
+    // Output:  nothing.
     // Called by the log store for every new message - on whatever thread the server happened to be
     // handling that request. The screen may only be touched from the UI thread, so instead of changing
     // the list here we Post the work to the UI thread, which runs it a moment later
@@ -299,6 +314,9 @@ public class DashboardViewModel : ObservableObject
         Dispatcher.UIThread.Post(() => ShowLogEntry(entry));
     }
 
+    // Purpose: Shows one log message on screen and updates the request counter, the Errors tab and the Security tab.
+    // Input:   entry - the log message to show.
+    // Output:  nothing.
     // Puts one log entry on the screen. Always runs on the UI thread.
     // Insert(0, ...) adds the row at the top, so the newest message is always the first line
     private void ShowLogEntry(LogEntry entry)
@@ -346,6 +364,9 @@ public class DashboardViewModel : ObservableObject
         }
     }
 
+    // Purpose: Converts a raw log message into one row of the Logs table.
+    // Input:   entry - the log message.
+    // Output:  a LogRow with the time, level, source and message as text.
     // Turns a raw log entry into the ready-to-show text of one table row
     private static LogRow ToLogRow(LogEntry entry)
     {
@@ -374,6 +395,9 @@ public class DashboardViewModel : ObservableObject
     // The rows of the Errors table, newest first
     public ObservableCollection<ErrorRow> Errors { get; } = new();
 
+    // Purpose: Converts a crash log message into one row of the Errors table.
+    // Input:   entry - the log message; exception - the exception it carries.
+    // Output:  an ErrorRow with the time, request, exception type, message and location.
     // Turns a crash log entry into one row of the Errors table
     private static ErrorRow ToErrorRow(LogEntry entry, Exception exception)
     {
@@ -409,6 +433,9 @@ public class DashboardViewModel : ObservableObject
     // What the "Refresh" button of the Security tab runs
     public IRelayCommand RefreshSecurityCommand { get; }
 
+    // Purpose: Reads the newest security events from the database and fills the Security table.
+    // Input:   nothing.
+    // Output:  nothing (a Task). Sets SecurityError if the database could not be read.
     // Reads the newest security events from the database and fills the SecurityEvents list
     private async Task LoadSecurityEventsAsync()
     {

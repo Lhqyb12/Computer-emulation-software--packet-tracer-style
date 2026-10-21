@@ -26,6 +26,10 @@ public class SecurityLog
     // Writes the event to the log, under the "NetSim.Security" category
     private readonly ILogger _logger;
 
+    // Purpose: Builds the security log.
+    // Input:   scopeFactory - opens its own database scope; client - the current client's address;
+    //          loggerFactory - creates the logger.
+    // Output:  none (a constructor) - a new SecurityLog.
     // The constructor. Dependency injection passes in the three objects
     public SecurityLog(IServiceScopeFactory scopeFactory, ClientInfo client, ILoggerFactory loggerFactory)
 
@@ -37,6 +41,9 @@ public class SecurityLog
         _logger = loggerFactory.CreateLogger(Category);
     }
 
+    // Purpose: Saves one security event to the database and writes it to the log.
+    // Input:   eventType - a short fixed name; email - who it is about (null if unknown); details - the specific reason.
+    // Output:  nothing (a Task).
     // Records one security event.
     // eventType = a short fixed name ("Login failed"), email = who it is about (null if unknown),
     // details = the specific reason, for the owner's eyes only

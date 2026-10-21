@@ -5,6 +5,10 @@ using NetSim.Server.Data;             // AppDbContext
 using NetSim.Server.Networking;       // SocketServer, MessageRouter, ServerKeys
 using NetSim.Server.Services;         // AuthService and the other services
 
+// Purpose: The server's entry point (the generated Main): registers the services, seeds the first admin,
+//          starts the socket server and the dashboard window, and shuts down when the window closes.
+// Input:   args - the words typed after the program's name.
+// Output:  nothing.
 // "Top-level statements" (a C# 9+ feature): there's no explicit class Program with a static void Main here -
 // the compiler generates that behind the scenes.
 //

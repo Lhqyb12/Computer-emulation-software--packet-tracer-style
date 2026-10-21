@@ -24,6 +24,9 @@ public sealed class RegisterViewModel : ViewModelBase
     private string? _error;                           // the red error text (null = no error)
     private string? _status;                          // a neutral status text (null = nothing to show)
 
+    // Purpose: Builds the create-account screen's view model and connects each button to its command.
+    // Input:   nothing.
+    // Output:  none (a constructor) - a new RegisterViewModel with empty boxes.
     // The constructor: connects every button to the code it runs
     public RegisterViewModel()
     {
@@ -121,6 +124,9 @@ public sealed class RegisterViewModel : ViewModelBase
     // Something was typed in the second box and it is different - the screen shows a warning
     public bool ShowPasswordMismatch => ConfirmPassword.Length > 0 && Password != ConfirmPassword;
 
+    // Purpose: Tells the screen to re-read all six password-checklist properties.
+    // Input:   nothing.
+    // Output:  nothing.
     // The six properties above have no "set", so the screen cannot know by itself that they changed.
     // This tells it, by name, to read each of them again. nameof(X) = the name of X as text
     private void RaiseChecks()
@@ -155,6 +161,9 @@ public sealed class RegisterViewModel : ViewModelBase
     public IRelayCommand CreateAccountCommand { get; }   // the "Create account" button
     public IRelayCommand GoToLoginCommand { get; }       // the "Sign in" link
 
+    // Purpose: Checks the typed fields, asks the server to create the account and acts on the answer.
+    // Input:   nothing (it reads Username, Email, Password and ConfirmPassword).
+    // Output:  nothing (a Task). On success raises VerificationRequired with the email; otherwise sets Error.
     // Runs when the user presses "Create account"
     private async Task CreateAccountAsync()
     {

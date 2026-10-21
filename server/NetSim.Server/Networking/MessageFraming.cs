@@ -24,6 +24,9 @@ public static class MessageFraming
     // allocate that much memory
     private const int MaxFrameSize = 1024 * 1024 + 1024;
 
+    // Purpose: Sends one message over the socket as a frame: a 4-byte length header, then the body.
+    // Input:   socket - the open connection; body - the bytes to send; stop - optional cancel signal.
+    // Output:  nothing (a Task that ends when every byte was sent).
     // Sends one frame: the 4-byte length header and then the body.
     // socket = the connection to send on, body = the bytes of the message,
     // stop = a signal that cancels the send when the program shuts down ("= default" makes it optional).
@@ -52,6 +55,10 @@ public static class MessageFraming
         }
     }
 
+    // Purpose: Reads one whole frame from the socket (the length header, then exactly that many bytes).
+    // Input:   socket - the open connection; stop - optional cancel signal.
+    // Output:  the body bytes, or null if the other side closed the connection between frames.
+    //          Throws if the length is illegal or the connection closes in the middle of a frame.
     // Reads one frame and returns its body, or null if the other side closed the connection.
     // "byte[]?" = the result is a byte array or null
     public static async Task<byte[]?> ReceiveFrameAsync(Socket socket, CancellationToken stop = default)
@@ -92,6 +99,9 @@ public static class MessageFraming
         return body;
     }
 
+    // Purpose: Keeps receiving until the given buffer is completely full.
+    // Input:   socket - the open connection; buffer - the array to fill; stop - cancel signal.
+    // Output:  true if the buffer was filled, false if the other side closed the connection first.
     // Fills the whole buffer, however many Receive calls that takes.
     // Returns false if the other side closed the connection before the buffer was full.
     // "private" = only the methods of this class can call it

@@ -14,6 +14,9 @@ public class UserService
     // Records security events (here: who deleted whom)
     private readonly SecurityLog _security;
 
+    // Purpose: Builds the user service.
+    // Input:   db - the database; security - the security event log.
+    // Output:  none (a constructor) - a new UserService.
     // The constructor. Dependency injection passes in the two objects
     public UserService(AppDbContext db, SecurityLog security)
     {
@@ -21,6 +24,9 @@ public class UserService
         _security = security;
     }
 
+    // Purpose: Reads all the users from the database for the admin's users screen.
+    // Input:   nothing.
+    // Output:  a list of UserSummaryDto rows (no passwords or codes).
     // Returns all the users, as the rows of the admin's "Users" screen
     public async Task<List<UserSummaryDto>> GetAllAsync()
     {
@@ -41,6 +47,9 @@ public class UserService
             .ToListAsync();
     }
 
+    // Purpose: Deletes one user, refusing if an admin tries to delete themselves, and logs it.
+    // Input:   id - the user to delete; callerId and adminEmail - who is asking, from the verified token.
+    // Output:  an AuthResponse: Success = true if the user was deleted, otherwise false with the reason.
     // Deletes one user. id = the user to delete.
     // callerId and adminEmail come from the admin's verified token, never from anything they typed
     public async Task<AuthResponse> DeleteAsync(int id, string? callerId, string? adminEmail)

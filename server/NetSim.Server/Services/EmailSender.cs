@@ -12,12 +12,18 @@ public class EmailSender
     // The server's settings; the mail server's address, user name and password are read from here
     private readonly IConfiguration _config;
 
+    // Purpose: Builds the email sender.
+    // Input:   config - the server's settings (the mail server's details are read from it).
+    // Output:  none (a constructor) - a new EmailSender.
     // The constructor. Dependency injection passes in the settings
     public EmailSender(IConfiguration config)
     {
         _config = config;
     }
 
+    // Purpose: Connects to the mail server and sends one plain-text email.
+    // Input:   toEmail - the address to send to; subject - the title; body - the text.
+    // Output:  nothing (a Task). Throws if the email could not be sent.
     // Sends one plain-text email.
     // toEmail = the address to send to, subject = the title of the email, body = its text
     public async Task SendAsync(string toEmail, string subject, string body)

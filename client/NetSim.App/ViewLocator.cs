@@ -13,6 +13,9 @@ namespace NetSim.App;
 // ": IDataTemplate" = it promises to have the two methods Avalonia calls: Match and Build
 public class ViewLocator : IDataTemplate
 {
+    // Purpose: Finds and creates the View that matches a view model, by name (LoginViewModel -> LoginView).
+    // Input:   data - the view model object (may be null).
+    // Output:  the new View control, or a TextBlock with an error text if no view was found.
     // Creates the view for a view model. data = the view model object
     public Control Build(object? data)
     {
@@ -37,6 +40,9 @@ public class ViewLocator : IDataTemplate
             : new TextBlock { Text = "View not found: " + name };
     }
 
+    // Purpose: Tells Avalonia whether this locator handles the given object.
+    // Input:   data - the object Avalonia wants to show.
+    // Output:  true if it is one of our view models (ViewModelBase), otherwise false.
     // Only run for our own view models.
     // Avalonia calls Match first; Build is called only when it returns true
     public bool Match(object? data) => data is ViewModelBase;

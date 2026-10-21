@@ -1,4 +1,3 @@
-﻿using CommunityToolkit.Mvvm.Input;
 using NetSim.UI.Common;
 using NetSim.UI.Navigation;
 
@@ -16,7 +15,4 @@ public partial class HomeViewModel : ViewModelBase
     public string Title => "Network Simulator";
 
     public string Message => "MVVM infrastructure ready.";
-
-    [RelayCommand]
-    private void GoToProjects() => _navigationService.NavigateTo<ProjectsViewModel>();
 }

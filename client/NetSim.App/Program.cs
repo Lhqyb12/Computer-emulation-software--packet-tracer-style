@@ -6,6 +6,9 @@ namespace NetSim.App;
 // The entry point of the client: the first code that runs when the program starts
 class Program
 {
+    // Purpose: The program's entry point: builds the Avalonia app and runs it until the window closes.
+    // Input:   args - the words typed after the program's name.
+    // Output:  nothing.
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
@@ -16,6 +19,9 @@ class Program
     public static void Main(string[] args) => BuildAvaloniaApp()
         .StartWithClassicDesktopLifetime(args);
 
+    // Purpose: Configures the Avalonia application (App class, platform, font, logging).
+    // Input:   nothing.
+    // Output:  an AppBuilder ready to be started.
     // Avalonia configuration, don't remove; also used by visual designer.
     // Configure<App> = the application class to start is App (see App.axaml.cs)
     public static AppBuilder BuildAvaloniaApp()

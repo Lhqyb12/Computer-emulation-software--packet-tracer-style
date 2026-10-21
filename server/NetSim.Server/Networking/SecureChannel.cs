@@ -48,6 +48,9 @@ public sealed class SecureChannel : IDisposable
     private long _sendCounter;
     private long _receiveCounter;
 
+    // Purpose: Builds a ready channel once the handshake has produced a session key.
+    // Input:   socket - the connection; sessionKey - the 32-byte AES key; isClient - which side this is.
+    // Output:  none (a constructor) - a new SecureChannel object.
     // The constructor. "private" = a channel can be created only through ConnectAsync or AcceptAsync,
     // so there is never a channel that skipped the handshake
     private SecureChannel(Socket socket, byte[] sessionKey, bool isClient)
@@ -64,6 +67,10 @@ public sealed class SecureChannel : IDisposable
         _receiveDirection = isClient ? ServerToClient : ClientToServer;
     }
 
+    // Purpose: Runs the client's side of the handshake and creates the encrypted channel.
+    // Input:   socket - an already connected socket; serverPublicKey - the server's RSA public key;
+    //          stop - optional cancel signal.
+    // Output:  a SecureChannel ready to send and receive. Throws if the server does not start the handshake correctly.
     // The client's side of the handshake.
     // socket = an already connected socket, serverPublicKey = the server's RSA public key,
     // stop = a signal that cancels the waiting ("= default" makes it optional)
@@ -93,6 +100,10 @@ public sealed class SecureChannel : IDisposable
         return new SecureChannel(socket, DeriveSessionKey(clientSecret, serverRandom), isClient: true);
     }
 
+    // Purpose: Runs the server's side of the handshake and creates the encrypted channel.
+    // Input:   socket - the accepted client socket; serverPrivateKey - the server's RSA private key;
+    //          stop - optional cancel signal.
+    // Output:  a SecureChannel ready to send and receive, or null if the client hung up during the handshake.
     // The server's side of the handshake. Returns null if the client hung up before finishing it
     public static async Task<SecureChannel?> AcceptAsync(Socket socket, RSA serverPrivateKey, CancellationToken stop = default)
     {
@@ -122,6 +133,9 @@ public sealed class SecureChannel : IDisposable
         return new SecureChannel(socket, DeriveSessionKey(clientSecret, serverRandom), isClient: false);
     }
 
+    // Purpose: Computes the session key both sides share, from the two handshake values.
+    // Input:   clientSecret - the client's 32 secret bytes; serverRandom - the server's 32 random bytes.
+    // Output:  the 32-byte session key.
     // Session key = SHA-256(client secret + server random). SHA-256 always gives 32 bytes - exactly an AES-256 key
     private static byte[] DeriveSessionKey(byte[] clientSecret, byte[] serverRandom)
     {
@@ -138,6 +152,9 @@ public sealed class SecureChannel : IDisposable
         return SHA256.HashData(both);
     }
 
+    // Purpose: Encrypts one text message with AES-GCM and sends it as a frame.
+    // Input:   text - the message to send; stop - optional cancel signal.
+    // Output:  nothing (a Task that ends when the frame was sent).
     // Encrypts one text message and sends it
     public async Task SendAsync(string text, CancellationToken stop = default)
     {
@@ -171,6 +188,10 @@ public sealed class SecureChannel : IDisposable
         await MessageFraming.SendFrameAsync(_socket, frame, stop);
     }
 
+    // Purpose: Receives the next frame, checks it and decrypts it back to text.
+    // Input:   stop - optional cancel signal.
+    // Output:  the decrypted text, or null if the other side closed the connection.
+    //          Throws if the frame is too short or was changed, replayed or sent in the wrong direction.
     // Returns the next message, or null if the other side closed the connection
     public async Task<string?> ReceiveAsync(CancellationToken stop = default)
     {
@@ -208,6 +229,9 @@ public sealed class SecureChannel : IDisposable
         return Encoding.UTF8.GetString(plain);
     }
 
+    // Purpose: Builds the extra label that is mixed into each message's tag.
+    // Input:   direction - ClientToServer or ServerToClient; counter - the message number.
+    // Output:  a 9-byte array: the direction byte, then the counter.
     // 9 bytes: the direction, then the message number. Both sides build it on their own and never send it
     private static byte[] BuildLabel(byte direction, long counter)
     {
@@ -223,6 +247,9 @@ public sealed class SecureChannel : IDisposable
         return label;
     }
 
+    // Purpose: Releases the AES encryptor and wipes the session key from memory.
+    // Input:   nothing.
+    // Output:  nothing.
     // Called automatically at the end of a "using" block
     public void Dispose()
     {

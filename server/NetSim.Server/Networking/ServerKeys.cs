@@ -11,6 +11,9 @@ public class ServerKeys
     // "{ get; }" = it can be read from outside, and set only inside the constructor
     public RSA PrivateKey { get; }
 
+    // Purpose: Loads the server's RSA key pair from the Keys folder, or creates and saves a new one on the first run.
+    // Input:   environment - where the server runs (for its folder); logger - writes to the log.
+    // Output:  none (a constructor) - a ServerKeys object whose PrivateKey is ready.
     // The constructor. Dependency injection passes in:
     // environment = information about where the server runs (we need its folder), logger = writes to the log
     public ServerKeys(IHostEnvironment environment, ILogger<ServerKeys> logger)

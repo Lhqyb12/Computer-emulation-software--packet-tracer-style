@@ -1,4 +1,4 @@
-﻿namespace NetSim.UI.Navigation;
+namespace NetSim.UI.Navigation;
 
 /// <summary>
 /// Optional lifecycle hook a ViewModel can implement to be notified when the

@@ -28,6 +28,9 @@ public class MessageRouter
     // Writes exceptions that nobody caught
     private readonly ILogger _crashLogger;
 
+    // Purpose: Builds the router and its two loggers (requests and crashes).
+    // Input:   scopeFactory - creates a fresh set of services per request; loggerFactory - creates loggers.
+    // Output:  none (a constructor) - a new MessageRouter.
     // The constructor. Dependency injection passes in the two factories
     public MessageRouter(IServiceScopeFactory scopeFactory, ILoggerFactory loggerFactory)
     {
@@ -39,6 +42,9 @@ public class MessageRouter
         _crashLogger = loggerFactory.CreateLogger(LogCategories.Crashes);
     }
 
+    // Purpose: Reads one request, runs its action in a fresh scope, logs one line, and builds the answer.
+    // Input:   requestJson - the decrypted text the client sent; clientIp - the client's address (may be null).
+    // Output:  the answer as JSON text. Never throws - a bad message or a crash becomes a failed answer.
     // Handles one request from start to end and returns the answer as JSON text.
     // requestJson = the decrypted text the client sent,
     // clientIp = the address the connection came from, taken from the socket by SocketServer
@@ -125,6 +131,9 @@ public class MessageRouter
         return JsonSerializer.Serialize(response, JsonOptions);
     }
 
+    // Purpose: Picks the action by the message type and calls the matching service method.
+    // Input:   request - the parsed message (type, token, data); services - this request's fresh services.
+    // Output:  the answer object (AuthResponse or UsersResponse); a failed AuthResponse for an unknown type or no permission.
     // The routing itself: which action does this message ask for?
     // services = the fresh set of services that HandleAsync opened for this request
     private static async Task<object> RouteAsync(RequestMessage request, IServiceProvider services)
@@ -209,6 +218,9 @@ public class MessageRouter
         }
     }
 
+    // Purpose: Checks that the request carries a valid token that belongs to an admin, and logs refusals.
+    // Input:   services - this request's services; request - the message with its token.
+    // Output:  the admin's identity (ClaimsIdentity), or null if the request must be refused.
     // The gate in front of every admin action. Returns the admin's identity, or null if the request
     // must be refused. This replaces [Authorize(Roles = "Admin")] and the JWT middleware of ASP.NET
     private static async Task<ClaimsIdentity?> RequireAdminAsync(IServiceProvider services, RequestMessage request)
@@ -249,6 +261,9 @@ public class MessageRouter
         return identity;
     }
 
+    // Purpose: Builds a failed answer with a message.
+    // Input:   message - the text to send back.
+    // Output:  an AuthResponse with Success = false and this Message.
     // A short way to build a "failed" answer with a message. "=>" = a one-line method that returns this value
     private static AuthResponse Fail(string message) => new AuthResponse { Success = false, Message = message };
 }

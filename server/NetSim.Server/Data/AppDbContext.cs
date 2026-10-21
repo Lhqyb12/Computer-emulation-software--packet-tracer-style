@@ -8,6 +8,9 @@ namespace NetSim.Server.Data;
 // in-memory collection)
 public class AppDbContext : DbContext
 {
+    // Purpose: Builds the database context with the connection settings from Program.cs.
+    // Input:   options - the EF Core options (the PostgreSQL connection string).
+    // Output:  none (a constructor) - a new AppDbContext.
     // The constructor does no logic itself - it just forwards (base(options)) the DbContextOptions
     // (which holds the Postgres connection string, coming from builder.Services.AddDbContext in Program.cs)
     // to the base DbContext constructor. This way AppDbContext itself doesn't "know" the connection details -
@@ -28,6 +31,9 @@ public class AppDbContext : DbContext
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
 
 
+    // Purpose: Adds database rules EF Core cannot guess by itself (unique indexes on Email and GoogleId).
+    // Input:   modelBuilder - the object EF Core uses to describe the tables.
+    // Output:  nothing.
     // Called by EF Core once, when it builds its picture of the database. This is where rules are added
     // that the conventions cannot guess. "protected override" = we replace the empty version DbContext has.
     //

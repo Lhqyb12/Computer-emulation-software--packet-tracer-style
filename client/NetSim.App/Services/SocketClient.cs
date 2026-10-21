@@ -16,6 +16,9 @@ public class SocketClient
     // Must match SocketServer.Port on the server. "const" = a fixed value that never changes
     private const int Port = 9000;
 
+    // Purpose: Opens a new encrypted connection, sends one request and returns the server's answer.
+    // Input:   text - the request as JSON text.
+    // Output:  the server's answer as text. Throws if the connection, the handshake or the reading fails.
     // Sends one request to the server and returns the server's answer.
     // text = the request, as text. "async Task<string>" = the method can pause at an "await"
     // without freezing the window, and in the end it gives back a string
