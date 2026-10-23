@@ -29,6 +29,10 @@ public class AppDbContext : DbContext
     
     // The SecurityEvents table - the audit log shown in the dashboard's Security tab (see Models/SecurityEvent.cs)
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
+    
+    // The Projects table - the simulator projects every user saves (see Models/ProjectRecord.cs)
+    public DbSet<ProjectRecord> Projects => Set<ProjectRecord>();
+
 
 
     // Purpose: Adds database rules EF Core cannot guess by itself (unique indexes on Email and GoogleId).
@@ -52,6 +56,33 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.GoogleId)
             .IsUnique();
+
+        
+        // The Projects table. Based on ConfigureProjects in the NetworkSimulator project, plus the owner
+        modelBuilder.Entity<ProjectRecord>(entity =>
+        {
+            // The client creates the Guid (EntityId.New()) - the database must store it as is, not make its own
+            entity.Property(p => p.Id).ValueGeneratedNever();
+
+            // A project must have a name ("NOT NULL" in the database)
+            entity.Property(p => p.Name).IsRequired();
+
+            // Every project belongs to one user, and a user can have many projects ("one-to-many").
+            // Cascade = when a user is deleted (the admin's "Delete user"), their projects are deleted with
+            // them, instead of being left behind pointing at a user that no longer exists
+            entity.HasOne(p => p.Owner)
+                .WithMany()
+                .HasForeignKey(p => p.OwnerUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // The same name may exist once per owner: two users may both have "Lab 1", one user may not have
+            // it twice. The index is on the pair (OwnerUserId, Name), not on Name alone
+            entity.HasIndex(p => new { p.OwnerUserId, p.Name }).IsUnique();
+
+            // Speeds up the project list, which is always sorted by "last modified" first
+            entity.HasIndex(p => p.LastModifiedAtUtc);
+        });
+
 
     }
 

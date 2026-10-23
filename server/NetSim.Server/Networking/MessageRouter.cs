@@ -1,6 +1,8 @@
 using System.Diagnostics;      // Stopwatch - measures how long a request took
 using System.Security.Claims;  // ClaimsIdentity and ClaimTypes - the details stored inside a token
 using System.Text.Json;        // JsonSerializer - JSON text <-> C# objects
+using Microsoft.EntityFrameworkCore;  // AnyAsync - "is there such a row?" (the account check in RequireUserAsync)
+using NetSim.Server.Data;      // AppDbContext
 using NetSim.Server.Dtos;      // LoginRequest, AuthResponse and the other message classes
 using NetSim.Server.Services;  // AuthService, UserService, TokenService, SecurityLog, ClientInfo
 
@@ -211,6 +213,58 @@ public class MessageRouter
                 // Delete the user (UserService refuses if an admin tries to delete themselves)
                 return await users.DeleteAsync(delete.Id, callerId, adminEmail);
             }
+                        // The signed-in user's own projects - any signed-in user, not only admins
+            case "get-projects":
+            {
+                // Check the token. null = not a valid, existing user
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)
+                {
+                    return new ProjectListResponse { Success = false, Message = "Not authorized." };
+                }
+
+                // Only this user's projects - the id comes from the verified token, not from the message
+                var projects = services.GetRequiredService<ProjectStoreService>();
+                return new ProjectListResponse { Success = true, Projects = await projects.GetAllAsync(caller.Value.UserId) };
+            }
+
+            // Creating or updating one project
+            case "save-project":
+            {
+                // Check the token. null = not a valid, existing user
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)
+                {
+                    return new ProjectResponse { Success = false, Message = "Not authorized." };
+                }
+
+                // The data holds the project. No "!" here: if nothing was sent, SaveAsync gets null and refuses it
+                var project = request.Data.Deserialize<ProjectDto>(JsonOptions);
+                var projects = services.GetRequiredService<ProjectStoreService>();
+
+                // ProjectStoreService checks that an existing project with this id belongs to this user
+                return await projects.SaveAsync(caller.Value.UserId, caller.Value.Email, project);
+            }
+
+            // Deleting one project
+            case "delete-project":
+            {
+                // Check the token. null = not a valid, existing user
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)
+                {
+                    return new ProjectResponse { Success = false, Message = "Not authorized." };
+                }
+
+                // The data holds the id of the project to delete
+                var delete = request.Data.Deserialize<DeleteProjectRequest>(JsonOptions)!;
+                var projects = services.GetRequiredService<ProjectStoreService>();
+
+                // ProjectStoreService checks that the project belongs to this user before deleting it
+                return await projects.DeleteAsync(caller.Value.UserId, caller.Value.Email, delete.Id);
+            }
+
+
 
             // A type we do not know
             default:
@@ -260,6 +314,55 @@ public class MessageRouter
         // A verified admin
         return identity;
     }
+
+    // Purpose: Checks that the request carries a valid token of a user that still exists, and logs refusals.
+    // Input:   services - this request's services; request - the message with its token.
+    // Output:  the user's id and email, or null if the request must be refused.
+    // The gate in front of every project action. Based on RequireAdminAsync above, but any role may pass
+    // (projects belong to every user, not only to admins), plus two checks of its own
+    private static async Task<(int UserId, string? Email)?> RequireUserAsync(IServiceProvider services, RequestMessage request)
+    {
+        // The two services this check needs
+        var tokens = services.GetRequiredService<TokenService>();
+        var security = services.GetRequiredService<SecurityLog>();
+
+        // Step 1 - authentication: is the token real? (signed by us, not edited, not expired) -
+        // exactly the same check as in RequireAdminAsync
+        ClaimsIdentity? identity = await tokens.ValidateTokenAsync(request.Token);
+        if (identity is null)
+        {
+            string reason = string.IsNullOrWhiteSpace(request.Token)
+                ? "No token was sent"
+                : "The token is not valid or has expired";
+            await security.RecordAsync("Unauthorized request", null, $"{request.Type} - {reason}");
+            return null;
+        }
+
+        // The email, for the security log
+        string? email = identity.FindFirst(ClaimTypes.Email)?.Value;
+
+        // Step 2 - the user's id from the token. TokenService stores it as text, so it is turned back into a
+        // number. TryParse = "try to read a number"; false if the text is missing or not a number
+        if (!int.TryParse(identity.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int userId))
+        {
+            await security.RecordAsync("Unauthorized request", email, $"{request.Type} - The token has no user id");
+            return null;
+        }
+
+        // Step 3 - does this account still exist? A token stays valid until it expires, even if an admin deleted
+        // the account in the meantime - without this check, a deleted user could keep using their old token
+        var db = services.GetRequiredService<AppDbContext>();
+        if (!await db.Users.AnyAsync(u => u.Id == userId))
+        {
+            await security.RecordAsync("Unauthorized request", email, $"{request.Type} - The account no longer exists");
+            return null;
+        }
+
+        // A verified, existing user
+        return (userId, email);
+    }
+
+
 
     // Purpose: Builds a failed answer with a message.
     // Input:   message - the text to send back.

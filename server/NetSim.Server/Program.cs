@@ -41,6 +41,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailSender>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ProjectStoreService>();
+
 
 // ClientInfo holds the address of the client behind the current request; SecurityLog reads it
 builder.Services.AddScoped<ClientInfo>();
