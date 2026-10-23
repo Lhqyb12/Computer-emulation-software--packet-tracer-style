@@ -1,0 +1,37 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Reusable empty-state pattern: icon + title + short description, centered. Used wherever a
+    future screen has nothing to show yet ("No projects yet", "No devices selected", "No packets
+    captured") - see DesignSystemDemoView for a worked example.
+  -->
+
+  <Style Selector="StackPanel.EmptyState">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Spacing" Value="{DynamicResource Space.SM}" />
+    <Setter Property="MaxWidth" Value="320" />
+  </Style>
+  <Style Selector="StackPanel.EmptyState > PathIcon">
+    <Setter Property="Width" Value="{DynamicResource Icon.Size.LG}" />
+    <Setter Property="Height" Value="{DynamicResource Icon.Size.LG}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="StackPanel.EmptyState > TextBlock.EmptyStateTitle">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Subtitle}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.SemiBold}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="TextAlignment" Value="Center" />
+  </Style>
+  <Style Selector="StackPanel.EmptyState > TextBlock.EmptyStateDescription">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Small}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+    <Setter Property="TextAlignment" Value="Center" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+
+</Styles>

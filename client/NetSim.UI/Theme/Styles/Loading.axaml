@@ -1,0 +1,18 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Progress/loading and disabled-content visuals, for future project/DB/AI/cloud/sim operations. -->
+
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Hover}" />
+    <Setter Property="Height" Value="4" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Full}" />
+  </Style>
+
+  <!-- Dims a content region behind a busy indicator without hiding it entirely -->
+  <Style Selector="Border.LoadingOverlay">
+    <Setter Property="Background" Value="{DynamicResource Brush.Overlay}" />
+  </Style>
+
+</Styles>

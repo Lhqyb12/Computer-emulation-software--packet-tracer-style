@@ -9,6 +9,11 @@
               Spacing="12">
     <TextBlock Text="{Binding Title}" Classes="Display" HorizontalAlignment="Center" />
     <TextBlock Text="{Binding Message}" Classes="BodySecondary" HorizontalAlignment="Center" />
+    <Button Content="Go to Projects"
+            Classes="Primary"
+            Command="{Binding GoToProjectsCommand}"
+            HorizontalAlignment="Center"
+            Margin="0,8,0,0" />
   </StackPanel>
 
 </UserControl>

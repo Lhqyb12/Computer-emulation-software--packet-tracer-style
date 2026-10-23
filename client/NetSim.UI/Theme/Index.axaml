@@ -19,7 +19,17 @@
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Typography.axaml" />
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Icons.axaml" />
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Buttons.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Inputs.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Cards.axaml" />
+
+
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Sidebar.axaml" />
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Toolbar.axaml" />
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/StatusBar.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Dialogs.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Notifications.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Loading.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/EmptyState.axaml" />
+
+
 </Styles>

@@ -1,0 +1,73 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Inline notification/status banners, using the semantic color system exclusively. -->
+
+  <Style Selector="Border.Notification">
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.SM}" />
+    <Setter Property="Padding" Value="12" />
+  </Style>
+  <Style Selector="Border.Notification.Success">
+    <Setter Property="Background" Value="{DynamicResource Brush.Success.Subtle}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Success}" />
+  </Style>
+  <Style Selector="Border.Notification.Warning">
+    <Setter Property="Background" Value="{DynamicResource Brush.Warning.Subtle}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Warning}" />
+  </Style>
+  <Style Selector="Border.Notification.Error">
+    <Setter Property="Background" Value="{DynamicResource Brush.Error.Subtle}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Error}" />
+  </Style>
+  <Style Selector="Border.Notification.Info">
+    <Setter Property="Background" Value="{DynamicResource Brush.Info.Subtle}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Info}" />
+  </Style>
+
+  <Style Selector="Border.Notification TextBlock.NotificationTitle">
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.SemiBold}" />
+  </Style>
+
+  <!-- A small inline status pill (e.g. "Connected", "3 warnings") -->
+  <Style Selector="Border.Badge">
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Full}" />
+    <Setter Property="Padding" Value="8,2" />
+  </Style>
+  <Style Selector="Border.Badge.Success">
+    <Setter Property="Background" Value="{DynamicResource Brush.Success.Subtle}" />
+  </Style>
+  <Style Selector="Border.Badge.Success TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Success}" />
+  </Style>
+  <Style Selector="Border.Badge.Warning">
+    <Setter Property="Background" Value="{DynamicResource Brush.Warning.Subtle}" />
+  </Style>
+  <Style Selector="Border.Badge.Warning TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Warning}" />
+  </Style>
+  <Style Selector="Border.Badge.Error">
+    <Setter Property="Background" Value="{DynamicResource Brush.Error.Subtle}" />
+  </Style>
+  <Style Selector="Border.Badge.Error TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Error}" />
+  </Style>
+  <Style Selector="Border.Badge.Info">
+    <Setter Property="Background" Value="{DynamicResource Brush.Info.Subtle}" />
+  </Style>
+  <Style Selector="Border.Badge.Info TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Info}" />
+  </Style>
+  <!-- Neutral: an inactive/off state, paired with Ellipse.StatusDot.Neutral (StatusBar.axaml) -->
+  <Style Selector="Border.Badge.Neutral">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Hover}" />
+  </Style>
+  <Style Selector="Border.Badge.Neutral TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+  <Style Selector="Border.Badge TextBlock">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Caption}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.SemiBold}" />
+  </Style>
+
+</Styles>
