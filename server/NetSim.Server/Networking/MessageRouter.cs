@@ -210,8 +210,9 @@ public class MessageRouter
                 string? callerId = admin.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 string? adminEmail = admin.FindFirst(ClaimTypes.Email)?.Value;
 
-                // Delete the user (UserService refuses if an admin tries to delete themselves)
-                return await users.DeleteAsync(delete.Id, callerId, adminEmail);
+                // Delete the user (UserService refuses if an admin tries to delete themselves).
+                // The last argument is the "who deleted" text for the security log
+                return await users.DeleteAsync(delete.Id, callerId, $"admin {adminEmail}");
             }
                         // The signed-in user's own projects - any signed-in user, not only admins
             case "get-projects":

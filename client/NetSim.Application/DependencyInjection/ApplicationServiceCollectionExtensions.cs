@@ -20,6 +20,12 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IApplicationState, ApplicationState>();
         services.AddScoped<IProjectService, ProjectService>();
 
+        // Who is signed in - one per sign-in, filled by MainWindowViewModel right after the scope opens
+        services.AddScoped<ICurrentUser, CurrentUser>();
+
+        // Classes (teacher / students) - Scoped for the same reason: it works for the signed-in user
+        services.AddScoped<IClassroomService, ClassroomService>();
+
         return services;
     }
 }

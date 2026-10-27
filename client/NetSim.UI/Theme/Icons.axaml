@@ -22,6 +22,8 @@
   <StreamGeometry x:Key="Icon.Add">F1 M9,3 H11 V9 H17 V11 H11 V17 H9 V11 H3 V9 H9 Z</StreamGeometry>
   <StreamGeometry x:Key="Icon.Delete">F1 M4,6 H16 V17 H4 Z M3,4 H17 V6 H3 Z M8,2 H12 V4 H8 Z</StreamGeometry>
   <StreamGeometry x:Key="Icon.Save">F1 M3,3 V17 H17 V5 L15,3 H11 V6 H7 V3 Z</StreamGeometry>
+  <!-- Classes: a teacher (left, bigger) and a student (right) - two heads (circles) and two bodies (rectangles) -->
+  <StreamGeometry x:Key="Icon.Classroom">F1 M7,2 A3,3 0 1 0 7,8 A3,3 0 1 0 7,2 Z M2,10 H12 V17 H2 Z M14.5,5 A2.5,2.5 0 1 0 14.5,10 A2.5,2.5 0 1 0 14.5,5 Z M13.5,12 H18.5 V17 H13.5 Z</StreamGeometry>
   <StreamGeometry x:Key="Icon.Search">F1 M8,2 A6,6 0 1 0 8,14 A6,6 0 1 0 8,2 Z M12,13.3 L13.3,12 L18,16.7 L16.7,18 Z</StreamGeometry>
 
   <StreamGeometry x:Key="Icon.Router">F1 M3,9 H17 V16 H3 Z M5.3,2 H6.7 V9 H5.3 Z M9.3,1 H10.7 V9 H9.3 Z M13.3,2 H14.7 V9 H13.3 Z M14,11 H15.5 V12.5 H14 Z</StreamGeometry>

@@ -74,6 +74,14 @@
             </StackPanel>
           </Button>
 
+          <!-- Classes: teach a class or join one with a code -->
+          <Button Classes="NavItem" Classes.Selected="{Binding IsClassroomsActive}" Command="{Binding NavigateClassroomsCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource Icon.Classroom}" Classes="SM" />
+              <TextBlock Text="Classes" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
         </StackPanel>
       </Border>
 

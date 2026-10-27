@@ -22,6 +22,12 @@ public interface IDialogService
 
     /// <summary>Shows the three-way "unsaved changes" dialog (Save / Don't Save / Cancel).</summary>
     Task<UnsavedChangesDecision> ShowUnsavedChangesAsync(string projectName);
+
+    /// <summary>Shows the "Create a class" dialog. Returns the class name, or null if cancelled.</summary>
+    Task<string?> ShowCreateClassroomAsync();
+
+    /// <summary>Shows the "Join a class" dialog. Returns the typed join code, or null if cancelled.</summary>
+    Task<string?> ShowJoinClassroomAsync();
 }
 
 public sealed record NewProjectDialogResult(string Name, string? Description);

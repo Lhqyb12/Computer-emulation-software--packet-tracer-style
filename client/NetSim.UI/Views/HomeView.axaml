@@ -14,6 +14,33 @@
             Command="{Binding GoToProjectsCommand}"
             HorizontalAlignment="Center"
             Margin="0,8,0,0" />
+
+    <!-- Two cards side by side: become a teacher (create a class) or a student (join one with a code) -->
+    <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center" Margin="0,24,0,0">
+
+      <Border Classes="Card" Width="260">
+        <StackPanel Spacing="8">
+          <PathIcon Data="{StaticResource Icon.Classroom}" HorizontalAlignment="Left" />
+          <TextBlock Text="I'm a teacher" Classes="Subtitle" Foreground="{DynamicResource Brush.Text.Primary}" />
+          <TextBlock Text="Create a class and get a code to give your students."
+                     Classes="BodySecondary" TextWrapping="Wrap" />
+          <Button Content="Create a class" Classes="Primary" Command="{Binding CreateClassroomCommand}"
+                  Margin="0,4,0,0" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="Card" Width="260">
+        <StackPanel Spacing="8">
+          <PathIcon Data="{StaticResource Icon.Projects}" HorizontalAlignment="Left" />
+          <TextBlock Text="I'm a student" Classes="Subtitle" Foreground="{DynamicResource Brush.Text.Primary}" />
+          <TextBlock Text="Got a code from your teacher? Join their class."
+                     Classes="BodySecondary" TextWrapping="Wrap" />
+          <Button Content="Join a class" Classes="Secondary" Command="{Binding JoinClassroomCommand}"
+                  Margin="0,4,0,0" />
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
   </StackPanel>
 
 </UserControl>

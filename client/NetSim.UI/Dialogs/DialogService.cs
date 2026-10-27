@@ -66,6 +66,38 @@ public sealed class DialogService : IDialogService
         return tcs.Task;
     }
 
+    // Purpose: Shows the "Create a class" dialog and waits for the user to close it.
+    // Input:   nothing.
+    // Output:  a Task that finishes with the class name, or null if the user cancelled.
+    // The same pattern as ShowRenameProjectAsync: the TaskCompletionSource is the "promise" that
+    // the caller awaits, and the dialog's buttons complete it
+    public Task<string?> ShowCreateClassroomAsync()
+    {
+        var tcs = new TaskCompletionSource<string?>();
+
+        var dialog = new CreateClassroomDialogViewModel(
+            onCreate: name => Complete(tcs, name),
+            onCancel: () => Complete(tcs, null));
+
+        _dialogHost.ActiveDialog = dialog;
+        return tcs.Task;
+    }
+
+    // Purpose: Shows the "Join a class" dialog and waits for the user to close it.
+    // Input:   nothing.
+    // Output:  a Task that finishes with the join code, or null if the user cancelled.
+    public Task<string?> ShowJoinClassroomAsync()
+    {
+        var tcs = new TaskCompletionSource<string?>();
+
+        var dialog = new JoinClassroomDialogViewModel(
+            onJoin: code => Complete(tcs, code),
+            onCancel: () => Complete(tcs, null));
+
+        _dialogHost.ActiveDialog = dialog;
+        return tcs.Task;
+    }
+
     private void Complete<T>(TaskCompletionSource<T> tcs, T result)
     {
         _dialogHost.ActiveDialog = null;

@@ -146,9 +146,9 @@
                     <!-- ScrollViewer adds a scroll bar when there are more rows than fit -->
                     <ScrollViewer>
                         <StackPanel>
-                            <!-- The header line. Seven columns: a number = a fixed width in pixels,
+                            <!-- The header line. Eight columns (the last one, ACTIONS, holds the Delete buttons): a number = a fixed width in pixels,
                                  "2*" and "3*" = shares of the free space (3* is one and a half times wider than 2*) -->
-                            <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*" Margin="16,14">
+                            <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*,90" Margin="16,14">
                                 <TextBlock Grid.Column="0" Classes="label" Text="ID" />
                                 <TextBlock Grid.Column="1" Classes="label" Text="USERNAME" />
                                 <TextBlock Grid.Column="2" Classes="label" Text="EMAIL" />
@@ -156,6 +156,7 @@
                                 <TextBlock Grid.Column="4" Classes="label" Text="SIGN-IN" />
                                 <TextBlock Grid.Column="5" Classes="label" Text="REGISTERED" />
                                 <TextBlock Grid.Column="6" Classes="label" Text="LAST LOGIN" />
+                                <TextBlock Grid.Column="7" Classes="label" Text="ACTIONS" />
                             </Grid>
                             <!-- ItemsControl draws one copy of the template below for every item in the Users list -->
                             <ItemsControl ItemsSource="{Binding Users}">
@@ -163,8 +164,8 @@
                                     <!-- The look of one row. Inside it the bindings read from a UserRow, not from the view model -->
                                     <DataTemplate x:DataType="local:UserRow">
                                         <Border Classes="row">
-                                            <!-- The same seven column widths as the header, so the cells line up under it -->
-                                            <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*">
+                                            <!-- The same eight column widths as the header, so the cells line up under it -->
+                                            <Grid ColumnDefinitions="50,2*,3*,90,110,2*,2*,90">
                                                 <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Id}" />
                                                 <TextBlock Grid.Column="1" Classes="cell" Text="{Binding Username}" />
                                                 <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Email}" />
@@ -176,6 +177,14 @@
                                                 <TextBlock Grid.Column="4" Classes="cell" Text="{Binding SignInMethod}" />
                                                 <TextBlock Grid.Column="5" Classes="cell" Text="{Binding CreatedAt}" />
                                                 <TextBlock Grid.Column="6" Classes="cell" Text="{Binding LastLogin}" />
+                                                <!-- Delete this user. Inside a row the bindings read from a UserRow, so the
+                                                     command is taken from the window's view model: $parent[ItemsControl] =
+                                                     the table, and its DataContext is the DashboardViewModel.
+                                                     CommandParameter="{Binding}" = pass this row itself to the command -->
+                                                <Button Grid.Column="7" Classes="ghost" Content="Delete"
+                                                        Foreground="{StaticResource Danger}"
+                                                        Command="{Binding $parent[ItemsControl].((local:DashboardViewModel)DataContext).DeleteUserCommand}"
+                                                        CommandParameter="{Binding}" />
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

@@ -41,6 +41,11 @@ public static class CompositionRoot
         // instance for the whole app, not a new one per request.
         services.AddSingleton<IProjectRepository, InMemoryProjectRepository>();
 
+        // The same idea for classes: "whoever asks for IClassroomRepository gets the in-memory one".
+        // Singleton on purpose - the classes must outlive one sign-in, so a second user signing in
+        // on the same app can join a class the first user created
+        services.AddSingleton<IClassroomRepository, InMemoryClassroomRepository>();
+
         // Turns the recipe list into an actual live container that GetRequiredService<T>() can pull
         // built objects out of - this is the IServiceProvider MainWindowViewModel later uses
         return services.BuildServiceProvider();

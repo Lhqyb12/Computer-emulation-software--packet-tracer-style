@@ -58,6 +58,10 @@ public class DashboardViewModel : ObservableObject
         RefreshUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
         RefreshSecurityCommand = new AsyncRelayCommand(LoadSecurityEventsAsync);
 
+        // The "Delete" button on every row of the Users table. <UserRow> = the button passes the row
+        // it sits on, so the method knows which user to delete
+        DeleteUserCommand = new AsyncRelayCommand<UserRow>(DeleteUserAsync);
+
         // The address our socket server listens on. The port is read from SocketServer itself rather
         // than typed here by hand - if it ever changes there, this stays correct
         ServerAddress = $"tcp://127.0.0.1:{SocketServer.Port}";
@@ -208,6 +212,51 @@ public class DashboardViewModel : ObservableObject
 
     // What the "Refresh" button runs
     public IRelayCommand RefreshUsersCommand { get; }
+
+    // What the "Delete" button on each row runs
+    public IRelayCommand<UserRow> DeleteUserCommand { get; }
+
+    // Purpose: Deletes one user from the server dashboard and reloads the Users table.
+    // Input:   row - the table row whose Delete button was clicked.
+    // Output:  nothing (a Task). Sets UsersError if the delete failed.
+    // No token is checked here: whoever runs the server window is the owner of the whole system
+    private async Task DeleteUserAsync(UserRow? row)
+    {
+        // A button with no row - nothing to delete
+        if (row is null)
+            return;
+
+        // Clear the error of the previous attempt
+        UsersError = null;
+
+        // Deleting touches the database, so it runs inside "try"
+        try
+        {
+            // The same pattern as LoadUsersAsync: a scope of our own, then the service from it.
+            // UserService is the same delete the client's admin uses, so this delete is also
+            // written to the Security tab, and the user's projects are deleted with them (Cascade)
+            using var scope = _services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserService>();
+
+            // callerId = null: the server is not a user, so "cannot delete yourself" never applies
+            var result = await users.DeleteAsync(row.Id, null, "the server dashboard");
+
+            // For example "User not found." if the user was deleted a moment ago from somewhere else
+            if (!result.Success)
+            {
+                UsersError = result.Message;
+                return;
+            }
+
+            // Read the table again, so the deleted row disappears and the counters update
+            await LoadUsersAsync();
+        }
+        // Any error while deleting
+        catch (Exception ex)
+        {
+            UsersError = "Could not delete the user: " + ex.Message;
+        }
+    }
 
     // Purpose: Reads all the users from the database and fills the Users table and its counters.
     // Input:   nothing.

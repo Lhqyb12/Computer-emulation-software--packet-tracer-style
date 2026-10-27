@@ -1,0 +1,30 @@
+<!-- The "Create a class" dialog. Built like NewProjectDialogView: a title, a text box, an error line, two buttons -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.CreateClassroomDialogView"
+             x:DataType="vm:CreateClassroomDialogViewModel">
+
+  <StackPanel Spacing="16" Width="380">
+    <TextBlock Text="Create a class" Classes="DialogTitle" />
+    <TextBlock Text="You will be the teacher. You'll get a join code to give your students."
+               Classes="BodySecondary" TextWrapping="Wrap" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Class Name" Classes="Label" />
+      <TextBox Text="{Binding Name}" PlaceholderText="e.g. Networking 101" />
+    </StackPanel>
+
+    <!-- Shown only when ValidationError has text -->
+    <Border Classes="Notification Error"
+            IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding ValidationError}" Classes="Body" TextWrapping="Wrap" />
+    </Border>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Cancel" Classes="Secondary" Command="{Binding CancelCommand}" />
+      <Button Content="Create" Classes="Primary" Command="{Binding CreateCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

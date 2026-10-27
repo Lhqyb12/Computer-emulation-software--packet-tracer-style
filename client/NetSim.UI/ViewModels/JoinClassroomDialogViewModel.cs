@@ -1,0 +1,58 @@
+using System;                           // Action
+using CommunityToolkit.Mvvm.ComponentModel;  // [ObservableProperty]
+using CommunityToolkit.Mvvm.Input;           // [RelayCommand]
+using NetSim.UI.Common;                 // ViewModelBase
+
+namespace NetSim.UI.ViewModels;
+
+// The "Join a class" dialog: the student types the code the teacher gave them.
+// Only the length is checked here; whether a class with this code exists is checked by
+// IClassroomService.JoinClassroom after the dialog closes
+public partial class JoinClassroomDialogViewModel : ViewModelBase
+{
+    // The same length as ClassroomService.JoinCodeLength
+    private const int JoinCodeLength = 6;
+
+    private readonly Action<string> _onJoin;     // called with the code when "Join" is pressed
+    private readonly Action _onCancel;           // called when "Cancel" is pressed
+
+    // The text box of the code
+    [ObservableProperty]
+    private string _joinCode = string.Empty;
+
+    // The red line under the text box (null = no error)
+    [ObservableProperty]
+    private string? _validationError;
+
+    // Purpose: Builds the dialog.
+    // Input:   onJoin, onCancel - what to do when the user closes it (passed in by DialogService).
+    // Output:  none (a constructor).
+    public JoinClassroomDialogViewModel(Action<string> onJoin, Action onCancel)
+    {
+        _onJoin = onJoin;
+        _onCancel = onCancel;
+    }
+
+    // Purpose: Checks the code's length and closes the dialog with it.
+    // Input:   nothing (reads JoinCode).
+    // Output:  nothing. Sets ValidationError instead of closing if the code is the wrong length.
+    [RelayCommand]
+    private void Join()
+    {
+        // Small letters are fine - turn them into capitals, like the codes are shown
+        var code = JoinCode.Trim().ToUpperInvariant();
+
+        if (code.Length != JoinCodeLength)
+        {
+            ValidationError = $"The code has {JoinCodeLength} characters.";
+            return;
+        }
+
+        ValidationError = null;
+        _onJoin(code);
+    }
+
+    // Purpose: Closes the dialog without joining.
+    [RelayCommand]
+    private void Cancel() => _onCancel();
+}

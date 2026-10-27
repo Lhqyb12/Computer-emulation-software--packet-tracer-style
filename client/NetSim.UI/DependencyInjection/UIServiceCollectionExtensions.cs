@@ -29,6 +29,7 @@ public static class UIServiceCollectionExtensions
 
         services.AddTransient<HomeViewModel>();
         services.AddTransient<ProjectsViewModel>();
+        services.AddTransient<ClassroomsViewModel>();
 
 
         return services;

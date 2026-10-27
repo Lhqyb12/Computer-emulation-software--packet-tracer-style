@@ -1,0 +1,31 @@
+<!-- The "Join a class" dialog: one text box for the join code -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.JoinClassroomDialogView"
+             x:DataType="vm:JoinClassroomDialogViewModel">
+
+  <StackPanel Spacing="16" Width="380">
+    <TextBlock Text="Join a class" Classes="DialogTitle" />
+    <TextBlock Text="Type the code your teacher gave you." Classes="BodySecondary" TextWrapping="Wrap" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Join Code" Classes="Label" />
+      <!-- MaxLength = the box doesn't accept more than 6 characters.
+           Small letters are fine - the view model turns them into capitals -->
+      <TextBox Text="{Binding JoinCode}" PlaceholderText="e.g. NETWRK"
+               MaxLength="6" FontFamily="Consolas" />
+    </StackPanel>
+
+    <Border Classes="Notification Error"
+            IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding ValidationError}" Classes="Body" TextWrapping="Wrap" />
+    </Border>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Cancel" Classes="Secondary" Command="{Binding CancelCommand}" />
+      <Button Content="Join" Classes="Primary" Command="{Binding JoinCommand}" />
+    </StackPanel>
+  </StackPanel>
+
+</UserControl>

@@ -1,6 +1,7 @@
 using System;                                      // IServiceProvider
 using CommunityToolkit.Mvvm.Input;               // RelayCommand / IRelayCommand - a ready-made "invoke this method" command, bindable from XAML
 using Microsoft.Extensions.DependencyInjection;    // GetRequiredService<T>() - ask the DI container to build/hand us an instance of T
+using NetSim.Application.State;                    // ICurrentUser - who is signed in, for the workspace services
 using NetSim.UI.ViewModels;                        // ShellViewModel - the signed-in simulator workspace, ported from NetSim.UI
 
 
@@ -247,8 +248,15 @@ public sealed class MainWindowViewModel : ViewModelBase
         // in-memory - no server/database wiring yet)
         // Open a new box for this sign-in - but only if there isn't one yet: coming back from the
         // "Manage users" screen also calls ShowWorkspace, and must return to the same Shell.
-        // "??=" = assign only if the left side is still null
-        _workspaceScope ??= _services.CreateScope();
+        if (_workspaceScope is null)
+        {
+            _workspaceScope = _services.CreateScope();
+
+            // Tell the new box who signed in, before anything inside it is built - the class service
+            // reads this to know which classes are "mine". "!" = we promise it's not null here
+            // (ShowSignedIn set it just before calling this method)
+            _workspaceScope.ServiceProvider.GetRequiredService<ICurrentUser>().SignIn(SignedInEmail!);
+        }
 
         // Build the Shell from inside the box, not from the main container, so it belongs to this sign-in
         CurrentPage = _workspaceScope.ServiceProvider.GetRequiredService<ShellViewModel>();

@@ -48,11 +48,13 @@ public class UserService
     }
 
     // Purpose: Deletes one user, refusing if an admin tries to delete themselves, and logs it.
-    // Input:   id - the user to delete; callerId and adminEmail - who is asking, from the verified token.
+    // Input:   id - the user to delete; callerId - the admin's id from the verified token (null when the
+    //          server dashboard deletes); deletedBy - who deleted, as text for the security log.
     // Output:  an AuthResponse: Success = true if the user was deleted, otherwise false with the reason.
     // Deletes one user. id = the user to delete.
-    // callerId and adminEmail come from the admin's verified token, never from anything they typed
-    public async Task<AuthResponse> DeleteAsync(int id, string? callerId, string? adminEmail)
+    // callerId comes from the admin's verified token, never from anything they typed.
+    // Two places call this: the socket router (an admin in the client) and the server dashboard
+    public async Task<AuthResponse> DeleteAsync(int id, string? callerId, string deletedBy)
     {
         // Find the user to delete. null = no user has this id
         var target = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -60,7 +62,8 @@ public class UserService
             return new AuthResponse { Success = false, Message = "User not found." };
 
         // An admin must not delete their own account (the system could be left with no admin at all).
-        // The id in the token is text, so the number is turned into text for the comparison
+        // The id in the token is text, so the number is turned into text for the comparison.
+        // From the server dashboard callerId is null, so this check never refuses there
         if (target.Id.ToString() == callerId)
             return new AuthResponse { Success = false, Message = "Cannot delete your own account." };
 
@@ -72,7 +75,7 @@ public class UserService
 
         // A deleted account leaves no trace in the Users table - this row is the only record of who
         // deleted whom, and when
-        await _security.RecordAsync("User deleted", target.Email, $"Deleted by admin {adminEmail}");
+        await _security.RecordAsync("User deleted", target.Email, $"Deleted by {deletedBy}");
 
         // The user was deleted
         return new AuthResponse { Success = true, Message = "User deleted." };

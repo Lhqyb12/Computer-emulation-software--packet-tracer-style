@@ -1,0 +1,193 @@
+<!-- The "Classes" screen: "Classes I teach" on top, "Classes I joined" below.
+     Built from the same styles as ProjectsView (H1, Card, Panel, EmptyState, Notification) -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.ClassroomsView"
+             x:DataType="vm:ClassroomsViewModel">
+
+  <ScrollViewer Padding="32">
+    <StackPanel Spacing="{DynamicResource Space.LG}" MaxWidth="920" HorizontalAlignment="Left">
+
+      <!-- Header -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="Classes" Classes="H1" />
+        <TextBlock Text="Teach a class of your own, or join your teacher's class with a code."
+                   Classes="BodySecondary" />
+      </StackPanel>
+
+      <!-- Success line (green) and error line (red), each shown only when it has text -->
+      <Border Classes="Notification Success"
+              IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <PathIcon Data="{StaticResource Icon.Success}" Classes="SM" />
+          <TextBlock Text="{Binding SuccessMessage}" Classes="Body" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="Notification Error"
+              IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <PathIcon Data="{StaticResource Icon.Error}" Classes="SM Error" />
+          <TextBlock Text="{Binding ErrorMessage}" Classes="Body" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <!-- ============ CLASSES I TEACH ============ -->
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="2">
+          <TextBlock Text="Classes I teach" Classes="H2" />
+          <TextBlock Text="You are the teacher. Share the join code with your students."
+                     Classes="Caption" />
+        </StackPanel>
+        <Button Grid.Column="1" Content="Create a class" Classes="Primary"
+                Command="{Binding CreateClassroomCommand}" IsEnabled="{Binding !IsBusy}"
+                VerticalAlignment="Top" />
+      </Grid>
+
+      <!-- Nothing taught yet -->
+      <Border Classes="Panel" Height="160" IsVisible="{Binding HasNoTeachingClassrooms}">
+        <StackPanel Classes="EmptyState">
+          <PathIcon Data="{StaticResource Icon.Classroom}" />
+          <TextBlock Text="You don't teach any class yet" Classes="EmptyStateTitle" />
+          <TextBlock Text="Create a class and you'll get a code for your students."
+                     Classes="EmptyStateDescription" />
+        </StackPanel>
+      </Border>
+
+      <!-- One card per class I teach -->
+      <ItemsControl ItemsSource="{Binding TeachingClassrooms}" IsVisible="{Binding HasTeachingClassrooms}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="{DynamicResource Space.SM}" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <!-- Inside here the bindings read from a TeachingClassroomItem -->
+          <DataTemplate x:DataType="vm:TeachingClassroomItem">
+            <Border Classes="Card">
+              <StackPanel Spacing="12">
+
+                <!-- Top line: name + details | join code | delete button -->
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Name}" Classes="Subtitle"
+                               Foreground="{DynamicResource Brush.Text.Primary}" />
+                    <TextBlock Classes="Caption">
+                      <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0} · Created {1:g}">
+                          <Binding Path="StudentCountText" />
+                          <Binding Path="CreatedAt" />
+                        </MultiBinding>
+                      </TextBlock.Text>
+                    </TextBlock>
+                  </StackPanel>
+
+                  <!-- The join code, big and in a fixed-width font so it's easy to read out loud -->
+                  <StackPanel Grid.Column="1" Spacing="2" Margin="16,0" VerticalAlignment="Center">
+                    <TextBlock Text="JOIN CODE" Classes="Label" HorizontalAlignment="Center" />
+                    <Border Classes="Badge Info" HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding JoinCode}" FontFamily="Consolas" FontSize="16"
+                                 FontWeight="Bold" LetterSpacing="2" />
+                    </Border>
+                  </StackPanel>
+
+                  <!-- The command lives on the screen's view model, not on the card:
+                       $parent[ItemsControl] = the list, and its DataContext is the ClassroomsViewModel.
+                       CommandParameter="{Binding}" = pass this card itself -->
+                  <Button Grid.Column="2" Classes="Icon" ToolTip.Tip="Delete class"
+                          Command="{Binding $parent[ItemsControl].((vm:ClassroomsViewModel)DataContext).DeleteClassroomCommand}"
+                          CommandParameter="{Binding}" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource Icon.Delete}" Classes="SM" />
+                  </Button>
+                </Grid>
+
+                <!-- No students yet -->
+                <TextBlock Text="No students yet - give them the join code above."
+                           Classes="Caption" IsVisible="{Binding HasNoStudents}" />
+
+                <!-- The students of this class: a list inside the card -->
+                <ItemsControl ItemsSource="{Binding Students}" IsVisible="{Binding HasStudents}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ClassroomStudentItem">
+                      <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,4">
+                        <TextBlock Grid.Column="0" Text="{Binding Email}" Classes="Body"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Classes="Caption" Margin="12,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding JoinedAt, StringFormat='Joined {0:g}'}" />
+                        <!-- Two lists deep here, so the screen's view model is found through the
+                             UserControl (this whole screen) instead of the nearest ItemsControl -->
+                        <Button Grid.Column="2" Content="Remove" Classes="Tertiary"
+                                Command="{Binding $parent[UserControl].((vm:ClassroomsViewModel)DataContext).RemoveStudentCommand}"
+                                CommandParameter="{Binding}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <!-- ============ CLASSES I JOINED ============ -->
+      <Grid ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+        <StackPanel Grid.Column="0" Spacing="2">
+          <TextBlock Text="Classes I joined" Classes="H2" />
+          <TextBlock Text="You are a student. Ask your teacher for the join code."
+                     Classes="Caption" />
+        </StackPanel>
+        <Button Grid.Column="1" Content="Join a class" Classes="Secondary"
+                Command="{Binding JoinClassroomCommand}" IsEnabled="{Binding !IsBusy}"
+                VerticalAlignment="Top" />
+      </Grid>
+
+      <!-- Not in any class yet -->
+      <Border Classes="Panel" Height="160" IsVisible="{Binding HasNoJoinedClassrooms}">
+        <StackPanel Classes="EmptyState">
+          <PathIcon Data="{StaticResource Icon.Classroom}" />
+          <TextBlock Text="You haven't joined a class yet" Classes="EmptyStateTitle" />
+          <TextBlock Text="Got a code from your teacher? Press &quot;Join a class&quot;."
+                     Classes="EmptyStateDescription" />
+        </StackPanel>
+      </Border>
+
+      <!-- One card per class I joined -->
+      <ItemsControl ItemsSource="{Binding JoinedClassrooms}" IsVisible="{Binding HasJoinedClassrooms}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="{DynamicResource Space.SM}" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:JoinedClassroomItem">
+            <Border Classes="Card">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Name}" Classes="Subtitle"
+                             Foreground="{DynamicResource Brush.Text.Primary}" />
+                  <TextBlock Classes="Caption">
+                    <TextBlock.Text>
+                      <MultiBinding StringFormat="Teacher: {0} · {1} students · Joined {2:g}">
+                        <Binding Path="TeacherEmail" />
+                        <Binding Path="StudentCount" />
+                        <Binding Path="JoinedAt" />
+                      </MultiBinding>
+                    </TextBlock.Text>
+                  </TextBlock>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Leave" Classes="Secondary"
+                        Command="{Binding $parent[ItemsControl].((vm:ClassroomsViewModel)DataContext).LeaveClassroomCommand}"
+                        CommandParameter="{Binding}" VerticalAlignment="Center" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

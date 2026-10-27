@@ -67,6 +67,7 @@ public partial class ShellViewModel : ViewModelBase
 
     public bool IsHomeActive => CurrentViewModel is HomeViewModel;
     public bool IsProjectsActive => CurrentViewModel is ProjectsViewModel;
+    public bool IsClassroomsActive => CurrentViewModel is ClassroomsViewModel;
 
     public bool HasCurrentProject => _projectService.CurrentProject is not null;
 
@@ -82,6 +83,10 @@ public partial class ShellViewModel : ViewModelBase
 
     [RelayCommand]
     private void NavigateProjects() => _navigationService.NavigateTo<ProjectsViewModel>();
+
+    // The "Classes" item of the sidebar
+    [RelayCommand]
+    private void NavigateClassrooms() => _navigationService.NavigateTo<ClassroomsViewModel>();
 
     [RelayCommand]
     private Task NewProjectAsync() => ExecuteAsync(async () =>
@@ -175,6 +180,7 @@ public partial class ShellViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanGoBack));
         OnPropertyChanged(nameof(IsHomeActive));
         OnPropertyChanged(nameof(IsProjectsActive));
+        OnPropertyChanged(nameof(IsClassroomsActive));
         GoBackCommand.NotifyCanExecuteChanged();
     }
 }
