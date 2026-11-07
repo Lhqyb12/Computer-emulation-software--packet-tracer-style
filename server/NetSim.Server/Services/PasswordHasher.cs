@@ -1,6 +1,6 @@
 using System.Security.Cryptography;  // RandomNumberGenerator, Rfc2898DeriveBytes (PBKDF2), CryptographicOperations - all the cryptographic primitives
 
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // static class: there is no state to keep between calls here - every function is a pure function
 // (input -> output, no side effects), so there's no reason to allow creating an instance (new PasswordHasher()) at all

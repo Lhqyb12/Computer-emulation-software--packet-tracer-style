@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The data of a "delete-user" message: which user to delete
 public class DeleteUserRequest

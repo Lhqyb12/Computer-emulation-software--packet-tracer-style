@@ -1,4 +1,4 @@
-namespace NetSim.Server.Models;
+namespace NetSim.Server.Models;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // One row in the SecurityEvents table: something security-related that happened on the server and that the
 // owner should be able to look back at - a failed login, a password reset, a changed password...

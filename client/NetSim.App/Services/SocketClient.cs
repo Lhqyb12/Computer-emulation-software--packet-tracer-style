@@ -6,7 +6,7 @@ using System.Text;                   // Text encodings. Nothing in this file use
 using System.Threading.Tasks;        // Task, async/await
 
 // The "folder" this class belongs to. Other files reach it with "using NetSim.App.Services"
-namespace NetSim.App.Services;
+namespace NetSim.App.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The client side of our own TCP communication, written directly on the Socket class.
 // Every request opens a new connection: connect, do the handshake that sets up the encrypted

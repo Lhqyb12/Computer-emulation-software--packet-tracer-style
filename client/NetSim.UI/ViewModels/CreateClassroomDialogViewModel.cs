@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;  // [ObservableProperty]
 using CommunityToolkit.Mvvm.Input;           // [RelayCommand]
 using NetSim.UI.Common;                 // ViewModelBase
 
-namespace NetSim.UI.ViewModels;
+namespace NetSim.UI.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The "Create a class" dialog. Like NewProjectDialogViewModel, it only collects the name and checks
 // what can be checked on the spot; the class itself is created by IClassroomService afterwards
@@ -28,8 +28,8 @@ public partial class CreateClassroomDialogViewModel : ViewModelBase
     // Output:  none (a constructor).
     public CreateClassroomDialogViewModel(Action<string> onCreate, Action onCancel)
     {
-        _onCreate = onCreate;
-        _onCancel = onCancel;
+        _onCreate = onCreate;   // keep the "Create" function
+        _onCancel = onCancel;   // keep the "Cancel" function
     }
 
     // Purpose: Checks the name and closes the dialog with it.
@@ -38,25 +38,33 @@ public partial class CreateClassroomDialogViewModel : ViewModelBase
     [RelayCommand]
     private void Create()
     {
+        // The name without spaces at both ends
         var trimmed = Name.Trim();
 
+        // Empty name - show the error and stay open
         if (string.IsNullOrWhiteSpace(trimmed))
         {
             ValidationError = "Class name cannot be empty.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
+        // Too long - show the error and stay open
         if (trimmed.Length > MaxNameLength)
         {
             ValidationError = $"Class name cannot exceed {MaxNameLength} characters.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
+        // The name is fine - hide any old error
         ValidationError = null;
+
+        // Call the "Create" function with the name - DialogService closes the dialog
         _onCreate(trimmed);
     }
 
     // Purpose: Closes the dialog without creating anything.
+    // Input:   nothing.
+    // Output:  nothing.
     [RelayCommand]
     private void Cancel() => _onCancel();
 }

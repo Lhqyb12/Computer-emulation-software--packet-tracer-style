@@ -22,6 +22,53 @@ namespace NetSim.Server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("NetSim.Server.Models.ClassroomMemberRecord", b =>
+                {
+                    b.Property<Guid>("ClassroomId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("JoinedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ClassroomId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ClassroomMembers");
+                });
+
+            modelBuilder.Entity("NetSim.Server.Models.ClassroomRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("JoinCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TeacherUserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JoinCode")
+                        .IsUnique();
+
+                    b.HasIndex("TeacherUserId");
+
+                    b.ToTable("Classrooms");
+                });
+
             modelBuilder.Entity("NetSim.Server.Models.ProjectRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -154,6 +201,36 @@ namespace NetSim.Server.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("NetSim.Server.Models.ClassroomMemberRecord", b =>
+                {
+                    b.HasOne("NetSim.Server.Models.ClassroomRecord", "Classroom")
+                        .WithMany("Members")
+                        .HasForeignKey("ClassroomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NetSim.Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NetSim.Server.Models.ClassroomRecord", b =>
+                {
+                    b.HasOne("NetSim.Server.Models.User", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Teacher");
+                });
+
             modelBuilder.Entity("NetSim.Server.Models.ProjectRecord", b =>
                 {
                     b.HasOne("NetSim.Server.Models.User", "Owner")
@@ -163,6 +240,11 @@ namespace NetSim.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("NetSim.Server.Models.ClassroomRecord", b =>
+                {
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

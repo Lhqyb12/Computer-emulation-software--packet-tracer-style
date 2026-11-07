@@ -6,7 +6,7 @@ using Google.Apis.Auth;               // GoogleJsonWebSignature - checks a token
 
 
 // The "folder" this class belongs to. Other files reach it with "using NetSim.Server.Services"
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // This is where all the business logic for register/login lives - deliberately kept separate from
 // MessageRouter (responsible only for understanding which action a message asks for) and from
@@ -50,10 +50,10 @@ public class AuthService
     {
         // Keep the five objects in the fields so the methods below can use them
         _db = db;
-        _email = email;
-        _tokens = tokens;
-        _config = config;
-        _security = security;
+        _email = email;   // keep the email sender
+        _tokens = tokens;   // keep the token service
+        _config = config;   // keep the settings
+        _security = security;   // keep the security log
     }
 
 
@@ -112,7 +112,7 @@ public class AuthService
         try
         {
             // Only here, in SaveChangesAsync, does EF Core actually build and run the INSERT statement against Postgres (inside a transaction)
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();   // write the change to the database
         }
         // DbUpdateException = the database refused the INSERT
         catch (DbUpdateException)
@@ -139,8 +139,8 @@ public class AuthService
             // lets the user fix the address (or simply try again) instead of hitting "already registered".
             // Remove marks the row for deletion, SaveChangesAsync runs the DELETE
             _db.Users.Remove(user);
-            await _db.SaveChangesAsync();
-            return new AuthResponse { Success = false, Message = "We couldn't send an email to that address. Check it and try again." };
+            await _db.SaveChangesAsync();   // write the change to the database
+            return new AuthResponse { Success = false, Message = "We couldn't send an email to that address. Check it and try again." };   // fail: the email could not be sent
         }
 
         // Generic success message - we don't return, for example, the new user's internal Id, to avoid exposing unnecessary information
@@ -168,7 +168,7 @@ public class AuthService
             // The client gets the generic message; the real reason is written only to the owner's
             // security log, which the client can never see
             await _security.RecordAsync("Login failed", request.Email, "Unknown email");
-            return new AuthResponse { Success = false, Message = "Wrong email or password." };
+            return new AuthResponse { Success = false, Message = "Wrong email or password." };   // fail - the same message for both cases, so nobody learns which emails exist
         }
 
         // Verify recomputes PBKDF2 on the entered password, using the same salt and iteration count stored in
@@ -181,7 +181,7 @@ public class AuthService
         {
             // The real reason (wrong password) goes only to the security log
             await _security.RecordAsync("Login failed", request.Email, "Wrong password");
-            return new AuthResponse { Success = false, Message = "Wrong email or password." };
+            return new AuthResponse { Success = false, Message = "Wrong email or password." };   // fail - the same message for both cases, so nobody learns which emails exist
         }
 
         // Checked only AFTER the password was proven correct - so this answer is given only to the person
@@ -208,7 +208,7 @@ public class AuthService
         user.LastLoginAt = DateTime.UtcNow;
 
         // Save that change (an UPDATE statement)
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();   // write the change to the database
 
         // The login succeeded
         return new AuthResponse
@@ -252,7 +252,7 @@ public class AuthService
         {
             // Write it to the security log. null = we do not know whose email this was
             await _security.RecordAsync("Google sign-in failed", null, "The Google token was rejected");
-            return new AuthResponse { Success = false, Message = "Google sign-in failed." };
+            return new AuthResponse { Success = false, Message = "Google sign-in failed." };   // fail: Google's token was not accepted
         }
 
 
@@ -306,7 +306,7 @@ public class AuthService
         user.LastLoginAt = DateTime.UtcNow;
 
         // Save everything that changed above (a new user, a new link, or just the login time)
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();   // write the change to the database
 
         // The login succeeded
         return new AuthResponse
@@ -354,10 +354,10 @@ public class AuthService
             user.ResetCodeExpiresAt = DateTime.UtcNow.AddMinutes(15);
 
             // A new code starts with zero wrong attempts
-            user.ResetAttempts = 0;
+            user.ResetAttempts = 0;   // start counting from zero
 
             // Save the three fields to the database
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();   // write the change to the database
 
             // Write the request to the security log
             await _security.RecordAsync("Password reset requested", user.Email, "A reset code was sent by email");
@@ -408,7 +408,7 @@ public class AuthService
         {
             // The real reason goes only to the security log
             await _security.RecordAsync("Password reset failed", request.Email, "No active reset code for this email");
-            return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+            return new AuthResponse { Success = false, Message = "Invalid or expired code." };   // fail: wrong, missing or expired code
         }
 
 
@@ -434,12 +434,12 @@ public class AuthService
             {
                 // Cancel the code completely; the user has to ask for a new one
                 user.ResetCodeHash = null;
-                user.ResetCodeExpiresAt = null;
-                user.ResetAttempts = 0;
+                user.ResetCodeExpiresAt = null;   // no expiry any more
+                user.ResetAttempts = 0;   // start counting from zero
             }
 
             // Save the new attempt count (or the cancellation)
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();   // write the change to the database
 
             // Write the wrong attempt to the security log, for example "Wrong code (attempt 2 of 5)"
             await _security.RecordAsync("Password reset failed", user.Email, $"Wrong code (attempt {attempt} of {MaxResetAttempts})");
@@ -451,7 +451,7 @@ public class AuthService
             }
 
             // The same generic message as above
-            return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+            return new AuthResponse { Success = false, Message = "Invalid or expired code." };   // fail: wrong, missing or expired code
         }
 
         // Here, unlike the checks above, we DO return a specific message (why the password is weak) -
@@ -469,15 +469,15 @@ public class AuthService
         // "Burn" the code after it was used - the same code can never be used a second time (single-use),
         // and any older reset request that was still active is cancelled too
         user.ResetCodeHash = null;
-        user.ResetCodeExpiresAt = null;
-        user.ResetAttempts = 0;
+        user.ResetCodeExpiresAt = null;   // no expiry any more
+        user.ResetAttempts = 0;   // start counting from zero
 
         // Typing a code that was sent to this address proves ownership of it, exactly like the
         // verification code does - so a successful reset also counts as verifying the email
         user.EmailVerified = true;
 
         // Save all the changes above
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();   // write the change to the database
 
         // Write the password change to the security log
         await _security.RecordAsync("Password changed", user.Email, "Reset with an emailed code");
@@ -503,7 +503,7 @@ public class AuthService
         {
             // The real reason goes only to the security log
             await _security.RecordAsync("Email verification failed", request.Email, "No active verification code for this email");
-            return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+            return new AuthResponse { Success = false, Message = "Invalid or expired code." };   // fail: wrong, missing or expired code
         }
 
         // Compare the typed code with the stored hash, in constant time
@@ -526,12 +526,12 @@ public class AuthService
             {
                 // Cancel the code completely; the user has to ask for a new one
                 user.VerifyCodeHash = null;
-                user.VerifyCodeExpiresAt = null;
-                user.VerifyAttempts = 0;
+                user.VerifyCodeExpiresAt = null;   // no expiry any more
+                user.VerifyAttempts = 0;   // start counting from zero
             }
 
             // Save the new attempt count (or the cancellation)
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();   // write the change to the database
 
             // Write the wrong attempt to the security log
             await _security.RecordAsync("Email verification failed", user.Email, $"Wrong code (attempt {attempt} of {MaxVerifyAttempts})");
@@ -543,7 +543,7 @@ public class AuthService
             }
 
             // The same generic message as above
-            return new AuthResponse { Success = false, Message = "Invalid or expired code." };
+            return new AuthResponse { Success = false, Message = "Invalid or expired code." };   // fail: wrong, missing or expired code
         }
 
         // The code is right: unlock the account
@@ -551,11 +551,11 @@ public class AuthService
 
         // The code is single-use: once it worked, it is erased
         user.VerifyCodeHash = null;
-        user.VerifyCodeExpiresAt = null;
-        user.VerifyAttempts = 0;
+        user.VerifyCodeExpiresAt = null;   // no expiry any more
+        user.VerifyAttempts = 0;   // start counting from zero
 
         // Save the changes
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();   // write the change to the database
 
         // Write the verification to the security log
         await _security.RecordAsync("Email verified", user.Email, "Verified with an emailed code");
@@ -614,10 +614,10 @@ public class AuthService
         user.VerifyCodeExpiresAt = DateTime.UtcNow.AddMinutes(15);
 
         // A new code starts with zero wrong attempts
-        user.VerifyAttempts = 0;
+        user.VerifyAttempts = 0;   // start counting from zero
 
         // Save the three fields to the database
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();   // write the change to the database
 
         // Sending an email can fail, so it runs inside "try"
         try

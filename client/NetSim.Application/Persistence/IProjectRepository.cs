@@ -1,28 +1,38 @@
-using NetSim.Application.Projects;
-using NetSim.Core.Common;
+using System.Collections.Generic;    // IReadOnlyList - a list you can read but not change
+using System.Threading.Tasks;        // Task - every method may have to wait for the server
+using NetSim.Application.Projects;   // Project
+using NetSim.Core.Common;            // EntityId
 
-namespace NetSim.Application.Persistence;
+namespace NetSim.Application.Persistence;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-/// <summary>
-/// Persists <see cref="Project"/> documents - one per saved workspace, unlike
-/// <see cref="IUserPreferencesRepository"/>'s single singleton document. Built on the same Phase
-/// 6 infrastructure and following the same shape (an interface here, a LiteDB-backed
-/// implementation in NetworkSimulator.Infrastructure - see docs/architecture/persistence.md).
-/// </summary>
+// Where the projects are stored. Only an interface here: NetSim.App decides the real place
+// (in memory, or the server). Every method is asynchronous, because a real store may have to wait
+// for the network. A method throws if the store refuses or cannot be reached - the screens already
+// run every command inside ViewModelBase.ExecuteAsync, which shows the exception's message
 public interface IProjectRepository
 {
-    /// <summary>All saved projects, ordered by most recently modified first.</summary>
-    IReadOnlyList<Project> GetAll();
+    // Purpose: Reads all the stored projects.
+    // Input:   nothing.
+    // Output:  a Task with the projects, the most recently modified first.
+    Task<IReadOnlyList<Project>> GetAllAsync();
 
-    /// <summary>Returns the project with the given id, or null if none exists.</summary>
-    Project? GetById(EntityId id);
+    // Purpose: Finds one project by its id.
+    // Input:   id - the project's id.
+    // Output:  a Task with the project, or null if there is none.
+    Task<Project?> GetByIdAsync(EntityId id);
 
-    /// <summary>Returns the project whose name matches (case-insensitively), or null if none exists.</summary>
-    Project? GetByName(string name);
+    // Purpose: Finds one project by its name (upper/lower case ignored).
+    // Input:   name - the project name.
+    // Output:  a Task with the project, or null if there is none.
+    Task<Project?> GetByNameAsync(string name);
 
-    /// <summary>Creates or overwrites the project with a matching id.</summary>
-    void Save(Project project);
+    // Purpose: Creates the project, or overwrites the stored one with the same id.
+    // Input:   project - the project to store.
+    // Output:  a Task that finishes when it is stored.
+    Task SaveAsync(Project project);
 
-    /// <summary>Removes the project with the given id. Returns true if a document was deleted.</summary>
-    bool Delete(EntityId id);
+    // Purpose: Removes one project.
+    // Input:   id - the project's id.
+    // Output:  a Task with true if it existed and was removed, false if there was no such project.
+    Task<bool> DeleteAsync(EntityId id);
 }

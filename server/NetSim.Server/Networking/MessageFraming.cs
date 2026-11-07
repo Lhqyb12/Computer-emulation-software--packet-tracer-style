@@ -6,7 +6,7 @@ using System.Threading;        // CancellationToken
 using System.Threading.Tasks;  // Task, async/await
 
 // The "folder" this class belongs to. Other files reach it with "using NetSim.Server.Networking"
-namespace NetSim.Server.Networking;
+namespace NetSim.Server.Networking;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Our message framing. TCP delivers a stream of bytes with no borders between messages,
 // so every message travels as a frame: 4 bytes holding the length, then the bytes themselves.

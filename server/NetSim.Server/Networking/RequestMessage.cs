@@ -1,6 +1,6 @@
 using System.Text.Json;  // JsonElement - a piece of JSON that was not turned into a class yet
 
-namespace NetSim.Server.Networking;
+namespace NetSim.Server.Networking;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The shape of every message a client sends us, written as JSON inside the frame:
 //   { "type": "login", "data": { "email": "...", "password": "..." } }

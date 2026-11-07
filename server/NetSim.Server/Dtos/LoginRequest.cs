@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // DTO for a login request - exactly the two fields the client sends as the "data" of a "login" message (as JSON).
 // MessageRouter turns that JSON into this C# object

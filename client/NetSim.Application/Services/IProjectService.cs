@@ -1,84 +1,71 @@
-using System;
-using System.Collections.Generic;
-using NetSim.Application.Common;
-using NetSim.Application.Projects;
-using NetSim.Core.Common;
+using System;                        // EventHandler
+using System.Collections.Generic;    // IReadOnlyList<T>
+using System.Threading.Tasks;        // Task - "a job that will finish later"
+using NetSim.Application.Common;     // OperationResult - success / failure answers
+using NetSim.Application.Projects;   // Project
+using NetSim.Core.Common;            // EntityId
 
-namespace NetSim.Application.Services;
+namespace NetSim.Application.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-/// <summary>
-/// Coordinates project lifecycle operations (create/open/save/rename/delete/close) and owns
-/// which project is "current" (via <see cref="State.IApplicationState"/>). This is the only
-/// door ViewModels use to reach project persistence - none of them talk to
-/// <see cref="Persistence.IProjectRepository"/> directly.
-/// </summary>
+// Everything a screen may ask about projects. The screens know only this interface - never the
+// class that does the work (ProjectService) and never the storage. An interface = a list of
+// promises with no code: "whoever implements me has these members"
 public interface IProjectService
 {
-    /// <summary>The project currently open, or null if none is open.</summary>
+    // The open project, or null if none is open
     Project? CurrentProject { get; }
 
-    /// <summary>Whether the current project has changes that have not been saved yet.</summary>
+    // true when the open project has changes that were not saved yet
     bool IsCurrentProjectDirty { get; }
 
-    /// <summary>Raised when <see cref="CurrentProject"/> changes (create/open/close).</summary>
+    // Raised when the open project changes (created / opened / closed)
     event EventHandler? CurrentProjectChanged;
 
-    /// <summary>Raised when <see cref="IsCurrentProjectDirty"/> changes.</summary>
+    // Raised when IsCurrentProjectDirty changes
     event EventHandler? DirtyStateChanged;
 
-    /// <summary>All saved projects, most recently modified first.</summary>
-    IReadOnlyList<Project> GetAllProjects();
+    // Purpose: Returns all of the user's projects.
+    // Input:   nothing.
+    // Output:  a Task with the projects, the most recently changed first.
+    Task<IReadOnlyList<Project>> GetAllProjectsAsync();
 
-    /// <summary>
-    /// Creates a new project, persists it, and makes it the current project. Fails with
-    /// <see cref="OperationErrorType.ValidationError"/> for a blank/too-long name, or
-    /// <see cref="OperationErrorType.Conflict"/> if a project with that name already exists.
-    /// </summary>
-    OperationResult<Project> CreateProject(string name, string? description);
+    // Purpose: Creates a new project, stores it, and makes it the open project.
+    // Input:   name - the project name; description - optional, may be null.
+    // Output:  a Task with Success + the project, or Failure: ValidationError (empty / too long) or Conflict (name taken).
+    Task<OperationResult<Project>> CreateProjectAsync(string name, string? description);
 
-    /// <summary>
-    /// Loads the project with the given id and makes it the current project, recording it as
-    /// just-opened. Fails with <see cref="OperationErrorType.NotFound"/> if no such project exists.
-    /// </summary>
-    OperationResult<Project> OpenProject(EntityId projectId);
+    // Purpose: Opens a project and records when it was opened.
+    // Input:   projectId - the project's id.
+    // Output:  a Task with Success + the project, or Failure NotFound.
+    Task<OperationResult<Project>> OpenProjectAsync(EntityId projectId);
 
-    /// <summary>
-    /// Persists the current project's metadata and clears the dirty flag. Fails with
-    /// <see cref="OperationErrorType.InvalidState"/> if no project is currently open.
-    /// </summary>
-    OperationResult SaveCurrentProject();
+    // Purpose: Saves the open project and clears "unsaved changes".
+    // Input:   nothing.
+    // Output:  a Task with Success, or Failure InvalidState if no project is open.
+    Task<OperationResult> SaveCurrentProjectAsync();
 
-    /// <summary>
-    /// Persists the current project's metadata under a new name as a brand-new project (new id,
-    /// new creation timestamp), leaving the original project untouched, and makes the copy the
-    /// current project. Fails the same way <see cref="CreateProject"/> does for an invalid name,
-    /// or with <see cref="OperationErrorType.InvalidState"/> if no project is currently open.
-    /// </summary>
-    OperationResult<Project> SaveCurrentProjectAs(string newName);
+    // Purpose: Saves a copy of the open project under a new name, as a new project (new id), and opens the copy.
+    // Input:   newName - the name for the copy.
+    // Output:  a Task with Success + the copy, or Failure (InvalidState / ValidationError / Conflict).
+    Task<OperationResult<Project>> SaveCurrentProjectAsAsync(string newName);
 
-    /// <summary>
-    /// Renames the project with the given id (its id is unchanged) and persists the change
-    /// immediately. Fails the same way <see cref="CreateProject"/> does for an invalid name, or
-    /// with <see cref="OperationErrorType.NotFound"/> if no such project exists.
-    /// </summary>
-    OperationResult RenameProject(EntityId projectId, string newName);
+    // Purpose: Renames a project (its id does not change) and stores it right away.
+    // Input:   projectId - which project; newName - the new name.
+    // Output:  a Task with Success, or Failure (NotFound / ValidationError / Conflict).
+    Task<OperationResult> RenameProjectAsync(EntityId projectId, string newName);
 
-    /// <summary>
-    /// Deletes the project with the given id. If it was the current project, clears current-project
-    /// state. Fails with <see cref="OperationErrorType.NotFound"/> if no such project exists.
-    /// </summary>
-    OperationResult DeleteProject(EntityId projectId);
+    // Purpose: Deletes a project; if it was the open one, nothing is open afterwards.
+    // Input:   projectId - which project.
+    // Output:  a Task with Success, or Failure NotFound.
+    Task<OperationResult> DeleteProjectAsync(EntityId projectId);
 
-    /// <summary>Closes the current project (if any), leaving <see cref="CurrentProject"/> null.
-    /// Does not check for unsaved changes - callers that need to confirm with the user do so
-    /// before calling this.</summary>
+    // Purpose: Closes the open project. Does NOT ask about unsaved changes - the screen asks first.
+    // Input:   nothing.
+    // Output:  nothing.
     void CloseCurrentProject();
 
-    /// <summary>
-    /// Updates the current project's description in memory and marks it dirty, without
-    /// persisting. Demonstrates the dirty-tracking mechanism via project metadata, since Phase 7
-    /// has no network-topology editing yet to dirty the project instead. Fails with
-    /// <see cref="OperationErrorType.InvalidState"/> if no project is currently open.
-    /// </summary>
+    // Purpose: Changes the open project's description in memory only, and marks it "unsaved".
+    // Input:   description - the new text, may be null.
+    // Output:  Success, or Failure InvalidState if no project is open.
     OperationResult UpdateCurrentProjectDescription(string? description);
 }

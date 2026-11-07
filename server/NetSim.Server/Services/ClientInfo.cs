@@ -1,4 +1,4 @@
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // What we know about the client behind the request being handled right now.
 // Scoped: every request gets its own instance. The router fills it in when a message arrives,

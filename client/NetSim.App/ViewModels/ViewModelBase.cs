@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;  // ObservableObject
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Base class for every view model.

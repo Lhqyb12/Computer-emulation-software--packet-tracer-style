@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // A DTO that describes one "row" in the user management screen - deliberately without PasswordHash,
 // for exactly the same reason as in AuthResponse: there is no need for that sensitive data to leave the server at all

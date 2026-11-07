@@ -5,7 +5,7 @@ using Google.Apis.Auth.OAuth2;             // GoogleWebAuthorizationBroker, Clie
 using Google.Apis.Util.Store;              // NullDataStore
 using Microsoft.Extensions.Configuration;  // ConfigurationBuilder - reads settings
 
-namespace NetSim.App.Services;
+namespace NetSim.App.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The client's half of "Sign in with Google". It opens Google's sign-in page in the browser and
 // returns the ID token Google issues - a signed text that states who the user is.
@@ -27,7 +27,7 @@ public class GoogleSignInService
 
         // The id and the secret that Google gave our application when it was registered with Google
         string? clientId = config["Google:ClientId"];
-        string? clientSecret = config["Google:ClientSecret"];
+        string? clientSecret = config["Google:ClientSecret"];   // the app's Google secret, from user-secrets
 
         // Without both of them Google will not let us start a sign-in
         if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))

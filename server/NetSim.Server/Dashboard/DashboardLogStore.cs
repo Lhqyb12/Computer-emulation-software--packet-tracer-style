@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dashboard;
+namespace NetSim.Server.Dashboard;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // One log message exactly as the server produced it (before it is turned into text for the table).
 // "record" = a short way to declare a class that only carries data: the compiler creates the

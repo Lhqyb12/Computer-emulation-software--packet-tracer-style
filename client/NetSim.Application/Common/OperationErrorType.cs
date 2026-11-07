@@ -1,21 +1,18 @@
-namespace NetSim.Application.Common;
+namespace NetSim.Application.Common;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-/// <summary>
-/// Categorizes why an application-level operation did not succeed. Kept small and
-/// generic on purpose - new categories should only be added once a service actually
-/// needs to distinguish them.
-/// </summary>
+// Why an action did not work. An enum = a closed list of named values, so a misspelled
+// kind does not compile (with plain text it would)
 public enum OperationErrorType
 {
-    /// <summary>The referenced entity (device, connection, ...) does not exist in the current context.</summary>
+    // The thing asked for does not exist (e.g. a project that was deleted)
     NotFound,
 
-    /// <summary>The operation conflicts with existing state.</summary>
+    // The action clashes with what already exists (e.g. a project name that is taken)
     Conflict,
 
-    /// <summary>The input supplied by the caller was invalid.</summary>
+    // What the user typed breaks a rule (e.g. an empty or too long name)
     ValidationError,
 
-    /// <summary>The operation cannot run in the application's current state (e.g. no active network).</summary>
+    // The action can't run right now (e.g. "Save" when no project is open)
     InvalidState,
 }

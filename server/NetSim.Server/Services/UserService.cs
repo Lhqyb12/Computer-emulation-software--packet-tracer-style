@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;  // FirstOrDefaultAsync / ToListAsync - asy
 using NetSim.Server.Data;             // AppDbContext
 using NetSim.Server.Dtos;             // UserSummaryDto, AuthResponse
 
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The admin actions on user accounts. This logic used to sit inside UsersController;
 // it lives here now so the socket server can call it without any HTTP around it
@@ -21,7 +21,7 @@ public class UserService
     public UserService(AppDbContext db, SecurityLog security)
     {
         _db = db;
-        _security = security;
+        _security = security;   // keep the security log
     }
 
     // Purpose: Reads all the users from the database for the admin's users screen.
@@ -58,8 +58,8 @@ public class UserService
     {
         // Find the user to delete. null = no user has this id
         var target = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
-        if (target is null)
-            return new AuthResponse { Success = false, Message = "User not found." };
+        if (target is null)   // no user with this id
+            return new AuthResponse { Success = false, Message = "User not found." };   // fail: no such user
 
         // An admin must not delete their own account (the system could be left with no admin at all).
         // The id in the token is text, so the number is turned into text for the comparison.

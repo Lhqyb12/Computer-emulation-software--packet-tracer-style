@@ -7,7 +7,7 @@ using NetSim.App.Views;                        // MainWindow
 
 
 
-namespace NetSim.App;
+namespace NetSim.App;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The client application itself. Avalonia creates one object of this class when the program starts.
 // "partial" = the other half of this class is generated from App.axaml at build time

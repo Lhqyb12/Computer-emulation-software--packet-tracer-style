@@ -1,7 +1,7 @@
 using Avalonia;  // AppBuilder
 using System;    // STAThread
 
-namespace NetSim.App;
+namespace NetSim.App;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The entry point of the client: the first code that runs when the program starts
 class Program

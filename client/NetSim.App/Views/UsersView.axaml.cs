@@ -1,6 +1,6 @@
 using Avalonia.Controls;  // UserControl
 
-namespace NetSim.App.Views;
+namespace NetSim.App.Views;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Code-behind of UsersView.axaml - the admin's user management screen.
 // "partial" = the other half of this class is generated from the .axaml file at build time.

@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.JsonWebTokens;   // JsonWebTokenHandler - creates 
 using Microsoft.IdentityModel.Tokens;          // SymmetricSecurityKey, SigningCredentials, TokenValidationParameters
 using NetSim.Server.Models;                    // User
 
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Creates and checks JWTs (JSON Web Tokens). A token is a short signed text the client receives at login
 // and sends back with every later request, so it does not have to send the password again.

@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The server's answer to "get-projects": the projects of the signed-in user only.
 // In the NetworkSimulator project this was a bare list, because HTTP's status code (200 / 401) already

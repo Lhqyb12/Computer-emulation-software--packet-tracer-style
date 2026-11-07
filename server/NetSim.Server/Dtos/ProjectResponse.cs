@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The server's answer to "save-project" and "delete-project".
 // Based on ProjectResponse from the NetworkSimulator project, which deliberately mirrors AuthResponse's

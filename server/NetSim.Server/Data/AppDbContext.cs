@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;  // DbContext, DbSet<T>, DbContextOptions - the whole ORM (Entity Framework Core) infrastructure
 using NetSim.Server.Models;           // The User model this context manages
 
-namespace NetSim.Server.Data;
+namespace NetSim.Server.Data;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // DbContext is the single "gateway" to the database: it implements both Unit of Work (tracks changes and writes
 // them together via SaveChanges in one transaction) and acts as a Repository (access to Users as if it were an
@@ -33,9 +33,15 @@ public class AppDbContext : DbContext
     // The Projects table - the simulator projects every user saves (see Models/ProjectRecord.cs)
     public DbSet<ProjectRecord> Projects => Set<ProjectRecord>();
 
+    // The Classrooms table - one row per class (see Models/ClassroomRecord.cs)
+    public DbSet<ClassroomRecord> Classrooms => Set<ClassroomRecord>();
+
+    // The ClassroomMembers table - one row per student in a class (see Models/ClassroomMemberRecord.cs)
+    public DbSet<ClassroomMemberRecord> ClassroomMembers => Set<ClassroomMemberRecord>();
 
 
-    // Purpose: Adds database rules EF Core cannot guess by itself (unique indexes on Email and GoogleId).
+
+    // Purpose: Adds database rules EF Core cannot guess by itself (unique indexes, keys, and the links between tables).
     // Input:   modelBuilder - the object EF Core uses to describe the tables.
     // Output:  nothing.
     // Called by EF Core once, when it builds its picture of the database. This is where rules are added
@@ -81,6 +87,49 @@ public class AppDbContext : DbContext
 
             // Speeds up the project list, which is always sorted by "last modified" first
             entity.HasIndex(p => p.LastModifiedAtUtc);
+        });
+
+        // The Classrooms table
+        modelBuilder.Entity<ClassroomRecord>(entity =>
+        {
+            // The server creates the Guid itself (Guid.NewGuid()) - the database stores it as is
+            entity.Property(c => c.Id).ValueGeneratedNever();
+
+            // A class must have a name and a join code ("NOT NULL" in the database)
+            entity.Property(c => c.Name).IsRequired();
+            entity.Property(c => c.JoinCode).IsRequired();
+
+            // No two classes may have the same join code - otherwise a code could lead to two classes.
+            // The service checks this before saving; this index is the safety net in the database itself
+            entity.HasIndex(c => c.JoinCode).IsUnique();
+
+            // Every class has one teacher, and a user can teach many classes ("one-to-many").
+            // Cascade = when the teacher's account is deleted, their classes are deleted with it
+            entity.HasOne(c => c.Teacher)
+                .WithMany()
+                .HasForeignKey(c => c.TeacherUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // The ClassroomMembers table
+        modelBuilder.Entity<ClassroomMemberRecord>(entity =>
+        {
+            // The key is the pair (class, student): the same student can be in a class only once.
+            // "new { ... }" = a small nameless object that only lists the two columns
+            entity.HasKey(m => new { m.ClassroomId, m.UserId });
+
+            // Every row belongs to one class, and a class has many rows (its Members list).
+            // Cascade = deleting a class deletes its member rows - the students simply stop being in it
+            entity.HasOne(m => m.Classroom)
+                .WithMany(c => c.Members)
+                .HasForeignKey(m => m.ClassroomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Every row belongs to one user. Cascade = deleting a user removes them from all their classes
+            entity.HasOne(m => m.User)
+                .WithMany()
+                .HasForeignKey(m => m.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
 

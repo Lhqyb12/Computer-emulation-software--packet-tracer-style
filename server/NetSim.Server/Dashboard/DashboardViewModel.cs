@@ -8,7 +8,7 @@ using NetSim.Server.Data;                   // AppDbContext
 using NetSim.Server.Networking;             // SocketServer, LogCategories
 using NetSim.Server.Services;               // SecurityLog
 
-namespace NetSim.Server.Dashboard;
+namespace NetSim.Server.Dashboard;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The object the dashboard window reads its data from (its DataContext). The window never talks to
 // the database or the server directly - it only shows whatever this class holds.
@@ -56,7 +56,7 @@ public class DashboardViewModel : ObservableObject
         // Connect each Refresh button to the method it runs. AsyncRelayCommand wraps an async method
         // so a button can call it
         RefreshUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
-        RefreshSecurityCommand = new AsyncRelayCommand(LoadSecurityEventsAsync);
+        RefreshSecurityCommand = new AsyncRelayCommand(LoadSecurityEventsAsync);   // the Security tab's Refresh button
 
         // The "Delete" button on every row of the Users table. <UserRow> = the button passes the row
         // it sits on, so the method knows which user to delete
@@ -69,7 +69,7 @@ public class DashboardViewModel : ObservableObject
         // Fire-and-forget: loads the tables the moment the window is created, without making the
         // constructor itself async (constructors can't be async in C#)
         _ = LoadUsersAsync();
-        _ = LoadSecurityEventsAsync();
+        _ = LoadSecurityEventsAsync();   // start loading the Security tab too, without waiting
 
         // Connects to the server's log: Listen returns what was logged before the window opened
         // (oldest first) and from now on calls OnLogAdded for every new message
@@ -105,46 +105,46 @@ public class DashboardViewModel : ObservableObject
     public string Uptime
     {
         get => _uptime;
-        private set => SetProperty(ref _uptime, value);
+        private set => SetProperty(ref _uptime, value);   // store the new value and tell the screen it changed
     }
 
     // "Connected (checked 18:42:10)" / "Not reachable (checked 18:42:10)"
     public string DatabaseStatus
     {
         get => _databaseStatus;
-        private set => SetProperty(ref _databaseStatus, value);
+        private set => SetProperty(ref _databaseStatus, value);   // store the new value and tell the screen it changed
     }
 
     // Two yes/no properties for the colour of the status text: green, red, or neither (not checked yet)
     public bool IsDatabaseOk => _databaseOk == true;
-    public bool IsDatabaseDown => _databaseOk == false;
+    public bool IsDatabaseDown => _databaseOk == false;   // true only after a check that failed (null = not checked yet)
 
     // Both numbers are calculated in LoadUsersAsync from the Users table
     public int TotalUsers
     {
         get => _totalUsers;
-        private set => SetProperty(ref _totalUsers, value);
+        private set => SetProperty(ref _totalUsers, value);   // store the new value and tell the screen it changed
     }
 
     // How many users signed in since midnight
     public int ActiveToday
     {
         get => _activeToday;
-        private set => SetProperty(ref _activeToday, value);
+        private set => SetProperty(ref _activeToday, value);   // store the new value and tell the screen it changed
     }
 
     // How many requests the server handled in the last 60 minutes
     public int RequestsLastHour
     {
         get => _requestsLastHour;
-        private set => SetProperty(ref _requestsLastHour, value);
+        private set => SetProperty(ref _requestsLastHour, value);   // store the new value and tell the screen it changed
     }
 
     // How many requests crashed since the server was started (the Errors tab has the details)
     public int ErrorCount
     {
         get => _errorCount;
-        private set => SetProperty(ref _errorCount, value);
+        private set => SetProperty(ref _errorCount, value);   // store the new value and tell the screen it changed
     }
 
     // Purpose: Updates the uptime text and the number of requests in the last hour.
@@ -174,7 +174,7 @@ public class DashboardViewModel : ObservableObject
         }
 
         // What is left in the queue is the number of requests of the last hour
-        RequestsLastHour = _requestTimes.Count;
+        RequestsLastHour = _requestTimes.Count;   // how many requests are left in the last hour
     }
 
     // Purpose: Updates the database status text from the result of the last database read.
@@ -194,8 +194,8 @@ public class DashboardViewModel : ObservableObject
 
         // These two have no setter of their own, so the screen is told by hand that they changed.
         // nameof(X) = the name of X as text, checked by the compiler
-        OnPropertyChanged(nameof(IsDatabaseOk));
-        OnPropertyChanged(nameof(IsDatabaseDown));
+        OnPropertyChanged(nameof(IsDatabaseOk));   // tell the screen that IsDatabaseOk may have changed
+        OnPropertyChanged(nameof(IsDatabaseDown));   // tell the screen that IsDatabaseDown may have changed
     }
 
     // ----- Users tab (read from the database) -----
@@ -207,7 +207,7 @@ public class DashboardViewModel : ObservableObject
     public string? UsersError
     {
         get => _usersError;
-        private set => SetProperty(ref _usersError, value);
+        private set => SetProperty(ref _usersError, value);   // store the new value and tell the screen it changed
     }
 
     // What the "Refresh" button runs
@@ -224,7 +224,7 @@ public class DashboardViewModel : ObservableObject
     {
         // A button with no row - nothing to delete
         if (row is null)
-            return;
+            return;   // stop here - nothing more to do
 
         // Clear the error of the previous attempt
         UsersError = null;
@@ -236,7 +236,7 @@ public class DashboardViewModel : ObservableObject
             // UserService is the same delete the client's admin uses, so this delete is also
             // written to the Security tab, and the user's projects are deleted with them (Cascade)
             using var scope = _services.CreateScope();
-            var users = scope.ServiceProvider.GetRequiredService<UserService>();
+            var users = scope.ServiceProvider.GetRequiredService<UserService>();   // the same UserService the client's admin uses
 
             // callerId = null: the server is not a user, so "cannot delete yourself" never applies
             var result = await users.DeleteAsync(row.Id, null, "the server dashboard");
@@ -245,7 +245,7 @@ public class DashboardViewModel : ObservableObject
             if (!result.Success)
             {
                 UsersError = result.Message;
-                return;
+                return;   // stop here - nothing more to do
             }
 
             // Read the table again, so the deleted row disappears and the counters update
@@ -273,7 +273,7 @@ public class DashboardViewModel : ObservableObject
             // AppDbContext is Scoped (one per request). The dashboard is not inside any request,
             // so it opens a scope of its own, uses the context, and disposes both when the method ends
             using var scope = _services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();   // a database connection of this scope
 
             // Select asks the database only for the columns the table shows. The password hash and
             // the reset-code hash never leave the database - "HasPassword" is computed inside the
@@ -385,7 +385,7 @@ public class DashboardViewModel : ObservableObject
         {
             // Add its time to the back of the queue and update the number on screen
             _requestTimes.Enqueue(entry.Time);
-            RequestsLastHour = _requestTimes.Count;
+            RequestsLastHour = _requestTimes.Count;   // how many requests are left in the last hour
         }
 
         // A crash caught by MessageRouter also gets a row in the Errors tab
@@ -409,7 +409,7 @@ public class DashboardViewModel : ObservableObject
         // immediately, without the owner having to press Refresh
         if (entry.Category == SecurityLog.Category)
         {
-            _ = LoadSecurityEventsAsync();
+            _ = LoadSecurityEventsAsync();   // start loading the Security tab too, without waiting
         }
     }
 
@@ -476,7 +476,7 @@ public class DashboardViewModel : ObservableObject
     public string? SecurityError
     {
         get => _securityError;
-        private set => SetProperty(ref _securityError, value);
+        private set => SetProperty(ref _securityError, value);   // store the new value and tell the screen it changed
     }
 
     // What the "Refresh" button of the Security tab runs
@@ -496,7 +496,7 @@ public class DashboardViewModel : ObservableObject
         {
             // A scope of our own with its own database connection (same reason as in LoadUsersAsync)
             using var scope = _services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();   // a database connection of this scope
 
             // OrderByDescending + Take: the database itself sorts newest-first and returns only the
             // first 200 rows - the server never loads the whole history into memory

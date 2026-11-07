@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dashboard;
+namespace NetSim.Server.Dashboard;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // .NET sends every log message to all the registered "logger providers". The built-in Console
 // provider prints them in the black terminal window; this provider is ours, and it puts them in the
@@ -16,7 +16,7 @@ public class DashboardLoggerProvider : ILoggerProvider
     // The constructor. Program.cs passes in the one shared store
     public DashboardLoggerProvider(DashboardLogStore store)
     {
-        _store = store;
+        _store = store;   // keep the shared store
     }
 
     // Purpose: Creates a logger for one category that writes into the store.
@@ -51,7 +51,7 @@ public class DashboardLoggerProvider : ILoggerProvider
         public DashboardLogger(string category, DashboardLogStore store)
         {
             _category = category;
-            _store = store;
+            _store = store;   // keep the shared store
         }
 
         // Purpose: Required by ILogger; scopes are not used, so it does nothing.
@@ -88,7 +88,7 @@ public class DashboardLoggerProvider : ILoggerProvider
             // Skip the messages the filter above does not let through
             if (!IsEnabled(logLevel))
             {
-                return;
+                return;   // stop here - nothing more to do
             }
 
             // formatter builds the final text out of the message template and its values.

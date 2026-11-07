@@ -1,34 +1,36 @@
-using System;
-using NetSim.Application.Projects;
+using System;                        // EventHandler
+using NetSim.Application.Projects;   // Project
 
-namespace NetSim.Application.State;
+namespace NetSim.Application.State;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-/// <summary>
-/// Owns the single "current project" the rest of the application coordinates around.
-/// Replaces any need for global/static state: this is registered as a singleton and injected
-/// wherever current-project state is needed.
-/// </summary>
+// The one place that knows which project is open. Instead of a global variable, the DI container
+// gives the same object (one per sign-in) to every service that needs it
 public interface IApplicationState
 {
-    /// <summary>The project currently open in the application, or null if none is open.</summary>
+    // The open project, or null if none is open
     Project? CurrentProject { get; }
 
+    // Raised when the open project changes
     event EventHandler? CurrentProjectChanged;
 
-    /// <summary>
-    /// Sets the current project. Always resets <see cref="IsCurrentProjectDirty"/> to false -
-    /// opening/creating/closing a project starts from a clean (saved) state.
-    /// </summary>
+    // Purpose: Sets the open project (null = close), and resets "unsaved changes" to false.
+    // Input:   project - the project, or null.
+    // Output:  nothing.
     void SetCurrentProject(Project? project);
 
-    /// <summary>Whether the current project has modifications that have not been saved yet.</summary>
+    // true when the open project has changes that were not saved yet
     bool IsCurrentProjectDirty { get; }
 
+    // Raised when IsCurrentProjectDirty changes
     event EventHandler? IsCurrentProjectDirtyChanged;
 
-    /// <summary>Marks the current project as having unsaved changes. No-op if there is no current project.</summary>
+    // Purpose: Marks the open project as having unsaved changes.
+    // Input:   nothing.
+    // Output:  nothing (does nothing if no project is open).
     void MarkCurrentProjectDirty();
 
-    /// <summary>Marks the current project as saved (no unsaved changes).</summary>
+    // Purpose: Marks the open project as saved.
+    // Input:   nothing.
+    // Output:  nothing.
     void MarkCurrentProjectClean();
 }

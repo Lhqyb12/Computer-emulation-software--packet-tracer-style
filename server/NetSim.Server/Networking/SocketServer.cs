@@ -4,7 +4,7 @@ using System.Text;         // Text encodings. Nothing in this file uses it right
 
 
 // The "folder" this class belongs to. Other files reach it with "using NetSim.Server.Networking"
-namespace NetSim.Server.Networking;
+namespace NetSim.Server.Networking;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Our own TCP server, written directly on the Socket class - no ASP.NET, no TcpListener.
 // It listens on a port, accepts every client that connects, sets up an encrypted channel with it,
@@ -33,8 +33,8 @@ public class SocketServer
     {
         // Keep the three objects in the fields so the other methods can use them
         _logger = logger;
-        _router = router;
-        _keys = keys;
+        _router = router;   // keep the message router
+        _keys = keys;   // keep the server's RSA keys
     }
 
 
@@ -117,7 +117,7 @@ public class SocketServer
                 {
                     // Write it to the log and finish with this client
                     _logger.LogInformation("Client disconnected before the handshake finished");
-                    return;
+                    return;   // stop here - nothing more to do
                 }
 
                 // The handshake succeeded: from here on everything is encrypted
@@ -140,7 +140,7 @@ public class SocketServer
                     {
                         // Write it to the log and leave the method; the "using" lines close everything
                         _logger.LogInformation("Client disconnected");
-                        return;
+                        return;   // stop here - nothing more to do
                     }
 
                     // The router understands the message, runs the action and returns the answer

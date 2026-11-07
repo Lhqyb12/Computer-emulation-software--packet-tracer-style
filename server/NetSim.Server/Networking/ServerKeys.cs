@@ -1,6 +1,6 @@
 using System.Security.Cryptography;  // RSA
 
-namespace NetSim.Server.Networking;
+namespace NetSim.Server.Networking;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The server's RSA key pair - its identity. Created once, on the first run, and kept in the Keys folder:
 //   server-private.pem - stays on the server and must never be shared or committed to git
@@ -23,7 +23,7 @@ public class ServerKeys
 
         // The full paths of the two key files
         string privatePath = Path.Combine(folder, "server-private.pem");
-        string publicPath = Path.Combine(folder, "server-public.pem");
+        string publicPath = Path.Combine(folder, "server-public.pem");   // the full path of the public key file
 
         // Is there already a saved private key?
         if (File.Exists(privatePath))

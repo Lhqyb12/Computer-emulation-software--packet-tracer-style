@@ -3,7 +3,7 @@ using Avalonia.Controls;           // Control, TextBlock
 using Avalonia.Controls.Templates; // IDataTemplate
 using NetSim.App.ViewModels;       // ViewModelBase
 
-namespace NetSim.App;
+namespace NetSim.App;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Avalonia asks this class: "I have a ViewModel object – which View (control)

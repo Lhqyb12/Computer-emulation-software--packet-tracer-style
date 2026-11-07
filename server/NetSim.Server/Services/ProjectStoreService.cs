@@ -3,7 +3,7 @@ using NetSim.Server.Data;             // AppDbContext
 using NetSim.Server.Dtos;             // ProjectDto, ProjectResponse
 using NetSim.Server.Models;           // ProjectRecord
 
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Stores the users' simulator projects in the Projects table, safely.
 // The database part is based on PostgresProjectRepository / ProjectMapper from the NetworkSimulator project,
@@ -29,7 +29,7 @@ public class ProjectStoreService
     public ProjectStoreService(AppDbContext db, SecurityLog security)
     {
         _db = db;
-        _security = security;
+        _security = security;   // keep the security log
     }
 
     // Purpose: Reads the projects of one user.
@@ -72,9 +72,9 @@ public class ProjectStoreService
         if (string.IsNullOrWhiteSpace(project.Name))
             return Fail("Project name cannot be empty.");
 
-        var name = project.Name.Trim();
-        if (name.Length > MaxNameLength)
-            return Fail($"Project name cannot exceed {MaxNameLength} characters.");
+        var name = project.Name.Trim();   // the name without spaces at both ends
+        if (name.Length > MaxNameLength)   // longer than 100 characters?
+            return Fail($"Project name cannot exceed {MaxNameLength} characters.");   // fail: too long
 
         // Is there already a project with this id? null = no, so this save creates a new one
         var existing = await _db.Projects.FirstOrDefaultAsync(p => p.Id == project.Id);
@@ -85,7 +85,7 @@ public class ProjectStoreService
         {
             await _security.RecordAsync("Project access denied", ownerEmail,
                 $"Tried to overwrite project {project.Id}, which belongs to another user");
-            return Fail("Project not found.");
+            return Fail("Project not found.");   // fail - the same answer as for a project that doesn't exist
         }
 
         // Does this user already have a different project with the same name, ignoring upper/lower case?
@@ -93,17 +93,17 @@ public class ProjectStoreService
         // ToLower() on both sides instead of the original's EF.Functions.ILike: ILike treats "%" and "_" in the
         // name as wildcards, so a project called "Lab_1" would wrongly clash with "Lab11"
         var lowerName = name.ToLower();
-        var nameTaken = await _db.Projects.AnyAsync(p =>
-            p.OwnerUserId == ownerId && p.Id != project.Id && p.Name.ToLower() == lowerName);
-        if (nameTaken)
-            return Fail($"A project named '{name}' already exists.");
+        var nameTaken = await _db.Projects.AnyAsync(p =>   // is there at least one row where:
+            p.OwnerUserId == ownerId && p.Id != project.Id && p.Name.ToLower() == lowerName);   // same owner, a different project, and the same name in small letters
+        if (nameTaken)   // the name is taken
+            return Fail($"A project named '{name}' already exists.");   // fail: the name is taken
 
         // An empty description is stored as null, like the client's ProjectService does
         var description = string.IsNullOrWhiteSpace(project.Description) ? null : project.Description.Trim();
 
         // A new project: create the row. OwnerUserId comes from the token (ownerId), never from the client.
         // The creation time is set only here, once - an update below never changes it
-        if (existing is null)
+        if (existing is null)   // no project with this id
         {
             existing = new ProjectRecord
             {
@@ -116,13 +116,13 @@ public class ProjectStoreService
 
         // New or existing - copy in the fields the client is allowed to change
         existing.Name = name;
-        existing.Description = description;
-        existing.LastModifiedAtUtc = ToUtc(project.LastModifiedAtUtc);
-        existing.LastOpenedAtUtc = project.LastOpenedAtUtc is null ? null : ToUtc(project.LastOpenedAtUtc.Value);
-        existing.SchemaVersion = project.SchemaVersion;
+        existing.Description = description;   // the cleaned description
+        existing.LastModifiedAtUtc = ToUtc(project.LastModifiedAtUtc);   // last change, marked as UTC
+        existing.LastOpenedAtUtc = project.LastOpenedAtUtc is null ? null : ToUtc(project.LastOpenedAtUtc.Value);   // last opened: null stays null, otherwise marked as UTC
+        existing.SchemaVersion = project.SchemaVersion;   // the version of its saved shape
 
         // Run the INSERT or UPDATE statement
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();   // run the DELETE in the database
 
         // Send back the project as it is now stored
         return new ProjectResponse { Success = true, Project = ToDto(existing) };
@@ -135,22 +135,22 @@ public class ProjectStoreService
     {
         // Find the project. null = no project has this id
         var existing = await _db.Projects.FirstOrDefaultAsync(p => p.Id == projectId);
-        if (existing is null)
-            return Fail("Project not found.");
+        if (existing is null)   // no project with this id
+            return Fail("Project not found.");   // fail - the same answer as for a project that doesn't exist
 
         // It exists, but belongs to someone else: refuse with the same "not found", and record the attempt
         if (existing.OwnerUserId != ownerId)
         {
             await _security.RecordAsync("Project access denied", ownerEmail,
                 $"Tried to delete project {projectId}, which belongs to another user");
-            return Fail("Project not found.");
+            return Fail("Project not found.");   // fail - the same answer as for a project that doesn't exist
         }
 
         // Mark the row for deletion, and run the DELETE statement
         _db.Projects.Remove(existing);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();   // run the DELETE in the database
 
-        return new ProjectResponse { Success = true };
+        return new ProjectResponse { Success = true };   // success, nothing to return
     }
 
     // Purpose: Turns a database row into the shape that travels over the socket.

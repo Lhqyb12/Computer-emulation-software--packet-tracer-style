@@ -1,16 +1,16 @@
-using Microsoft.Extensions.DependencyInjection;
-using NetSim.UI.Dialogs;
-using NetSim.UI.Navigation;
-using NetSim.UI.ViewModels;
+using Microsoft.Extensions.DependencyInjection;   // IServiceCollection, AddScoped, AddTransient
+using NetSim.UI.Dialogs;                          // IDialogHost, DialogHost, IDialogService, DialogService
+using NetSim.UI.Navigation;                       // INavigationService, NavigationService
+using NetSim.UI.ViewModels;                       // the screens
 
-namespace NetSim.UI.DependencyInjection;
+namespace NetSim.UI.DependencyInjection;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-/// <summary>
-/// Composition entry point for the UI layer. Future Views and ViewModels are registered
-/// here as they are introduced.
-/// </summary>
+// Where the UI layer writes its "recipes" into the DI container
 public static class UIServiceCollectionExtensions
 {
+    // Purpose: Adds all the UI layer's recipes to the container's list.
+    // Input:   services - the list of recipes ("this" = it can be called as services.AddUIServices()).
+    // Output:  the same list, so another call can be chained after it.
     public static IServiceCollection AddUIServices(this IServiceCollection services)
     {
         // Scoped, not Singleton: one per signed-in session. MainWindowViewModel opens a new scope on
@@ -22,16 +22,19 @@ public static class UIServiceCollectionExtensions
         // The individual dialog ViewModels (NewProjectDialogViewModel, ...) are constructed
         // directly by DialogService (they take result/cancel callbacks, not DI dependencies),
         // so they are not registered here.
-        services.AddScoped<IDialogHost, DialogHost>();
-        services.AddScoped<IDialogService, DialogService>();
+        services.AddScoped<IDialogHost, DialogHost>();          // the one host of this sign-in
+        services.AddScoped<IDialogService, DialogService>();    // opens dialogs into that host
 
+        // The Shell - one per sign-in
         services.AddScoped<ShellViewModel>();
 
-        services.AddTransient<HomeViewModel>();
-        services.AddTransient<ProjectsViewModel>();
-        services.AddTransient<ClassroomsViewModel>();
+        // The screens - Transient = a new one every time we navigate to it, so it shows fresh data
+        services.AddTransient<HomeViewModel>();   // the Home screen
+        services.AddTransient<ProjectsViewModel>();   // the Projects screen
+        services.AddTransient<ClassroomsViewModel>();   // the Classes screen
 
 
+        // Return the list, so another Add...() can follow
         return services;
     }
 }

@@ -1,6 +1,6 @@
 using System.Net.Mail;  // MailAddress - .NET's own email address parser
 
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Server-side rule for what counts as an acceptable email address.

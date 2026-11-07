@@ -1,6 +1,6 @@
 using Avalonia.Controls;  // Window
 
-namespace NetSim.Server.Dashboard;
+namespace NetSim.Server.Dashboard;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Code-behind of DashboardWindow.axaml. "partial" because the other half of this class is generated
 // from the .axaml file at build time. ": Window" = this class is a window

@@ -6,7 +6,7 @@ using NetSim.Server.Data;      // AppDbContext
 using NetSim.Server.Dtos;      // LoginRequest, AuthResponse and the other message classes
 using NetSim.Server.Services;  // AuthService, UserService, TokenService, SecurityLog, ClientInfo
 
-namespace NetSim.Server.Networking;
+namespace NetSim.Server.Networking;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Takes one request message, decides which action it asks for, runs it, and returns the answer.
 // This is the job the controllers and ASP.NET's routing did for HTTP.
@@ -41,7 +41,7 @@ public class MessageRouter
 
         // Two loggers with fixed category names, so the dashboard can tell their lines apart
         _requestLogger = loggerFactory.CreateLogger(LogCategories.Requests);
-        _crashLogger = loggerFactory.CreateLogger(LogCategories.Crashes);
+        _crashLogger = loggerFactory.CreateLogger(LogCategories.Crashes);   // a logger whose lines go to the Errors tab
     }
 
     // Purpose: Reads one request, runs its action in a fresh scope, logs one line, and builds the answer.
@@ -107,8 +107,8 @@ public class MessageRouter
             // dashboard's Errors tab. The client gets a short, generic answer: the exception text reveals
             // file names, table names and how the code works - a gift to an attacker
             _crashLogger.LogError(ex, "{Type}", type);
-            response = Fail("Internal server error.");
-            crashed = true;
+            response = Fail("Internal server error.");   // a general failure - the client never sees the real error
+            crashed = true;   // remember it crashed, for the log line below
         }
 
         // Stop measuring
@@ -117,7 +117,11 @@ public class MessageRouter
         // One line per request. Only the type is logged, never the data - the data can hold a password.
         // The result decides the severity: a crash = Error, a refusal = Warning, anything else = Information.
         // "response is X { Success: true }" = the answer is of class X and its Success field is true
-        bool success = response is AuthResponse { Success: true } or UsersResponse { Success: true };
+        // Every kind of answer counts - before, the project answers were missing here, so a successful
+        // project request was logged as "refused"
+        bool success = response is AuthResponse { Success: true } or UsersResponse { Success: true }
+            or ProjectResponse { Success: true } or ProjectListResponse { Success: true }
+            or ClassroomResponse { Success: true } or ClassroomListResponse { Success: true };
 
         // Two "? :" in a row: crashed -> Error, otherwise success -> Information, otherwise Warning
         LogLevel level = crashed ? LogLevel.Error : success ? LogLevel.Information : LogLevel.Warning;
@@ -150,45 +154,45 @@ public class MessageRouter
             // ("!" = we promise the result is not null), and pass it to the matching method
             case "login":
                 var login = request.Data.Deserialize<LoginRequest>(JsonOptions)!;
-                return await auth.LoginAsync(login);
+                return await auth.LoginAsync(login);   // sign in, and return the answer
 
-            case "register":
-                var register = request.Data.Deserialize<RegisterRequest>(JsonOptions)!;
-                return await auth.RegisterAsync(register);
+            case "register":   // creating an account
+                var register = request.Data.Deserialize<RegisterRequest>(JsonOptions)!;   // the data -> a RegisterRequest
+                return await auth.RegisterAsync(register);   // register, and return the answer
 
-            case "verify-email":
-                var verify = request.Data.Deserialize<VerifyEmailRequest>(JsonOptions)!;
-                return await auth.VerifyEmailAsync(verify);
+            case "verify-email":   // the code from the verification email
+                var verify = request.Data.Deserialize<VerifyEmailRequest>(JsonOptions)!;   // the data -> a VerifyEmailRequest
+                return await auth.VerifyEmailAsync(verify);   // check the code, and return the answer
 
-            case "resend-verification":
-                var resend = request.Data.Deserialize<ResendVerificationRequest>(JsonOptions)!;
-                return await auth.ResendVerificationAsync(resend);
+            case "resend-verification":   // send a new verification code
+                var resend = request.Data.Deserialize<ResendVerificationRequest>(JsonOptions)!;   // the data -> a ResendVerificationRequest
+                return await auth.ResendVerificationAsync(resend);   // send it, and return the answer
 
-            case "forgot-password":
-                var forgot = request.Data.Deserialize<ForgotPasswordRequest>(JsonOptions)!;
-                return await auth.ForgotPasswordAsync(forgot);
+            case "forgot-password":   // email a password reset code
+                var forgot = request.Data.Deserialize<ForgotPasswordRequest>(JsonOptions)!;   // the data -> a ForgotPasswordRequest
+                return await auth.ForgotPasswordAsync(forgot);   // send it, and return the answer
 
-            case "reset-password":
-                var reset = request.Data.Deserialize<ResetPasswordRequest>(JsonOptions)!;
-                return await auth.ResetPasswordAsync(reset);
+            case "reset-password":   // the reset code + the new password
+                var reset = request.Data.Deserialize<ResetPasswordRequest>(JsonOptions)!;   // the data -> a ResetPasswordRequest
+                return await auth.ResetPasswordAsync(reset);   // change the password, and return the answer
 
-            case "google-login":
-                var google = request.Data.Deserialize<GoogleLoginRequest>(JsonOptions)!;
-                return await auth.GoogleLoginAsync(google);
+            case "google-login":   // sign in with Google
+                var google = request.Data.Deserialize<GoogleLoginRequest>(JsonOptions)!;   // the data -> a GoogleLoginRequest
+                return await auth.GoogleLoginAsync(google);   // check Google's token, and return the answer
 
             // The list of all users - for admins only
             case "get-users":
             {
                 // Check the token. null = not an admin
                 ClaimsIdentity? admin = await RequireAdminAsync(services, request);
-                if (admin is null)
+                if (admin is null)   // not a valid admin token
                 {
-                    return Fail("Not authorized.");
+                    return Fail("Not authorized.");   // refuse
                 }
 
                 // Read all the users from the database and return them
-                var users = services.GetRequiredService<UserService>();
-                return new UsersResponse { Success = true, Users = await users.GetAllAsync() };
+                var users = services.GetRequiredService<UserService>();   // the user service of this request
+                return new UsersResponse { Success = true, Users = await users.GetAllAsync() };   // success, with every user
             }
 
             // Deleting one user - for admins only
@@ -196,19 +200,19 @@ public class MessageRouter
             {
                 // Check the token. null = not an admin
                 ClaimsIdentity? admin = await RequireAdminAsync(services, request);
-                if (admin is null)
+                if (admin is null)   // not a valid admin token
                 {
-                    return Fail("Not authorized.");
+                    return Fail("Not authorized.");   // refuse
                 }
 
                 // The data holds the id of the user to delete
                 var delete = request.Data.Deserialize<DeleteUserRequest>(JsonOptions)!;
-                var users = services.GetRequiredService<UserService>();
+                var users = services.GetRequiredService<UserService>();   // the user service of this request
 
                 // Who is asking is read from the verified token, not from the message's data.
                 // "?.Value" = the value of the claim, or null if the token has no such claim
                 string? callerId = admin.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                string? adminEmail = admin.FindFirst(ClaimTypes.Email)?.Value;
+                string? adminEmail = admin.FindFirst(ClaimTypes.Email)?.Value;   // the admin's email, from the token
 
                 // Delete the user (UserService refuses if an admin tries to delete themselves).
                 // The last argument is the "who deleted" text for the security log
@@ -219,14 +223,14 @@ public class MessageRouter
             {
                 // Check the token. null = not a valid, existing user
                 var caller = await RequireUserAsync(services, request);
-                if (caller is null)
+                if (caller is null)   // not a valid, existing user
                 {
-                    return new ProjectListResponse { Success = false, Message = "Not authorized." };
+                    return new ProjectListResponse { Success = false, Message = "Not authorized." };   // refuse, in the shape the client expects for this message
                 }
 
                 // Only this user's projects - the id comes from the verified token, not from the message
-                var projects = services.GetRequiredService<ProjectStoreService>();
-                return new ProjectListResponse { Success = true, Projects = await projects.GetAllAsync(caller.Value.UserId) };
+                var projects = services.GetRequiredService<ProjectStoreService>();   // the project store of this request
+                return new ProjectListResponse { Success = true, Projects = await projects.GetAllAsync(caller.Value.UserId) };   // success, with this user's projects only
             }
 
             // Creating or updating one project
@@ -234,14 +238,14 @@ public class MessageRouter
             {
                 // Check the token. null = not a valid, existing user
                 var caller = await RequireUserAsync(services, request);
-                if (caller is null)
+                if (caller is null)   // not a valid, existing user
                 {
-                    return new ProjectResponse { Success = false, Message = "Not authorized." };
+                    return new ProjectResponse { Success = false, Message = "Not authorized." };   // refuse
                 }
 
                 // The data holds the project. No "!" here: if nothing was sent, SaveAsync gets null and refuses it
                 var project = request.Data.Deserialize<ProjectDto>(JsonOptions);
-                var projects = services.GetRequiredService<ProjectStoreService>();
+                var projects = services.GetRequiredService<ProjectStoreService>();   // the project store of this request
 
                 // ProjectStoreService checks that an existing project with this id belongs to this user
                 return await projects.SaveAsync(caller.Value.UserId, caller.Value.Email, project);
@@ -252,17 +256,124 @@ public class MessageRouter
             {
                 // Check the token. null = not a valid, existing user
                 var caller = await RequireUserAsync(services, request);
-                if (caller is null)
+                if (caller is null)   // not a valid, existing user
                 {
-                    return new ProjectResponse { Success = false, Message = "Not authorized." };
+                    return new ProjectResponse { Success = false, Message = "Not authorized." };   // refuse
                 }
 
                 // The data holds the id of the project to delete
                 var delete = request.Data.Deserialize<DeleteProjectRequest>(JsonOptions)!;
-                var projects = services.GetRequiredService<ProjectStoreService>();
+                var projects = services.GetRequiredService<ProjectStoreService>();   // the project store of this request
 
                 // ProjectStoreService checks that the project belongs to this user before deleting it
                 return await projects.DeleteAsync(caller.Value.UserId, caller.Value.Email, delete.Id);
+            }
+
+            // Both halves of the Classes screen: the classes I teach, and the classes I joined
+            case "get-classrooms":
+            {
+                // Check the token. null = not a valid, existing user
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)   // not a valid, existing user
+                {
+                    return new ClassroomListResponse { Success = false, Message = "Not authorized." };   // refuse
+                }
+
+                // The classroom store of this request
+                var classrooms = services.GetRequiredService<ClassroomStoreService>();
+
+                // The lists of this user only - the id comes from the verified token
+                return await classrooms.GetForUserAsync(caller.Value.UserId);
+            }
+
+            // Creating a class - the caller becomes its teacher
+            case "create-classroom":
+            {
+                // Check the token
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)   // not a valid, existing user
+                {
+                    return new ClassroomResponse { Success = false, Message = "Not authorized." };   // refuse
+                }
+
+                // The data holds the class name
+                var create = request.Data.Deserialize<CreateClassroomRequest>(JsonOptions)!;
+                var classrooms = services.GetRequiredService<ClassroomStoreService>();   // the classroom store
+
+                // Create it, with the caller (from the token) as teacher
+                return await classrooms.CreateAsync(caller.Value.UserId, caller.Value.Email, create.Name);
+            }
+
+            // Joining a class with its code - the caller becomes a student
+            case "join-classroom":
+            {
+                // Check the token
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)   // not a valid, existing user
+                {
+                    return new ClassroomResponse { Success = false, Message = "Not authorized." };   // refuse
+                }
+
+                // The data holds the code the student typed
+                var join = request.Data.Deserialize<JoinClassroomRequest>(JsonOptions)!;
+                var classrooms = services.GetRequiredService<ClassroomStoreService>();   // the classroom store
+
+                // Join it, as the caller (from the token)
+                return await classrooms.JoinAsync(caller.Value.UserId, caller.Value.Email, join.JoinCode);
+            }
+
+            // A student leaves a class
+            case "leave-classroom":
+            {
+                // Check the token
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)   // not a valid, existing user
+                {
+                    return new ClassroomResponse { Success = false, Message = "Not authorized." };   // refuse
+                }
+
+                // The data holds the class id
+                var leave = request.Data.Deserialize<ClassroomIdRequest>(JsonOptions)!;
+                var classrooms = services.GetRequiredService<ClassroomStoreService>();   // the classroom store
+
+                // Remove the caller's own member row only
+                return await classrooms.LeaveAsync(caller.Value.UserId, leave.Id);
+            }
+
+            // The teacher removes a student from their class
+            case "remove-student":
+            {
+                // Check the token
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)   // not a valid, existing user
+                {
+                    return new ClassroomResponse { Success = false, Message = "Not authorized." };   // refuse
+                }
+
+                // The data holds the class id and the student's email
+                var remove = request.Data.Deserialize<RemoveStudentRequest>(JsonOptions)!;
+                var classrooms = services.GetRequiredService<ClassroomStoreService>();   // the classroom store
+
+                // ClassroomStoreService checks that the caller is the teacher of this class
+                return await classrooms.RemoveStudentAsync(caller.Value.UserId, caller.Value.Email, remove.ClassroomId, remove.StudentEmail);
+            }
+
+            // The teacher deletes their class
+            case "delete-classroom":
+            {
+                // Check the token
+                var caller = await RequireUserAsync(services, request);
+                if (caller is null)   // not a valid, existing user
+                {
+                    return new ClassroomResponse { Success = false, Message = "Not authorized." };   // refuse
+                }
+
+                // The data holds the class id
+                var deleteClass = request.Data.Deserialize<ClassroomIdRequest>(JsonOptions)!;
+                var classrooms = services.GetRequiredService<ClassroomStoreService>();   // the classroom store
+
+                // ClassroomStoreService checks that the caller is the teacher of this class
+                return await classrooms.DeleteAsync(caller.Value.UserId, caller.Value.Email, deleteClass.Id);
             }
 
 
@@ -282,22 +393,22 @@ public class MessageRouter
     {
         // The two services this check needs
         var tokens = services.GetRequiredService<TokenService>();
-        var security = services.GetRequiredService<SecurityLog>();
+        var security = services.GetRequiredService<SecurityLog>();   // the security log, to record refusals
 
         // Step 1 - authentication: is the token real? (signed by us, not edited, not expired)
         ClaimsIdentity? identity = await tokens.ValidateTokenAsync(request.Token);
 
         // null = the token failed the check
-        if (identity is null)
+        if (identity is null)   // the token is missing, fake, changed or expired
         {
             // Choose the text for the security log: no token at all, or a bad one
-            string reason = string.IsNullOrWhiteSpace(request.Token)
-                ? "No token was sent"
-                : "The token is not valid or has expired";
+            string reason = string.IsNullOrWhiteSpace(request.Token)   // pick the reason for the log:
+                ? "No token was sent"   // no token at all
+                : "The token is not valid or has expired";   // a bad or old token
 
             // Write it to the security log. null = we do not know who this was
-            await security.RecordAsync("Unauthorized request", null, $"{request.Type} - {reason}");
-            return null;
+            await security.RecordAsync("Unauthorized request", null, $"{request.Type} - {reason}");   // record the refusal (no email - there is no identity)
+            return null;   // null = refuse the request
         }
 
         // Step 2 - authorization: the token is real, so we know who this is. Are they an admin?
@@ -308,8 +419,8 @@ public class MessageRouter
         {
             // Write who tried, and what they tried, to the security log
             string? email = identity.FindFirst(ClaimTypes.Email)?.Value;
-            await security.RecordAsync("Access denied", email, $"Role '{role}' tried {request.Type}");
-            return null;
+            await security.RecordAsync("Access denied", email, $"Role '{role}' tried {request.Type}");   // record: a non-admin tried an admin action
+            return null;   // null = refuse the request
         }
 
         // A verified admin
@@ -325,18 +436,18 @@ public class MessageRouter
     {
         // The two services this check needs
         var tokens = services.GetRequiredService<TokenService>();
-        var security = services.GetRequiredService<SecurityLog>();
+        var security = services.GetRequiredService<SecurityLog>();   // the security log, to record refusals
 
         // Step 1 - authentication: is the token real? (signed by us, not edited, not expired) -
         // exactly the same check as in RequireAdminAsync
         ClaimsIdentity? identity = await tokens.ValidateTokenAsync(request.Token);
-        if (identity is null)
+        if (identity is null)   // the token is missing, fake, changed or expired
         {
-            string reason = string.IsNullOrWhiteSpace(request.Token)
-                ? "No token was sent"
-                : "The token is not valid or has expired";
-            await security.RecordAsync("Unauthorized request", null, $"{request.Type} - {reason}");
-            return null;
+            string reason = string.IsNullOrWhiteSpace(request.Token)   // pick the reason for the log:
+                ? "No token was sent"   // no token at all
+                : "The token is not valid or has expired";   // a bad or old token
+            await security.RecordAsync("Unauthorized request", null, $"{request.Type} - {reason}");   // record the refusal (no email - there is no identity)
+            return null;   // null = refuse the request
         }
 
         // The email, for the security log
@@ -347,16 +458,16 @@ public class MessageRouter
         if (!int.TryParse(identity.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int userId))
         {
             await security.RecordAsync("Unauthorized request", email, $"{request.Type} - The token has no user id");
-            return null;
+            return null;   // null = refuse the request
         }
 
         // Step 3 - does this account still exist? A token stays valid until it expires, even if an admin deleted
         // the account in the meantime - without this check, a deleted user could keep using their old token
         var db = services.GetRequiredService<AppDbContext>();
-        if (!await db.Users.AnyAsync(u => u.Id == userId))
+        if (!await db.Users.AnyAsync(u => u.Id == userId))   // no user row with this id any more?
         {
-            await security.RecordAsync("Unauthorized request", email, $"{request.Type} - The account no longer exists");
-            return null;
+            await security.RecordAsync("Unauthorized request", email, $"{request.Type} - The account no longer exists");   // record: a deleted account used its old token
+            return null;   // null = refuse the request
         }
 
         // A verified, existing user

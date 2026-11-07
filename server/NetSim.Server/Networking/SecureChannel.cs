@@ -7,7 +7,7 @@ using System.Text;                   // Encoding.UTF8: text <-> bytes
 using System.Threading;              // CancellationToken
 using System.Threading.Tasks;        // Task, async/await
 
-namespace NetSim.Server.Networking;
+namespace NetSim.Server.Networking;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Our own encrypted connection, built on top of a plain socket. It replaces TLS (the "S" of HTTPS).
 //
@@ -30,7 +30,7 @@ public sealed class SecureChannel : IDisposable
 
     // One byte that says which direction a message travels in
     private const byte ClientToServer = 1;
-    private const byte ServerToClient = 2;
+    private const byte ServerToClient = 2;   // the direction number of messages from the server to the client
 
     // The plain TCP connection that the encrypted frames travel on
     private readonly Socket _socket;
@@ -46,7 +46,7 @@ public sealed class SecureChannel : IDisposable
 
     // How many messages were sent and received on this connection so far
     private long _sendCounter;
-    private long _receiveCounter;
+    private long _receiveCounter;   // how many messages this side has received - checked against every message's number
 
     // Purpose: Builds a ready channel once the handshake has produced a session key.
     // Input:   socket - the connection; sessionKey - the 32-byte AES key; isClient - which side this is.
@@ -64,7 +64,7 @@ public sealed class SecureChannel : IDisposable
         // "condition ? a : b" = a if the condition is true, otherwise b.
         // A client sends client-to-server messages and receives server-to-client ones; a server the opposite
         _sendDirection = isClient ? ClientToServer : ServerToClient;
-        _receiveDirection = isClient ? ServerToClient : ClientToServer;
+        _receiveDirection = isClient ? ServerToClient : ClientToServer;   // and receives in the opposite direction
     }
 
     // Purpose: Runs the client's side of the handshake and creates the encrypted channel.
@@ -110,7 +110,7 @@ public sealed class SecureChannel : IDisposable
         // 1. Send 32 fresh random bytes. Because they are new for every connection, the session key is
         //    new for every connection too - a recording of an old conversation is useless if sent again
         byte[] serverRandom = RandomNumberGenerator.GetBytes(RandomSize);
-        await MessageFraming.SendFrameAsync(socket, serverRandom, stop);
+        await MessageFraming.SendFrameAsync(socket, serverRandom, stop);   // send the 32 random bytes to the client
 
         // 2. Receive the client's secret and open it with our private key
         byte[]? encryptedSecret = await MessageFraming.ReceiveFrameAsync(socket, stop);
@@ -244,7 +244,7 @@ public sealed class SecureChannel : IDisposable
         // AsSpan(1) = the label from index 1 on; the counter is written there as 8 bytes, big-endian
         BinaryPrimitives.WriteInt64BigEndian(label.AsSpan(1), counter);
 
-        return label;
+        return label;   // the finished 12-byte label
     }
 
     // Purpose: Releases the AES encryptor and wipes the session key from memory.

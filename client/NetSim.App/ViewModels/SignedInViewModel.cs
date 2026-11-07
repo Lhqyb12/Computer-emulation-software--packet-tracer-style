@@ -1,7 +1,7 @@
 using System;                      // Action
 using CommunityToolkit.Mvvm.Input; // RelayCommand, IRelayCommand - what a button runs
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Shown after a successful sign-in. The real product would hand off to the

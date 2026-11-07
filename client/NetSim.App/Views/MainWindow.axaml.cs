@@ -1,6 +1,6 @@
 using Avalonia.Controls;  // Window
 
-namespace NetSim.App.Views;
+namespace NetSim.App.Views;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Code-behind of MainWindow.axaml - the main window of the client, which hosts one screen at a time.
 // "partial" = the other half of this class is generated from the .axaml file at build time.

@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dashboard;
+namespace NetSim.Server.Dashboard;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The "row" types the dashboard tables display. Each one is a record: a short way to declare a class
 // that only carries data - the compiler generates the constructor and the read-only properties from
@@ -21,7 +21,7 @@ public record LogRow(string Time, string Level, string Source, string Message)
 {
     // Used by the .axaml file to pick the colour of the Level text: yellow for a warning, red for an error
     public bool IsWarning => Level == "Warning";
-    public bool IsError => Level == "Error";
+    public bool IsError => Level == "Error";   // true for an error - painted red
 }
 
 // One line in the Errors table - a request that crashed with an unhandled exception.

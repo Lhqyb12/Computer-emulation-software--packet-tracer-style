@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input; // RelayCommand, AsyncRelayCommand, IRelayCom
 using NetSim.App.Services;         // AuthApiClient, AuthResult
 
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Data and behaviour of the <b>verify your email</b> screen, shown right after registering: the user
@@ -55,21 +55,21 @@ public sealed class VerifyEmailViewModel : ViewModelBase
     public string Code
     {
         get => _code;
-        set { SetProperty(ref _code, value); Error = null; }
+        set { SetProperty(ref _code, value); Error = null; }   // store it, tell the screen, and clear the old error (the user is fixing it)
     }
 
     // True while a request is on its way - disables the buttons and shows a spinner
     public bool IsBusy
     {
         get => _isBusy;
-        private set
+        private set   // only this class can change it
         {
             // Store the new value and tell the screen
             SetProperty(ref _isBusy, value);
 
             // Tell both buttons to ask again whether they are enabled (their rule is "!IsBusy")
-            VerifyCommand.NotifyCanExecuteChanged();
-            ResendCodeCommand.NotifyCanExecuteChanged();
+            VerifyCommand.NotifyCanExecuteChanged();   // the Verify button checks again whether it may run (turns on / off)
+            ResendCodeCommand.NotifyCanExecuteChanged();   // the ResendCode button checks again whether it may run (turns on / off)
         }
     }
 
@@ -77,7 +77,7 @@ public sealed class VerifyEmailViewModel : ViewModelBase
     public bool IsSuccess
     {
         get => _isSuccess;
-        private set => SetProperty(ref _isSuccess, value);
+        private set => SetProperty(ref _isSuccess, value);   // store the new value and tell the screen it changed
     }
 
     // ---- Messages ----
@@ -86,14 +86,14 @@ public sealed class VerifyEmailViewModel : ViewModelBase
     public string? Error
     {
         get => _error;
-        private set => SetProperty(ref _error, value);
+        private set => SetProperty(ref _error, value);   // only this class sets it; store it and tell the screen
     }
 
     // A neutral message, e.g. "A new code was sent". null = nothing to show
     public string? Status
     {
         get => _status;
-        private set => SetProperty(ref _status, value);
+        private set => SetProperty(ref _status, value);   // only this class sets it; store it and tell the screen
     }
 
     // ---- Buttons ----
@@ -110,14 +110,14 @@ public sealed class VerifyEmailViewModel : ViewModelBase
     private async Task VerifyAsync()
     {
         // Clear the messages of the previous attempt
-        Status = null;
-        Error = null;
+        Status = null;   // hide the status line
+        Error = null;   // clear the old error message
 
         // A code was typed
         if (string.IsNullOrWhiteSpace(Code))
         {
             Error = "Please enter the code from your email.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // From here we wait for the server: disable the buttons and show the spinner
@@ -137,7 +137,7 @@ public sealed class VerifyEmailViewModel : ViewModelBase
                 Error = result.Message; // "Invalid or expired code." / "Could not reach the server..."
 
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done waiting: enable the buttons again
             IsBusy = false;
@@ -151,12 +151,12 @@ public sealed class VerifyEmailViewModel : ViewModelBase
     private async Task ResendCodeAsync()
     {
         // Clear the messages of the previous attempt
-        Status = null;
-        Error = null;
+        Status = null;   // hide the status line
+        Error = null;   // clear the old error message
 
         // Disable the buttons and show the spinner
         IsBusy = true;
-        try
+        try   // "try" = run this; if anything inside fails, jump to the "catch" below
         {
             // Ask the server to email a new code
             AuthResult result = await _api.ResendVerificationAsync(Email);
@@ -166,10 +166,10 @@ public sealed class VerifyEmailViewModel : ViewModelBase
                 Status = "A new code was sent. If it doesn't arrive, wait a minute and try again.";
             // The server could not be reached
             else
-                Error = result.Message;
+                Error = result.Message;   // show the server's reason, in red
 
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done waiting: enable the buttons again
             IsBusy = false;

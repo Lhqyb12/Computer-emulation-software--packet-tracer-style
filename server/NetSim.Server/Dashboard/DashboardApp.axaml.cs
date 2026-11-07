@@ -2,7 +2,7 @@ using Avalonia;                                  // Application - the base class
 using Avalonia.Controls.ApplicationLifetimes;    // IClassicDesktopStyleApplicationLifetime - a normal desktop app with a main window
 using Avalonia.Markup.Xaml;                      // AvaloniaXamlLoader - reads .axaml files
 
-namespace NetSim.Server.Dashboard;
+namespace NetSim.Server.Dashboard;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The desktop (Avalonia) application that lives inside the server process - the Super Admin screen.
 // It is the server-side twin of the client's App class, but it shows what the server is doing.

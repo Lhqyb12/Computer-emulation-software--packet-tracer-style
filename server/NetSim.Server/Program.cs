@@ -22,8 +22,8 @@ var builder = Host.CreateApplicationBuilder(args);
 // AddSingleton(logStore) puts it in the DI container so the dashboard can ask for it later.
 // AddProvider plugs our provider into the logging system, next to the built-in Console one
 var logStore = new DashboardLogStore();
-builder.Services.AddSingleton(logStore);
-builder.Logging.AddProvider(new DashboardLoggerProvider(logStore));
+builder.Services.AddSingleton(logStore);   // the dashboard's store - one for the whole server
+builder.Logging.AddProvider(new DashboardLoggerProvider(logStore));   // every log line also goes to the dashboard
 
 // Registers AppDbContext with the DI container as a "service" - every request that asks for AppDbContext
 // (e.g. AuthService) gets an instance
@@ -38,20 +38,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // These have to be Scoped (not Singleton) because they depend on AppDbContext, which is itself Scoped -
 // DbContext is not thread-safe, and a single instance of it must never be shared across concurrent requests
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<EmailSender>();
-builder.Services.AddScoped<TokenService>();
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ProjectStoreService>();
+builder.Services.AddScoped<EmailSender>();   // sends emails
+builder.Services.AddScoped<TokenService>();   // makes and checks JWT tokens
+builder.Services.AddScoped<UserService>();   // the admin's user list / delete
+builder.Services.AddScoped<ProjectStoreService>();   // the users' projects in the database
+builder.Services.AddScoped<ClassroomStoreService>();   // the classes and their students in the database
 
 
 // ClientInfo holds the address of the client behind the current request; SecurityLog reads it
 builder.Services.AddScoped<ClientInfo>();
-builder.Services.AddScoped<SecurityLog>();
+builder.Services.AddScoped<SecurityLog>();   // writes security events
 
 // Our own communication layer: one of each for the whole life of the server
 builder.Services.AddSingleton<ServerKeys>();
-builder.Services.AddSingleton<MessageRouter>();
-builder.Services.AddSingleton<SocketServer>();
+builder.Services.AddSingleton<MessageRouter>();   // one router for the whole server
+builder.Services.AddSingleton<SocketServer>();   // one listening server for the whole program
 
 // Fail at startup, with a clear message, rather than on the first login.
 // "Jwt:Key" is the secret that signs the login tokens; without it no token can be created
@@ -87,7 +88,7 @@ if (!string.IsNullOrWhiteSpace(adminSeedEmail))
     {
         // Promote them and save the change
         adminUser.Role = "Admin";
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync();   // write the change to the database
     }
 }
 

@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // DTO for a register request - like LoginRequest, but with an extra Username because registration creates a
 // new user and needs a display name, not just a login identity

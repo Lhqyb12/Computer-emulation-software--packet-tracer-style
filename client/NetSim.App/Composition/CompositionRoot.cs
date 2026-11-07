@@ -2,10 +2,11 @@ using System;                                    // IServiceProvider
 using Microsoft.Extensions.DependencyInjection;  // ServiceCollection, AddSingleton, BuildServiceProvider
 using NetSim.Application.DependencyInjection;    // AddApplicationServices
 using NetSim.Application.Persistence;            // IProjectRepository
-using NetSim.App.Persistence;                    // InMemoryProjectRepository
+using NetSim.App.Persistence;                    // ServerProjectRepository, ServerClassroomService
+using NetSim.Application.Services;               // IClassroomService
 using NetSim.UI.DependencyInjection;             // AddUIServices
 
-namespace NetSim.App.Composition;
+namespace NetSim.App.Composition;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Builds the dependency-injection container for the simulator workspace (everything shown
@@ -35,16 +36,19 @@ public static class CompositionRoot
             .AddApplicationServices()
             .AddUIServices();
 
-        // The one recipe actually written for this repo: "whoever asks for IProjectRepository gets
-        // an InMemoryProjectRepository". Stage 1 stand-in - there's no real database yet, so this
-        // just keeps projects in RAM for the lifetime of the app. AddSingleton means one shared
-        // instance for the whole app, not a new one per request.
-        services.AddSingleton<IProjectRepository, InMemoryProjectRepository>();
+        // "Whoever asks for IProjectRepository gets a ServerProjectRepository": the projects are stored
+        // on the server, in the database, and belong to the signed-in user.
+        // Scoped, not Singleton: it needs ICurrentUser (one per sign-in) for the token. A Singleton
+        // would be built once, before anyone signed in, and would keep an empty token forever.
+        // (InMemoryProjectRepository is kept in the project - it can be put back here for testing
+        // without a server.)
+        services.AddScoped<IProjectRepository, ServerProjectRepository>();
 
-        // The same idea for classes: "whoever asks for IClassroomRepository gets the in-memory one".
-        // Singleton on purpose - the classes must outlive one sign-in, so a second user signing in
-        // on the same app can join a class the first user created
-        services.AddSingleton<IClassroomRepository, InMemoryClassroomRepository>();
+        // "Whoever asks for IClassroomService gets a ServerClassroomService": the classes, and their rules,
+        // live on the server. Scoped for the same reason as above - it needs ICurrentUser's token.
+        // (To try the Classes screen without a server, register ClassroomService instead, together with
+        // IClassroomRepository -> InMemoryClassroomRepository as a Singleton.)
+        services.AddScoped<IClassroomService, ServerClassroomService>();
 
         // Turns the recipe list into an actual live container that GetRequiredService<T>() can pull
         // built objects out of - this is the IServiceProvider MainWindowViewModel later uses

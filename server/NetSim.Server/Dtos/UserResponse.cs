@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The answer to a "get-users" message: the usual success/message pair, plus the list itself
 public class UsersResponse

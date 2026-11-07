@@ -1,4 +1,4 @@
-namespace NetSim.Server.Models;
+namespace NetSim.Server.Models;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // This is the real Entity mapped to the Users table in Postgres by EF Core (unlike the DTOs, which only
 // "travel" over the API). Notice there's no explicit [Table]/[Column] attribute here - EF Core relies on
@@ -57,8 +57,8 @@ public class User
     // Same three fields as the password-reset code above, but for the email-verification code:
     // the hash of the code, when it expires, and how many wrong codes were typed
     public string? VerifyCodeHash { get; set; }
-    public DateTime? VerifyCodeExpiresAt { get; set; }
-    public int VerifyAttempts { get; set; }
+    public DateTime? VerifyCodeExpiresAt { get; set; }   // when the verification code stops working, or null
+    public int VerifyAttempts { get; set; }   // how many wrong codes were typed for the current code
 
 
 

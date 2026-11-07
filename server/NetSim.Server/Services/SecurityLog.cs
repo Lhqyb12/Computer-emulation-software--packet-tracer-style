@@ -1,7 +1,7 @@
 using NetSim.Server.Data;    // AppDbContext
 using NetSim.Server.Models;  // SecurityEvent
 
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The one place that records security events. Any part of the server that notices something
 // security-related calls RecordAsync, and the event is:
@@ -35,7 +35,7 @@ public class SecurityLog
 
     {
         _scopeFactory = scopeFactory;
-        _client = client;
+        _client = client;   // keep the client info of this request (its IP address)
 
         // Create a logger whose lines carry our fixed category name
         _logger = loggerFactory.CreateLogger(Category);

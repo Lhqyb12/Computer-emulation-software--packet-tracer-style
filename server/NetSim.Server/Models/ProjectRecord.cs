@@ -1,4 +1,4 @@
-namespace NetSim.Server.Models;
+namespace NetSim.Server.Models;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // One saved simulator project, as a row in the Projects table in Postgres (EF Core maps it by convention:
 // class "ProjectRecord" + DbSet "Projects" in AppDbContext -> table "Projects").
@@ -29,8 +29,8 @@ public class ProjectRecord
     // When the project was created, last changed, and last opened. All in UTC, like User.CreatedAt.
     // LastOpenedAtUtc is "DateTime?" - null = never opened yet
     public DateTime CreatedAtUtc { get; set; }
-    public DateTime LastModifiedAtUtc { get; set; }
-    public DateTime? LastOpenedAtUtc { get; set; }
+    public DateTime LastModifiedAtUtc { get; set; }   // when it was last changed (UTC)
+    public DateTime? LastOpenedAtUtc { get; set; }   // when it was last opened (UTC), or null
 
     // The version of the project's saved shape (Project.CurrentSchemaVersion on the client, currently 1)
     public int SchemaVersion { get; set; }

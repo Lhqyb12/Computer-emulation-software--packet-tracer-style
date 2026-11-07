@@ -1,40 +1,51 @@
-using System.Threading.Tasks;
+using System.Threading.Tasks;   // Task - "a job that will finish later"
 
-namespace NetSim.UI.Dialogs;
+namespace NetSim.UI.Dialogs;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-/// <summary>
-/// Shows modal dialogs and returns the user's input/decision asynchronously. Dialogs only
-/// collect input and basic client-side validation (blank/too-long name) - the actual project
-/// operation (and any server-side validation, e.g. duplicate names) is performed by the caller
-/// through <see cref="Application.Services.IProjectService"/> after the dialog resolves, keeping
-/// dialogs as simple input collectors rather than screens of their own.
-/// </summary>
+// Everything a screen may ask from the pop-up windows. Dialogs only collect what the user types or
+// chooses, and do simple checks (empty / too long). The real work (creating, renaming...) is done
+// afterwards by the screen, through the services
 public interface IDialogService
 {
-    /// <summary>Shows the "New Project" dialog. Returns null if the user cancelled.</summary>
+    // Purpose: Shows the "New Project" dialog.
+    // Input:   nothing.
+    // Output:  a Task with the name + description, or null if the user cancelled.
     Task<NewProjectDialogResult?> ShowNewProjectAsync();
 
-    /// <summary>Shows the "Rename Project" dialog, pre-filled with <paramref name="currentName"/>. Returns null if cancelled.</summary>
+    // Purpose: Shows the "Rename Project" dialog, filled with the current name.
+    // Input:   currentName - the name shown at the start.
+    // Output:  a Task with the new name, or null if the user cancelled.
     Task<string?> ShowRenameProjectAsync(string currentName);
 
-    /// <summary>Shows a generic confirm/cancel dialog. Returns true if the user confirmed.</summary>
+    // Purpose: Shows a general "are you sure?" dialog.
+    // Input:   title, message; confirmText, cancelText and isDestructive are optional (have defaults).
+    // Output:  a Task with true if the user confirmed, false if cancelled.
     Task<bool> ShowConfirmationAsync(string title, string message, string confirmText = "Confirm", string cancelText = "Cancel", bool isDestructive = false);
 
-    /// <summary>Shows the three-way "unsaved changes" dialog (Save / Don't Save / Cancel).</summary>
+    // Purpose: Shows the three-way "unsaved changes" dialog (Save / Don't Save / Cancel).
+    // Input:   projectName - shown in the message.
+    // Output:  a Task with the user's choice.
     Task<UnsavedChangesDecision> ShowUnsavedChangesAsync(string projectName);
 
-    /// <summary>Shows the "Create a class" dialog. Returns the class name, or null if cancelled.</summary>
+    // Purpose: Shows the "Create a class" dialog.
+    // Input:   nothing.
+    // Output:  a Task with the class name, or null if the user cancelled.
     Task<string?> ShowCreateClassroomAsync();
 
-    /// <summary>Shows the "Join a class" dialog. Returns the typed join code, or null if cancelled.</summary>
+    // Purpose: Shows the "Join a class" dialog.
+    // Input:   nothing.
+    // Output:  a Task with the typed join code, or null if the user cancelled.
     Task<string?> ShowJoinClassroomAsync();
 }
 
+// What the "New Project" dialog returns: the name, and the optional description.
+// A record = a small data-only class; the compiler writes the constructor and the properties
 public sealed record NewProjectDialogResult(string Name, string? Description);
 
+// The three choices of the "Unsaved Changes" dialog. An enum = a closed list of named values
 public enum UnsavedChangesDecision
 {
-    Save,
-    DontSave,
-    Cancel,
+    Save,       // save, then continue
+    DontSave,   // continue without saving (the changes are lost)
+    Cancel,     // don't continue at all
 }

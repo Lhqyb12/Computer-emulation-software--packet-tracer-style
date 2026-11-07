@@ -1,11 +1,12 @@
 using System;                           // Guid, StringComparison
 using System.Collections.Generic;       // Dictionary, IReadOnlyList
 using System.Linq;                      // OrderByDescending, FirstOrDefault, ToList
+using System.Threading.Tasks;           // Task, Task.FromResult
 using NetSim.Application.Persistence;   // IProjectRepository
 using NetSim.Application.Projects;      // Project
 using NetSim.Core.Common;               // EntityId
 
-namespace NetSim.App.Persistence;
+namespace NetSim.App.Persistence;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Stage-1 stand-in for <see cref="IProjectRepository"/>: keeps projects in memory for the
@@ -20,37 +21,46 @@ public sealed class InMemoryProjectRepository : IProjectRepository
     // the key is the project's id (a Guid), the value is the project
     private readonly Dictionary<Guid, Project> _projects = new();
 
-    // Purpose: Returns every stored project.
+        // Purpose: Returns every stored project.
     // Input:   nothing.
-    // Output:  a read-only list of projects, the most recently changed first.
-    // Returns all the projects, the most recently changed first.
-    // "=>" = a one-line method that returns this value
-    public IReadOnlyList<Project> GetAll() =>
-        _projects.Values.OrderByDescending(p => p.LastModifiedAtUtc).ToList();
+    // Output:  a Task with a read-only list of projects, the most recently changed first.
+    // Nothing here has to wait, so the answer is wrapped in a Task that is already finished:
+    // Task.FromResult(x) = "a Task whose result is x, right now"
+    public Task<IReadOnlyList<Project>> GetAllAsync() =>
+        Task.FromResult<IReadOnlyList<Project>>(
+            _projects.Values.OrderByDescending(p => p.LastModifiedAtUtc).ToList());   // all the projects, newest change first, as a list
 
     // Purpose: Finds one project by its id.
     // Input:   id - the project's EntityId.
-    // Output:  the project, or null if there is none with this id.
-    // Returns the project with this id, or null if there is none.
+    // Output:  a Task with the project, or null if there is none with this id.
     // id.Value = the Guid inside the EntityId wrapper
-    public Project? GetById(EntityId id) => _projects.GetValueOrDefault(id.Value);
+    public Task<Project?> GetByIdAsync(EntityId id) =>
+        Task.FromResult(_projects.GetValueOrDefault(id.Value));   // the project for this key, or null - in a finished Task
 
     // Purpose: Finds one project by its name, ignoring upper/lower case.
     // Input:   name - the project name.
-    // Output:  the project, or null if no project has this name.
-    // Returns the first project with this name, or null. OrdinalIgnoreCase = "Lab" and "lab" are the same name
-    public Project? GetByName(string name) =>
-        _projects.Values.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
+    // Output:  a Task with the project, or null if no project has this name.
+    // OrdinalIgnoreCase = "Lab" and "lab" are the same name
+    public Task<Project?> GetByNameAsync(string name) =>
+        Task.FromResult(
+            _projects.Values.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)));   // the first project with this name, or null
 
     // Purpose: Adds a new project or replaces the stored one with the same id.
     // Input:   project - the project to store.
-    // Output:  nothing.
-    // Stores a project. "[key] = value" adds it if the id is new, or replaces the old one if it exists
-    public void Save(Project project) => _projects[project.Id.Value] = project;
+    // Output:  a Task that is already finished.
+    // "[key] = value" adds it if the id is new, or replaces the old one if it exists
+    public Task SaveAsync(Project project)
+    {
+        _projects[project.Id.Value] = project;   // add, or replace the one with this id
+
+        // Task.CompletedTask = a Task with no result that is already finished
+        return Task.CompletedTask;
+    }
 
     // Purpose: Removes the project with this id.
     // Input:   id - the project's EntityId.
-    // Output:  true if the project existed and was removed, otherwise false.
-    // Removes a project. Returns true if it was there, false if no project had this id
-    public bool Delete(EntityId id) => _projects.Remove(id.Value);
+    // Output:  a Task with true if the project existed and was removed, otherwise false.
+    public Task<bool> DeleteAsync(EntityId id) =>
+        Task.FromResult(_projects.Remove(id.Value));   // remove it; true if it was there - in a finished Task
+
 }

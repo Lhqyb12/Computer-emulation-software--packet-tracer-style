@@ -1,16 +1,12 @@
-using NetSim.UI.Common;
+using NetSim.UI.Common;   // ViewModelBase
 
-namespace NetSim.UI.Dialogs;
+namespace NetSim.UI.Dialogs;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-/// <summary>
-/// Holds the ViewModel of the currently-open modal dialog, if any. <see cref="Views.MainWindow"/>
-/// binds an overlay (using the "DialogScrim"/"DialogCard" styles from Theme/Styles/Dialogs.axaml,
-/// prepared in Phase 5 for exactly this) to <see cref="ActiveDialog"/>, and the existing
-/// <see cref="Views.ViewLocator"/> resolves its View the same way it resolves any screen. This
-/// keeps dialogs as an in-window overlay rather than a separate OS window, and reuses the shell
-/// this application already has instead of introducing a second UI mechanism.
-/// </summary>
+// The place that holds the open dialog. The Shell's view binds a dark pop-up layer to ActiveDialog:
+// when it is not null the layer is shown, and the ViewLocator draws the dialog's view inside it.
+// So dialogs are a layer inside the window, not separate operating-system windows
 public interface IDialogHost
 {
+    // The open dialog's view model, or null when no dialog is open. DialogService sets it
     ViewModelBase? ActiveDialog { get; set; }
 }

@@ -1,6 +1,6 @@
 using Avalonia.Controls;  // UserControl
 
-namespace NetSim.App.Views;
+namespace NetSim.App.Views;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Code-behind of VerifyEmailView.axaml - the "enter the code we emailed you" screen.
 // "partial" = the other half of this class is generated from the .axaml file at build time.

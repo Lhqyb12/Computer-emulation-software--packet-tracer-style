@@ -1,6 +1,6 @@
 using Avalonia.Data.Converters;  // IValueConverter, FuncValueConverter
 
-namespace NetSim.App;
+namespace NetSim.App;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// A tiny binding helper. XAML can't do "if width &gt;= 700" on its own, so this

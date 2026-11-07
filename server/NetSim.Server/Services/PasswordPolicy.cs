@@ -1,4 +1,4 @@
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Server-side rules for what counts as an acceptable password.

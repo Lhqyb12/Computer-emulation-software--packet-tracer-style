@@ -4,7 +4,7 @@ using System.Threading.Tasks;      // Task, async/await
 using CommunityToolkit.Mvvm.Input; // RelayCommand, AsyncRelayCommand, IRelayCommand - what a button runs
 using NetSim.App.Services;         // AuthApiClient, AuthResult
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Data and behaviour of the "forgot password" flow: request a code by email, then use it
@@ -53,49 +53,49 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     public string Email
     {
         get => _email;
-        set { SetProperty(ref _email, value); Error = null; }
+        set { SetProperty(ref _email, value); Error = null; }   // store it, tell the screen, and clear the old error (the user is fixing it)
     }
 
     // The text of the code box (the 6 digits from the email)
     public string Code
     {
         get => _code;
-        set { SetProperty(ref _code, value); Error = null; }
+        set { SetProperty(ref _code, value); Error = null; }   // store it, tell the screen, and clear the old error (the user is fixing it)
     }
 
     // The text of the "new password" box. Every typed letter refreshes the checklist
     public string NewPassword
     {
         get => _newPassword;
-        set { SetProperty(ref _newPassword, value); Error = null; RaiseChecks(); }
+        set { SetProperty(ref _newPassword, value); Error = null; RaiseChecks(); }   // store it, tell the screen, clear the old error, and re-check the password rules
     }
 
     // The text of the "confirm password" box. Every typed letter refreshes the "passwords match" check
     public string ConfirmPassword
     {
         get => _confirmPassword;
-        set { SetProperty(ref _confirmPassword, value); Error = null; RaiseChecks(); }
+        set { SetProperty(ref _confirmPassword, value); Error = null; RaiseChecks(); }   // store it, tell the screen, clear the old error, and re-check the password rules
     }
 
     // true = the passwords are shown as readable text; switched by the "eye" button
     public bool IsPasswordVisible
     {
         get => _isPasswordVisible;
-        set => SetProperty(ref _isPasswordVisible, value);
+        set => SetProperty(ref _isPasswordVisible, value);   // store the new value and tell the screen
     }
 
     // True while a request is on its way - disables the buttons and shows a spinner
     public bool IsBusy
     {
         get => _isBusy;
-        private set
+        private set   // only this class can change it
         {
             // Store the new value and tell the screen
             SetProperty(ref _isBusy, value);
 
             // Tell both buttons to ask again whether they are enabled (their rule is "!IsBusy")
-            SendCodeCommand.NotifyCanExecuteChanged();
-            ResetPasswordCommand.NotifyCanExecuteChanged();
+            SendCodeCommand.NotifyCanExecuteChanged();   // the SendCode button checks again whether it may run (turns on / off)
+            ResetPasswordCommand.NotifyCanExecuteChanged();   // the ResetPassword button checks again whether it may run (turns on / off)
         }
     }
 
@@ -103,13 +103,13 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     public bool IsCodeSent
     {
         get => _isCodeSent;
-        private set
+        private set   // only this class can change it
         {
             // Store the new value and tell the screen
             SetProperty(ref _isCodeSent, value);
 
             // ShowResetForm is computed from this value, so the screen is told by hand that it changed too
-            OnPropertyChanged(nameof(ShowResetForm));
+            OnPropertyChanged(nameof(ShowResetForm));   // tell the screen that ShowResetForm may have changed
         }
     }
 
@@ -117,13 +117,13 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     public bool IsSuccess
     {
         get => _isSuccess;
-        private set
+        private set   // only this class can change it
         {
             // Store the new value and tell the screen
             SetProperty(ref _isSuccess, value);
 
             // ShowResetForm depends on this value as well
-            OnPropertyChanged(nameof(ShowResetForm));
+            OnPropertyChanged(nameof(ShowResetForm));   // tell the screen that ShowResetForm may have changed
         }
     }
 
@@ -155,11 +155,11 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     // This tells it, by name, to read each of them again
     private void RaiseChecks()
     {
-        OnPropertyChanged(nameof(HasMinLength));
-        OnPropertyChanged(nameof(HasNumber));
-        OnPropertyChanged(nameof(HasSpecial));
-        OnPropertyChanged(nameof(PasswordsMatch));
-        OnPropertyChanged(nameof(ShowPasswordMismatch));
+        OnPropertyChanged(nameof(HasMinLength));   // tell the screen that HasMinLength may have changed
+        OnPropertyChanged(nameof(HasNumber));   // tell the screen that HasNumber may have changed
+        OnPropertyChanged(nameof(HasSpecial));   // tell the screen that HasSpecial may have changed
+        OnPropertyChanged(nameof(PasswordsMatch));   // tell the screen that PasswordsMatch may have changed
+        OnPropertyChanged(nameof(ShowPasswordMismatch));   // tell the screen that ShowPasswordMismatch may have changed
     }
 
     // ---- Messages ----
@@ -168,14 +168,14 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     public string? Error
     {
         get => _error;
-        private set => SetProperty(ref _error, value);
+        private set => SetProperty(ref _error, value);   // only this class sets it; store it and tell the screen
     }
 
     // A neutral message. null = nothing to show
     public string? Status
     {
         get => _status;
-        private set => SetProperty(ref _status, value);
+        private set => SetProperty(ref _status, value);   // only this class sets it; store it and tell the screen
     }
 
     // ---- Buttons ----
@@ -192,14 +192,14 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     private async Task SendCodeAsync()
     {
         // Clear the messages of the previous attempt
-        Status = null;
-        Error = null;
+        Status = null;   // hide the status line
+        Error = null;   // clear the old error message
 
         // A quick check before bothering the server: something was typed and it has an "@"
         if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@'))
         {
             Error = "Please enter a valid email address.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // From here we wait for the server: disable the buttons and show the spinner
@@ -218,7 +218,7 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
             // Switch the screen to the "code + new password" form
             IsCodeSent = true;
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done waiting: enable the buttons again
             IsBusy = false;
@@ -232,25 +232,25 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
     private async Task ResetPasswordAsync()
     {
         // Clear the error of the previous attempt
-        Error = null;
+        Error = null;   // clear the old error message
 
         // A code was typed
         if (string.IsNullOrWhiteSpace(Code))
         {
             Error = "Please enter the code from your email.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // Both password boxes hold the same text
         if (NewPassword != ConfirmPassword)
         {
             Error = "Passwords do not match.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // Disable the buttons and show the spinner
         IsBusy = true;
-        try
+        try   // "try" = run this; if anything inside fails, jump to the "catch" below
         {
             // Send the email, the code and the new password, and wait for the answer
             AuthResult result = await _api.ResetPasswordAsync(Email, Code, NewPassword);
@@ -262,7 +262,7 @@ public sealed class ForgotPasswordViewModel : ViewModelBase
             else
                 Error = result.Message; // "Invalid or expired code." / a password policy message
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done waiting: enable the buttons again
             IsBusy = false;

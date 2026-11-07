@@ -4,7 +4,7 @@ using System.Threading.Tasks;      // Task, async/await
 using CommunityToolkit.Mvvm.Input; // RelayCommand, AsyncRelayCommand, IRelayCommand - what a button runs
 using NetSim.App.Services;         // AuthApiClient, AuthResult
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Data and behaviour of the <b>create account</b> screen. Talks to the server via <see cref="AuthApiClient"/>.
@@ -52,48 +52,48 @@ public sealed class RegisterViewModel : ViewModelBase
     public string Username
     {
         get => _username;
-        set { SetProperty(ref _username, value); Error = null; RaiseChecks(); }
+        set { SetProperty(ref _username, value); Error = null; RaiseChecks(); }   // store it, tell the screen, clear the old error, and re-check the password rules
     }
 
     // The text of the email box. It has no part in the password checklist, so no RaiseChecks here
     public string Email
     {
         get => _email;
-        set { SetProperty(ref _email, value); Error = null; }
+        set { SetProperty(ref _email, value); Error = null; }   // store it, tell the screen, and clear the old error (the user is fixing it)
     }
 
     // The text of the password box. Every typed letter refreshes the checklist
     public string Password
     {
         get => _password;
-        set { SetProperty(ref _password, value); Error = null; RaiseChecks(); }
+        set { SetProperty(ref _password, value); Error = null; RaiseChecks(); }   // store it, tell the screen, clear the old error, and re-check the password rules
     }
 
     // The text of the "confirm password" box. Every typed letter refreshes the "passwords match" check
     public string ConfirmPassword
     {
         get => _confirmPassword;
-        set { SetProperty(ref _confirmPassword, value); Error = null; RaiseChecks(); }
+        set { SetProperty(ref _confirmPassword, value); Error = null; RaiseChecks(); }   // store it, tell the screen, clear the old error, and re-check the password rules
     }
 
     // true = the passwords are shown as readable text; switched by the "eye" button
     public bool IsPasswordVisible
     {
         get => _isPasswordVisible;
-        set => SetProperty(ref _isPasswordVisible, value);
+        set => SetProperty(ref _isPasswordVisible, value);   // store the new value and tell the screen
     }
 
     // True while a request is on its way - disables the button and shows a spinner
     public bool IsBusy
     {
         get => _isBusy;
-        private set
+        private set   // only this class can change it
         {
             // Store the new value and tell the screen
             SetProperty(ref _isBusy, value);
 
             // Tell the button to ask again whether it is enabled (its rule is "!IsBusy")
-            CreateAccountCommand.NotifyCanExecuteChanged();
+            CreateAccountCommand.NotifyCanExecuteChanged();   // the CreateAccount button checks again whether it may run (turns on / off)
         }
     }
 
@@ -131,12 +131,12 @@ public sealed class RegisterViewModel : ViewModelBase
     // This tells it, by name, to read each of them again. nameof(X) = the name of X as text
     private void RaiseChecks()
     {
-        OnPropertyChanged(nameof(HasMinLength));
-        OnPropertyChanged(nameof(HasNumber));
-        OnPropertyChanged(nameof(HasSpecial));
-        OnPropertyChanged(nameof(NotContainsUsername));
-        OnPropertyChanged(nameof(PasswordsMatch));
-        OnPropertyChanged(nameof(ShowPasswordMismatch));
+        OnPropertyChanged(nameof(HasMinLength));   // tell the screen that HasMinLength may have changed
+        OnPropertyChanged(nameof(HasNumber));   // tell the screen that HasNumber may have changed
+        OnPropertyChanged(nameof(HasSpecial));   // tell the screen that HasSpecial may have changed
+        OnPropertyChanged(nameof(NotContainsUsername));   // tell the screen that NotContainsUsername may have changed
+        OnPropertyChanged(nameof(PasswordsMatch));   // tell the screen that PasswordsMatch may have changed
+        OnPropertyChanged(nameof(ShowPasswordMismatch));   // tell the screen that ShowPasswordMismatch may have changed
     }
 
     // ---- Messages ----
@@ -145,14 +145,14 @@ public sealed class RegisterViewModel : ViewModelBase
     public string? Error
     {
         get => _error;
-        private set => SetProperty(ref _error, value);
+        private set => SetProperty(ref _error, value);   // only this class sets it; store it and tell the screen
     }
 
     // A neutral message. null = nothing to show
     public string? Status
     {
         get => _status;
-        private set => SetProperty(ref _status, value);
+        private set => SetProperty(ref _status, value);   // only this class sets it; store it and tell the screen
     }
 
     // ---- Buttons ----
@@ -168,29 +168,29 @@ public sealed class RegisterViewModel : ViewModelBase
     private async Task CreateAccountAsync()
     {
         // Clear the messages of the previous attempt
-        Status = null;
-        Error = null;
+        Status = null;   // hide the status line
+        Error = null;   // clear the old error message
 
         // Three quick checks before bothering the server. Each one shows an error and stops.
         // A username was typed
         if (string.IsNullOrWhiteSpace(Username))
         {
             Error = "Please choose a username.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // An email was typed and it has an "@"
         if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@'))
         {
             Error = "Please enter a valid email address.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // Both password boxes hold the same text
         if (Password != ConfirmPassword)
         {
             Error = "Passwords do not match.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // From here we wait for the server: disable the button and show the spinner
@@ -205,8 +205,8 @@ public sealed class RegisterViewModel : ViewModelBase
             // The account was created
             if (result.Success)
             {
-                Error = null;
-                Status = null;
+                Error = null;   // clear the old error message
+                Status = null;   // hide the status line
 
                 // Move to the "enter your code" screen, taking the email along
                 VerificationRequired?.Invoke(Email);
@@ -215,11 +215,11 @@ public sealed class RegisterViewModel : ViewModelBase
             // The server refused
             else
             {
-                Status = null;
+                Status = null;   // hide the status line
                 Error = result.Message; // server rules: weak password, email taken, ...
             }
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done waiting: enable the button again
             IsBusy = false;

@@ -1,4 +1,4 @@
-namespace NetSim.App.Services;
+namespace NetSim.App.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The server's public key, copied from the server's Keys/server-public.pem file.
 // The client uses it to make sure it is talking to the real server: only the holder of the matching

@@ -1,4 +1,4 @@
-namespace NetSim.Server.Networking;
+namespace NetSim.Server.Networking;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The names two kinds of log messages are written under. Constants, so the router that writes them
 // and the dashboard that looks for them use the same name without the text being typed twice

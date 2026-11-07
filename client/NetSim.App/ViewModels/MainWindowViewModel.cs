@@ -5,7 +5,7 @@ using NetSim.Application.State;                    // ICurrentUser - who is sign
 using NetSim.UI.ViewModels;                        // ShellViewModel - the signed-in simulator workspace, ported from NetSim.UI
 
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// The view model for the whole window. Its only job is <b>navigation</b>:
@@ -71,7 +71,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         get => _currentPage;
         // Private on purpose - which screen is showing is this ViewModel's own decision, nothing
         // outside this class should be able to force a screen change directly
-        private set
+        private set   // only this class can change it
         {
             // Inside "set", the word "value" is the new value that was assigned.
             // SetProperty (from the base ViewModelBase) stores the value and raises
@@ -83,8 +83,8 @@ public sealed class MainWindowViewModel : ViewModelBase
             // IsWorkspaceActive/IsAuthActive are computed from CurrentPage below, but C# has no way
             // of knowing that automatically - changing CurrentPage doesn't by itself notify anything
             // bound to these two, so we raise their change notifications by hand here
-            OnPropertyChanged(nameof(IsWorkspaceActive));
-            OnPropertyChanged(nameof(IsAuthActive));
+            OnPropertyChanged(nameof(IsWorkspaceActive));   // tell the screen that IsWorkspaceActive may have changed
+            OnPropertyChanged(nameof(IsAuthActive));   // tell the screen that IsAuthActive may have changed
         }
     }
 
@@ -105,20 +105,20 @@ public sealed class MainWindowViewModel : ViewModelBase
     public string? SignedInEmail
     {
         get => _signedInEmail;
-        private set => SetProperty(ref _signedInEmail, value);
+        private set => SetProperty(ref _signedInEmail, value);   // store the new value and tell the screen it changed
     }
 
     // The role of the signed-in user
     public string? SignedInRole
     {
         get => _signedInRole;
-        private set
+        private set   // only this class can change it
         {
             // Store the new role and tell the screen
             SetProperty(ref _signedInRole, value);
 
             // IsAdmin is computed from the role, so the screen is told by hand that it changed too
-            OnPropertyChanged(nameof(IsAdmin));
+            OnPropertyChanged(nameof(IsAdmin));   // tell the screen that IsAdmin may have changed
         }
     }
 
@@ -135,14 +135,14 @@ public sealed class MainWindowViewModel : ViewModelBase
         // Also reached from sign-out (via SignOutCommand), so this has to actively reset state back
         // to "nobody signed in" - it's not just a startup-only path
         SignedInEmail = null;
-        SignedInRole = null;
+        SignedInRole = null;   // no role
         
         // Throw away the previous user's Shell and navigation history, so the next sign-in starts clean.
         // "?." = only if there is a scope (there isn't one on first launch)
         _workspaceScope?.Dispose();
-        _workspaceScope = null;
+        _workspaceScope = null;   // no box is open now
 
-        _signedInToken = null;
+        _signedInToken = null;   // forget the previous user's token
 
 
         // A fresh instance every time (not resolved from DI - LoginViewModel has no dependencies of
@@ -172,7 +172,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         // Same pattern as ShowLogin: a fresh instance, and listen for "user wants to go back to login"
         var register = new RegisterViewModel();
-        register.SwitchToLoginRequested += ShowLogin;
+        register.SwitchToLoginRequested += ShowLogin;   // "Back to sign in" -> show the login screen
 
         // After the account is created, continue to the "enter your code" screen
         register.VerificationRequired += ShowVerifyEmail;
@@ -208,7 +208,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         // A fresh instance, and listen for "go back to the sign-in screen"
         var forgot = new ForgotPasswordViewModel();
-        forgot.SwitchToLoginRequested += ShowLogin;
+        forgot.SwitchToLoginRequested += ShowLogin;   // "Back to sign in" -> show the login screen
 
         // Put the screen in the window
         CurrentPage = forgot;
@@ -223,12 +223,12 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         // Remember who signed in
         SignedInEmail = email;
-        SignedInRole = role;
-        _signedInToken = token;
+        SignedInRole = role;   // remember the role ("User" / "Admin")
+        _signedInToken = token;   // remember the token for later requests
 
         // And open the simulator
 
-        ShowWorkspace();
+        ShowWorkspace();   // open the Shell
     }
 
 
@@ -255,7 +255,8 @@ public sealed class MainWindowViewModel : ViewModelBase
             // Tell the new box who signed in, before anything inside it is built - the class service
             // reads this to know which classes are "mine". "!" = we promise it's not null here
             // (ShowSignedIn set it just before calling this method)
-            _workspaceScope.ServiceProvider.GetRequiredService<ICurrentUser>().SignIn(SignedInEmail!);
+            _workspaceScope.ServiceProvider.GetRequiredService<ICurrentUser>().SignIn(SignedInEmail!, _signedInToken!);
+
         }
 
         // Build the Shell from inside the box, not from the main container, so it belongs to this sign-in
@@ -272,7 +273,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         // Without a token the server would refuse anyway, so there is nothing to show
         if ( _signedInToken is null)
-            return;
+            return;   // stop here - nothing more to do
 
         // The screen gets the token so it can prove to the server that an admin is asking
          var users = new UsersViewModel( _signedInToken);

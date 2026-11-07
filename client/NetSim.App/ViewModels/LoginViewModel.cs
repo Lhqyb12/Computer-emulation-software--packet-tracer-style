@@ -3,7 +3,7 @@ using System.Threading.Tasks;      // Task, async/await
 using CommunityToolkit.Mvvm.Input; // RelayCommand, AsyncRelayCommand, IRelayCommand - what a button runs
 using NetSim.App.Services;         // AuthApiClient, GoogleSignInService, AuthResult
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>
 /// Data and behaviour of the <b>sign in</b> screen. Talks to the server via <see cref="AuthApiClient"/>.
@@ -39,7 +39,7 @@ public sealed class LoginViewModel : ViewModelBase
         // RelayCommand = for a quick action. These two only raise an event:
         // "?.Invoke()" = call whoever subscribed to the event, if anybody did
         GoToRegisterCommand = new RelayCommand(() => SwitchToRegisterRequested?.Invoke());
-        GoToForgotPasswordCommand = new RelayCommand(() => SwitchToForgotPasswordRequested?.Invoke());
+        GoToForgotPasswordCommand = new RelayCommand(() => SwitchToForgotPasswordRequested?.Invoke());   // the "Forgot password?" link raises its event; MainWindowViewModel shows that screen
 
         // The "Continue with Google" button, also disabled while busy
         GoogleSignInCommand = new AsyncRelayCommand(SignInWithGoogleAsync, () => !IsBusy);
@@ -77,21 +77,21 @@ public sealed class LoginViewModel : ViewModelBase
     public string Email
     {
         get => _email;
-        set { SetProperty(ref _email, value); Error = null; }
+        set { SetProperty(ref _email, value); Error = null; }   // store it, tell the screen, and clear the old error (the user is fixing it)
     }
 
     // The text of the password box; works the same way as Email
     public string Password
     {
         get => _password;
-        set { SetProperty(ref _password, value); Error = null; }
+        set { SetProperty(ref _password, value); Error = null; }   // store it, tell the screen, and clear the old error (the user is fixing it)
     }
 
     // true = the password is shown as readable text; switched by the "eye" button
     public bool IsPasswordVisible
     {
         get => _isPasswordVisible;
-        set => SetProperty(ref _isPasswordVisible, value);
+        set => SetProperty(ref _isPasswordVisible, value);   // store the new value and tell the screen
     }
 
     /// <summary>True while a request is in flight – disables the button and shows a spinner.</summary>
@@ -99,14 +99,14 @@ public sealed class LoginViewModel : ViewModelBase
     {
         get => _isBusy;
         // "private set" = only this class can change it
-        private set
+        private set   // only this class can change it
         {
             // Store the new value and tell the screen
             SetProperty(ref _isBusy, value);
 
             // Tell both buttons to ask again whether they are enabled (their rule is "!IsBusy")
-            SignInCommand.NotifyCanExecuteChanged();
-            GoogleSignInCommand.NotifyCanExecuteChanged();
+            SignInCommand.NotifyCanExecuteChanged();   // the SignIn button checks again whether it may run (turns on / off)
+            GoogleSignInCommand.NotifyCanExecuteChanged();   // the GoogleSignIn button checks again whether it may run (turns on / off)
 
         }
     }
@@ -115,14 +115,14 @@ public sealed class LoginViewModel : ViewModelBase
     public string? Error
     {
         get => _error;
-        private set => SetProperty(ref _error, value);
+        private set => SetProperty(ref _error, value);   // only this class sets it; store it and tell the screen
     }
 
     // A neutral message, e.g. "Complete the sign-in in your browser...". null = nothing to show
     public string? Status
     {
         get => _status;
-        private set => SetProperty(ref _status, value);
+        private set => SetProperty(ref _status, value);   // only this class sets it; store it and tell the screen
     }
 
     // The commands the buttons of the screen are bound to. "{ get; }" = set once in the constructor
@@ -141,21 +141,21 @@ public sealed class LoginViewModel : ViewModelBase
     private async Task SignInAsync()
     {
         // Clear the messages of the previous attempt
-        Status = null;
-        Error = null;
+        Status = null;   // hide the status line
+        Error = null;   // clear the old error message
 
         // A quick check before bothering the server: something was typed and it has an "@"
         if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@'))
         {
             Error = "Please enter a valid email address.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // The password box must not be empty
         if (string.IsNullOrEmpty(Password))
         {
             Error = "Please enter your password.";
-            return;
+            return;   // stop here - nothing more to do
         }
 
         // From here we wait for the server: disable the buttons and show the spinner
@@ -170,8 +170,8 @@ public sealed class LoginViewModel : ViewModelBase
             // The server accepted the email and the password
             if (result.Success)
             {
-                Error = null;
-                Status = result.Message;
+                Error = null;   // clear the old error message
+                Status = result.Message;   // show the server's message
 
                 // Rings the SignedIn bell - if MainWindowViewModel (or anyone else) subscribed with
                 // +=, its handler runs right here, synchronously, before this method continues. The
@@ -191,11 +191,11 @@ public sealed class LoginViewModel : ViewModelBase
             else
             {
                 // Show the server's message as an error
-                Status = null;
-                Error = result.Message;
+                Status = null;   // hide the status line
+                Error = result.Message;   // show the server's reason, in red
             }
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done waiting: enable the buttons again
             IsBusy = false;
@@ -210,12 +210,12 @@ public sealed class LoginViewModel : ViewModelBase
     private async Task SignInWithGoogleAsync()
     {
         // Clear the messages of the previous attempt
-        Status = null;
-        Error = null;
+        Status = null;   // hide the status line
+        Error = null;   // clear the old error message
 
         // Disable the buttons and show the spinner
         IsBusy = true;
-        try
+        try   // "try" = run this; if anything inside fails, jump to the "catch" below
         {
             // Tell the user to look at the browser window that is about to open
             Status = "Complete the sign-in in your browser...";
@@ -229,8 +229,8 @@ public sealed class LoginViewModel : ViewModelBase
             // The server accepted the token
             if (result.Success)
             {
-                Error = null;
-                Status = result.Message;
+                Error = null;   // clear the old error message
+                Status = result.Message;   // show the server's message
 
                 // The email comes from the server's answer, because the user did not type one here
                 SignedIn?.Invoke(result.Email, result.Role, result.Token);
@@ -238,17 +238,17 @@ public sealed class LoginViewModel : ViewModelBase
             // The server refused
             else
             {
-                Status = null;
-                Error = result.Message;
+                Status = null;   // hide the status line
+                Error = result.Message;   // show the server's reason, in red
             }
         }
         // The browser step failed: closed, timed out after 2 minutes, or the settings are missing
         catch (Exception )
         {
-            Status = null;
+            Status = null;   // hide the status line
             Error = "Google sign-in was cancelled or failed.";
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done waiting: enable the buttons again
             IsBusy = false;

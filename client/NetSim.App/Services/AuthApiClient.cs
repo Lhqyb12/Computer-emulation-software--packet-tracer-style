@@ -5,7 +5,7 @@ using System.Text.Json;            // JsonSerializer - JSON text <-> C# objects
 
 
 
-namespace NetSim.App.Services;
+namespace NetSim.App.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // The shape of the JSON the server sends back (matches AuthResponse on the server)
 public class AuthResult
@@ -157,8 +157,162 @@ public class AuthApiClient
     {
         // Send the id of the user to delete, together with the admin's token
         AuthResult result = await SendAsync("delete-user", new { id }, token);
-        return result.Success;
+        return result.Success;   // true = the user was deleted
     }
+
+    
+    // Purpose: Asks the server for the signed-in user's own projects.
+    // Input:   token - the user's JWT from login (the server reads who is asking from it).
+    // Output:  a ProjectListResult - Success and the projects, or Success = false with the reason (never throws).
+    public async Task<ProjectListResult> GetProjectsAsync(string token)
+    {
+        // Sending or reading the answer can fail, so it runs inside "try"
+        try
+        {
+            // An empty data object: the token alone says whose projects to send
+            string replyJson = await SendRawAsync("get-projects", new { }, token);
+
+            // JSON text -> ProjectListResult object
+            var result = JsonSerializer.Deserialize<ProjectListResult>(replyJson, JsonOptions);
+
+            // "??" = if the answer was the JSON word "null", return a failed result instead
+            return result ?? new ProjectListResult { Success = false, Message = "No response from server." };
+        }
+        // The server could not be reached, or its answer was not valid JSON
+        catch (Exception)
+        {
+            return new ProjectListResult { Success = false, Message = "Could not reach the server. Is it running?" };
+        }
+    }
+
+    // Purpose: Asks the server to create or update one of the user's projects.
+    // Input:   project - the project to store; token - the user's JWT.
+    // Output:  a ProjectResult - Success and the project as stored, or Success = false with the reason (never throws).
+    public async Task<ProjectResult> SaveProjectAsync(ProjectDto project, string token)
+    {
+        // Sending or reading the answer can fail, so it runs inside "try"
+        try
+        {
+            // The project itself is the data of the message
+            string replyJson = await SendRawAsync("save-project", project, token);
+
+            // JSON text -> ProjectResult object
+            var result = JsonSerializer.Deserialize<ProjectResult>(replyJson, JsonOptions);
+
+            // "??" = if the answer was the JSON word "null", return a failed result instead
+            return result ?? new ProjectResult { Success = false, Message = "No response from server." };
+        }
+        // The server could not be reached, or its answer was not valid JSON
+        catch (Exception)
+        {
+            return new ProjectResult { Success = false, Message = "Could not reach the server. Is it running?" };
+        }
+    }
+
+    // Purpose: Asks the server for both halves of the Classes screen.
+    // Input:   token - the user's JWT (the server reads who is asking from it).
+    // Output:  a ClassroomListResult - Success and the two lists, or Success = false with the reason (never throws).
+    public async Task<ClassroomListResult> GetClassroomsAsync(string token)
+    {
+        // Sending or reading the answer can fail, so it runs inside "try"
+        try
+        {
+            // An empty data object: the token alone says whose classes to send
+            string replyJson = await SendRawAsync("get-classrooms", new { }, token);
+
+            // JSON text -> ClassroomListResult object
+            var result = JsonSerializer.Deserialize<ClassroomListResult>(replyJson, JsonOptions);
+
+            // "??" = if the answer was the JSON word "null", return a failed result instead
+            return result ?? new ClassroomListResult { Success = false, Message = "No response from server." };
+        }
+        // The server could not be reached, or its answer was not valid JSON
+        catch (Exception)
+        {
+            return new ClassroomListResult { Success = false, Message = "Could not reach the server. Is it running?" };
+        }
+    }
+
+    // Purpose: Asks the server to create a class; the signed-in user becomes its teacher.
+    // Input:   name - the class name; token - the user's JWT.
+    // Output:  a ClassroomResult - Success and the new class (with its code), or the reason (never throws).
+    // "new { name }" becomes { "name": "..." } - the shape of CreateClassroomRequest on the server
+    public Task<ClassroomResult> CreateClassroomAsync(string name, string token) =>
+        SendClassroomActionAsync("create-classroom", new { name }, token);
+
+    // Purpose: Asks the server to add the signed-in user as a student to the class with this code.
+    // Input:   joinCode - the code the student typed; token - the user's JWT.
+    // Output:  a ClassroomResult - Success and the class, or the reason (never throws).
+    public Task<ClassroomResult> JoinClassroomAsync(string joinCode, string token) =>
+        SendClassroomActionAsync("join-classroom", new { joinCode }, token);
+
+    // Purpose: Asks the server to take the signed-in user out of a class.
+    // Input:   id - the class's id; token - the user's JWT.
+    // Output:  a ClassroomResult - Success, or the reason (never throws).
+    public Task<ClassroomResult> LeaveClassroomAsync(Guid id, string token) =>
+        SendClassroomActionAsync("leave-classroom", new { id }, token);
+
+    // Purpose: Asks the server to remove a student from a class (only its teacher may).
+    // Input:   classroomId - the class; studentEmail - the student; token - the teacher's JWT.
+    // Output:  a ClassroomResult - Success, or the reason (never throws).
+    public Task<ClassroomResult> RemoveStudentAsync(Guid classroomId, string studentEmail, string token) =>
+        SendClassroomActionAsync("remove-student", new { classroomId, studentEmail }, token);
+
+    // Purpose: Asks the server to delete a class (only its teacher may).
+    // Input:   id - the class's id; token - the teacher's JWT.
+    // Output:  a ClassroomResult - Success, or the reason (never throws).
+    public Task<ClassroomResult> DeleteClassroomAsync(Guid id, string token) =>
+        SendClassroomActionAsync("delete-classroom", new { id }, token);
+
+    // Purpose: Sends one class action and reads the answer - shared by the five methods above, which
+    //          differ only in the message type and the data.
+    // Input:   type - the message type; data - the action's fields; token - the user's JWT.
+    // Output:  a ClassroomResult; any error becomes a failed result with a message (never throws).
+    private async Task<ClassroomResult> SendClassroomActionAsync(string type, object data, string token)
+    {
+        // Sending or reading the answer can fail, so it runs inside "try"
+        try
+        {
+            // Send the message and get the answer as JSON text
+            string replyJson = await SendRawAsync(type, data, token);
+
+            // JSON text -> ClassroomResult object
+            var result = JsonSerializer.Deserialize<ClassroomResult>(replyJson, JsonOptions);
+
+            // "??" = if the answer was the JSON word "null", return a failed result instead
+            return result ?? new ClassroomResult { Success = false, Message = "No response from server." };
+        }
+        // The server could not be reached, or its answer was not valid JSON
+        catch (Exception)
+        {
+            return new ClassroomResult { Success = false, Message = "Could not reach the server. Is it running?" };
+        }
+    }
+
+    // Purpose: Asks the server to delete one of the user's projects.
+    // Input:   id - the project's id; token - the user's JWT.
+    // Output:  a ProjectResult - Success, or Success = false with the reason (never throws).
+    public async Task<ProjectResult> DeleteProjectAsync(Guid id, string token)
+    {
+        // Sending or reading the answer can fail, so it runs inside "try"
+        try
+        {
+            // "new { id }" becomes { "id": "..." } - the shape of DeleteProjectRequest on the server
+            string replyJson = await SendRawAsync("delete-project", new { id }, token);
+
+            // JSON text -> ProjectResult object
+            var result = JsonSerializer.Deserialize<ProjectResult>(replyJson, JsonOptions);
+
+            // "??" = if the answer was the JSON word "null", return a failed result instead
+            return result ?? new ProjectResult { Success = false, Message = "No response from server." };
+        }
+        // The server could not be reached, or its answer was not valid JSON
+        catch (Exception)
+        {
+            return new ProjectResult { Success = false, Message = "Could not reach the server. Is it running?" };
+        }
+    }
+
 
 
 

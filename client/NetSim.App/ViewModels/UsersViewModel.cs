@@ -4,7 +4,7 @@ using System.Threading.Tasks;          // Task, async/await
 using CommunityToolkit.Mvvm.Input;     // RelayCommand, AsyncRelayCommand, IRelayCommand - what a button runs
 using NetSim.App.Services;             // AuthApiClient, UserSummaryDto
 
-namespace NetSim.App.ViewModels;
+namespace NetSim.App.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 /// <summary>Data and behaviour of the "user management" screen (Admin only).</summary>
 public sealed class UsersViewModel : ViewModelBase
@@ -15,7 +15,7 @@ public sealed class UsersViewModel : ViewModelBase
     // The JWT of the currently signed-in Admin - sent inside every message this screen sends,
     // so the server knows who's asking (see AuthApiClient.GetUsersAsync/DeleteUserAsync)
 
-    private readonly string _token;
+    private readonly string _token;   // the admin's token, sent with every request of this screen
 
 
     // The "backing fields" behind the two properties below
@@ -52,14 +52,14 @@ public sealed class UsersViewModel : ViewModelBase
     public bool IsBusy
     {
         get => _isBusy;
-        private set => SetProperty(ref _isBusy, value);
+        private set => SetProperty(ref _isBusy, value);   // store the new value and tell the screen it changed
     }
 
     // The error text shown in red. null = no error
     public string? Error
     {
         get => _error;
-        private set => SetProperty(ref _error, value);
+        private set => SetProperty(ref _error, value);   // only this class sets it; store it and tell the screen
     }
 
     // The commands the buttons of the screen are bound to
@@ -74,7 +74,7 @@ public sealed class UsersViewModel : ViewModelBase
     {
         // Show the spinner and clear the old error
         IsBusy = true;
-        Error = null;
+        Error = null;   // clear the old error message
 
         // "try ... finally" = whatever happens inside, the "finally" block runs at the end
         try
@@ -86,7 +86,7 @@ public sealed class UsersViewModel : ViewModelBase
             if (users is null)
             {
                 Error = "Could not load users. Are you still signed in as an Admin?";
-                return;
+                return;   // stop here - nothing more to do
             }
 
             // Empty the table on screen before filling it again
@@ -96,7 +96,7 @@ public sealed class UsersViewModel : ViewModelBase
             foreach (var dto in users)
                 Users.Add(new UserRowViewModel(dto, DeleteAsync));
         }
-        finally
+        finally   // "finally" always runs at the end - after success and after an error
         {
             // Done loading: hide the spinner (this runs even after the "return" above)
             IsBusy = false;
@@ -110,7 +110,7 @@ public sealed class UsersViewModel : ViewModelBase
     private async Task DeleteAsync(UserRowViewModel row)
     {
         // Clear the old error
-        Error = null;
+        Error = null;   // clear the old error message
 
         // Send the "delete-user" message with the user's id and our token. ok = the server deleted the user
         bool ok = await _api.DeleteUserAsync(row.Id, _token);
@@ -143,10 +143,10 @@ public sealed class UserRowViewModel : ViewModelBase
 
         // Copy the details the table shows
         Id = dto.Id;
-        Username = dto.Username;
-        Email = dto.Email;
-        Role = dto.Role;
-        LastLoginAt = dto.LastLoginAt;
+        Username = dto.Username;   // the display name
+        Email = dto.Email;   // the email
+        Role = dto.Role;   // "User" or "Admin"
+        LastLoginAt = dto.LastLoginAt;   // the last sign-in, or null
 
         // The Delete button of this row: call the delete method with this row itself ("this")
         DeleteCommand = new AsyncRelayCommand(() => _delete(this));

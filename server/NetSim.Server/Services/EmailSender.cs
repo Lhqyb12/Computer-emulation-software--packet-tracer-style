@@ -3,7 +3,7 @@ using MailKit.Security;                    // SecureSocketOptions - how the conn
 using MimeKit;                             // MimeMessage, MailboxAddress, TextPart - the parts of an email
 using Microsoft.Extensions.Configuration;  // IConfiguration - the server's settings
 
-namespace NetSim.Server.Services;
+namespace NetSim.Server.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // Sends real emails through SMTP - a thin wrapper around MailKit, so that the rest of the code (AuthService)
 // doesn't need to know anything about SMTP/MailKit itself, only to call SendAsync

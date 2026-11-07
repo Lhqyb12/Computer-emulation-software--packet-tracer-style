@@ -1,4 +1,4 @@
-namespace NetSim.Server.Dtos;
+namespace NetSim.Server.Dtos;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
 // DTO = Data Transfer Object. This class is deliberately "dumb" - no logic, just fields/properties for
 // shipping data to the client. It's kept separate from User (the real DB model) on purpose: this way a
