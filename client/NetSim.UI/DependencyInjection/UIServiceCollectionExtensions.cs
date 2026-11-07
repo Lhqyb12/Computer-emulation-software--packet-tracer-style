@@ -32,6 +32,9 @@ public static class UIServiceCollectionExtensions
         services.AddTransient<HomeViewModel>();   // the Home screen
         services.AddTransient<ProjectsViewModel>();   // the Projects screen
         services.AddTransient<ClassroomsViewModel>();   // the Classes screen
+        services.AddTransient<DeviceLibraryViewModel>();   // the Device Library panel (inside the workspace)
+        services.AddTransient<NetworkWorkspaceViewModel>();   // the Network Workspace screen
+
 
 
         // Return the list, so another Add...() can follow

@@ -30,6 +30,8 @@
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Notifications.axaml" />
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/Loading.axaml" />
   <StyleInclude Source="avares://NetSim.UI/Theme/Styles/EmptyState.axaml" />
+  <StyleInclude Source="avares://NetSim.UI/Theme/Styles/DeviceLibrary.axaml" />
+
 
 
 </Styles>

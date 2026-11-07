@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;   // IServiceCollection, AddScoped
 using NetSim.Application.Services;                // IProjectService, ProjectService, IClassroomService, ClassroomService
 using NetSim.Application.State;                   // IApplicationState, ApplicationState, ICurrentUser, CurrentUser
+using NetSim.Application.Canvas;                  // IDevicePlacementState, DevicePlacementState
+
 
 namespace NetSim.Application.DependencyInjection;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
@@ -21,6 +23,10 @@ public static class ApplicationServiceCollectionExtensions
 
         // Who is signed in - one per sign-in, filled by MainWindowViewModel right after the scope opens
         services.AddScoped<ICurrentUser, CurrentUser>();
+
+        // The device waiting to be placed on the canvas - one per sign-in, like the open project it belongs to
+        services.AddScoped<IDevicePlacementState, DevicePlacementState>();
+
 
         // Classes (IClassroomService) are NOT registered here any more: their rules now run on the server,
         // so NetSim.App decides which implementation to use (see CompositionRoot) - the same way it

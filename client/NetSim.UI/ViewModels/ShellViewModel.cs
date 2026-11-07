@@ -1,4 +1,4 @@
-using System.Threading.Tasks;                // Task - "a job that will finish later"
+﻿using System.Threading.Tasks;                // Task - "a job that will finish later"
 using CommunityToolkit.Mvvm.ComponentModel;  // [ObservableProperty] - writes the public property for a private field
 using CommunityToolkit.Mvvm.Input;           // [RelayCommand] - turns a method into a Command a button can call
 using NetSim.Application.Services;           // IProjectService - the project rules
@@ -58,6 +58,8 @@ public partial class ShellViewModel : ViewModelBase
     public bool IsHomeActive => CurrentViewModel is HomeViewModel;              // Home is shown
     public bool IsProjectsActive => CurrentViewModel is ProjectsViewModel;      // Projects is shown
     public bool IsClassroomsActive => CurrentViewModel is ClassroomsViewModel;  // Classes is shown
+    public bool IsWorkspaceActive => CurrentViewModel is NetworkWorkspaceViewModel;  // the Network Workspace is shown
+
 
     // Is a project open? Save / Save As / Close work only while this is true
     public bool HasCurrentProject => _projectService.CurrentProject is not null;
@@ -93,6 +95,13 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private void NavigateClassrooms() => _navigationService.NavigateTo<ClassroomsViewModel>();
 
+    // Purpose: The sidebar's "Network" button - shows the Network Workspace screen.
+    // Input:   nothing.
+    // Output:  nothing.
+    [RelayCommand]
+    private void NavigateWorkspace() => _navigationService.NavigateTo<NetworkWorkspaceViewModel>();
+
+
     // Purpose: "New Project" from the menu / toolbar - asks for a name and creates the project.
     // Input:   nothing.
     // Output:  a Task that finishes when the work is done (or the user cancelled).
@@ -114,6 +123,13 @@ public partial class ShellViewModel : ViewModelBase
 
         // No error on success, the message on failure
         ErrorMessage = creation.IsSuccess ? null : creation.ErrorMessage;
+
+        // It worked - go straight to the workspace, so the user can start building the new project's network
+        if (creation.IsSuccess)
+        {
+            _navigationService.NavigateTo<NetworkWorkspaceViewModel>();   // show the Network Workspace
+        }
+
     });
 
     // Purpose: "Open Project" from the menu / toolbar - goes to the Projects screen, where the user picks one.
@@ -246,6 +262,8 @@ public partial class ShellViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsHomeActive));   // tell the screen that IsHomeActive may have changed
         OnPropertyChanged(nameof(IsProjectsActive));   // tell the screen that IsProjectsActive may have changed
         OnPropertyChanged(nameof(IsClassroomsActive));   // tell the screen that IsClassroomsActive may have changed
+        OnPropertyChanged(nameof(IsWorkspaceActive));   // tell the screen that IsWorkspaceActive may have changed
+
 
         // The Back button checks CanGoBack again, so it turns on / off
         GoBackCommand.NotifyCanExecuteChanged();   // the GoBack button checks again whether it may run (turns on / off)

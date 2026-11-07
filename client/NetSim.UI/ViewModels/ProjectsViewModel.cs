@@ -26,7 +26,7 @@ public partial class ProjectsViewModel : ViewModelBase, INavigationAware
 {
     private readonly IProjectService _projectService;        // the project rules and storage
     private readonly IDialogService _dialogService;          // the pop-up windows
-    private readonly INavigationService _navigationService;  // moving between screens (kept for later use)
+    private readonly INavigationService _navigationService;  // moving between screens (to the workspace after open / create)
 
     // Every project the service returned, before search and sort. The search filters from this
     // list, so typing a letter does not ask the server again
@@ -119,6 +119,10 @@ public partial class ProjectsViewModel : ViewModelBase, INavigationAware
         // It worked - read the list again so the new project appears
         await LoadProjectsAsync();
 
+        // Go straight to the workspace, so the user can start building the new project's network
+        _navigationService.NavigateTo<NetworkWorkspaceViewModel>();   // show the Network Workspace
+
+
     });
 
     // Purpose: The "Open" button of one row - makes that project the open one.
@@ -141,6 +145,13 @@ public partial class ProjectsViewModel : ViewModelBase, INavigationAware
 
         // Read the list again so the "Active" mark moves to this row
         await LoadProjectsAsync();
+
+        // It opened - go straight to the workspace of this project
+        if (result.IsSuccess)
+        {
+            _navigationService.NavigateTo<NetworkWorkspaceViewModel>();   // show the Network Workspace
+        }
+
     });
 
 

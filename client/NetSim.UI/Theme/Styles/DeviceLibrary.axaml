@@ -1,0 +1,115 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Device Library: the group filter buttons ("chips") and the device cards.
+    Both are ordinary ListBox controls, restyled so they don't look like plain list rows.
+    "/template/ ContentPresenter#PART_ContentPresenter" = the inner part that the built-in
+    (Fluent) style paints - we paint the same part, so our colors win over the built-in ones.
+    The same pattern is already used in Styles/Buttons.axaml and Styles/Inputs.axaml.
+  -->
+
+  <!-- ===== The group filter buttons ===== -->
+
+  <!-- The list itself: no background, no border, no inner space -->
+  <Style Selector="ListBox.CategoryChips">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <!-- The buttons wrap onto a new line instead of scrolling -->
+  <Style Selector="ListBox.CategoryChips ScrollViewer">
+    <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+  </Style>
+
+  <!-- One button: size, space around it, fully round corners, small text, hand cursor -->
+  <Style Selector="ListBox.CategoryChips ListBoxItem">
+    <Setter Property="Padding" Value="10,4" />
+    <Setter Property="Margin" Value="0,0,6,6" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Full}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Caption}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight.Medium}" />
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+
+  <!-- A button at rest: surface color with a thin border -->
+  <Style Selector="ListBox.CategoryChips ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Full}" />
+  </Style>
+
+  <!-- The mouse is over a button: a slightly different color -->
+  <Style Selector="ListBox.CategoryChips ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Hover}" />
+  </Style>
+
+  <!-- The selected button: filled with the accent color, no border -->
+  <Style Selector="ListBox.CategoryChips ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Brush.Accent}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <!-- The selected button's text: a color that can be read on the accent color -->
+  <Style Selector="ListBox.CategoryChips ListBoxItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.OnAccent}" />
+  </Style>
+
+  <!-- ===== The device cards ===== -->
+
+  <!-- The list itself: no background, no border, no inner space -->
+  <Style Selector="ListBox.DeviceLibraryList">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <!-- One row: space below it, rounded corners, hand cursor, the card stretches to the full width -->
+  <Style Selector="ListBox.DeviceLibraryList ListBoxItem">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0,0,0,8" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+
+  <!-- The row's inner part gets the same rounded corners -->
+  <Style Selector="ListBox.DeviceLibraryList ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+  </Style>
+
+  <!-- The card at rest: surface color, thin border, rounded corners, inner space -->
+  <Style Selector="Border.DeviceCard">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Thickness.Hairline}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.MD}" />
+    <Setter Property="Padding" Value="12,10" />
+  </Style>
+
+  <!-- The mouse is over a card: a slightly different color -->
+  <Style Selector="ListBoxItem:pointerover Border.DeviceCard">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Hover}" />
+  </Style>
+
+  <!-- The selected card (= the device waiting to be placed): a "selected" color and an accent border -->
+  <Style Selector="ListBoxItem:selected Border.DeviceCard">
+    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Selected}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+  </Style>
+
+  <!-- The icon on a card: a soft gray -->
+  <Style Selector="Border.DeviceCard PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+  </Style>
+
+  <!-- The icon on the selected card: the accent color -->
+  <Style Selector="ListBoxItem:selected Border.DeviceCard PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+  </Style>
+
+</Styles>

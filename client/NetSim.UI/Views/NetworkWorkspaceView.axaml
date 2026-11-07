@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             xmlns:views="using:NetSim.UI.Views"
+             x:Class="NetSim.UI.Views.NetworkWorkspaceView"
+             x:DataType="vm:NetworkWorkspaceViewModel">
+
+  <!-- A Grid with one cell: both parts below sit in the same place, and only one of them is visible at a time -->
+  <Grid>
+
+    <!-- No project open: a friendly message instead of an empty workspace -->
+    <!-- "!" = the opposite: visible when HasCurrentProject is false -->
+    <Border IsVisible="{Binding !HasCurrentProject}">
+      <StackPanel Classes="EmptyState">
+        <PathIcon Data="{StaticResource Icon.Network}" />
+        <TextBlock Text="No project is currently open" Classes="EmptyStateTitle" />
+        <TextBlock Text="Open or create a project to start building your network."
+                   Classes="EmptyStateDescription" />
+        <!-- Calls GoToProjects in the view model (CommunityToolkit adds "Command" to the name) -->
+        <Button Content="Go to Projects" Classes="Primary" Margin="0,8,0,0" Command="{Binding GoToProjectsCommand}" />
+      </StackPanel>
+    </Border>
+
+    <!-- The workspace: visible only while a project is open -->
+    <!-- DockPanel = side panels "stick" to an edge, and the last child fills what is left -->
+    <DockPanel IsVisible="{Binding HasCurrentProject}">
+
+      <!-- The Device Library, stuck to the left edge. DataContext = it reads from the DeviceLibrary view model -->
+      <views:DeviceLibraryView DockPanel.Dock="Left" DataContext="{Binding DeviceLibrary}" />
+
+      <!-- The middle area. The Network Canvas (stage E) will be added here -->
+
+      <Panel>
+        <StackPanel Classes="EmptyState" IsHitTestVisible="False">
+          <PathIcon Data="{StaticResource Icon.Network}" />
+          <TextBlock Text="Your network is empty" Classes="EmptyStateTitle" />
+          <TextBlock Text="Add devices to start building your topology." Classes="EmptyStateDescription" />
+        </StackPanel>
+      </Panel>
+
+    </DockPanel>
+
+  </Grid>
+
+</UserControl>

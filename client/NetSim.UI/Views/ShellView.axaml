@@ -82,6 +82,15 @@
             </StackPanel>
           </Button>
 
+          <!-- Network: the workspace where the open project's network is built -->
+          <Button Classes="NavItem" Classes.Selected="{Binding IsWorkspaceActive}" Command="{Binding NavigateWorkspaceCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <PathIcon Data="{StaticResource Icon.Network}" Classes="SM" />
+              <TextBlock Text="Network" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
+
         </StackPanel>
       </Border>
 
