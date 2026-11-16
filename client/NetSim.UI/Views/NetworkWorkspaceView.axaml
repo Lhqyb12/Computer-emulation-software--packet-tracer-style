@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:NetSim.UI.ViewModels"
              xmlns:views="using:NetSim.UI.Views"
+             xmlns:controls="using:NetSim.UI.Controls"
              x:Class="NetSim.UI.Views.NetworkWorkspaceView"
              x:DataType="vm:NetworkWorkspaceViewModel">
 
@@ -28,14 +29,38 @@
       <!-- The Device Library, stuck to the left edge. DataContext = it reads from the DeviceLibrary view model -->
       <views:DeviceLibraryView DockPanel.Dock="Left" DataContext="{Binding DeviceLibrary}" />
 
-      <!-- The middle area. The Network Canvas (stage E) will be added here -->
-
+      <!-- The middle area (step 3): the Network Canvas, with two things floating above it.
+           Panel = all three children sit in the same place, one above the other (the last is on top) -->
       <Panel>
-        <StackPanel Classes="EmptyState" IsHitTestVisible="False">
+
+        <!-- The canvas itself. ViewModel = the Canvas view model of this screen.
+             The colors come from the theme with DynamicResource, so a dark / light switch reaches the canvas too -->
+        <controls:NetworkCanvasControl ViewModel="{Binding Canvas}"
+                                       CanvasBackground="{DynamicResource Brush.Canvas.Background}"
+                                       ItemFillBrush="{DynamicResource Brush.Surface}"
+                                       ItemBorderBrush="{DynamicResource Brush.Border.Strong}"
+                                       ItemTextBrush="{DynamicResource Brush.Text.Primary}"
+                                       AccentBrush="{DynamicResource Brush.Canvas.Selection}" />
+
+        <!-- The hint, only while the canvas has no devices and nothing is being placed.
+             IsHitTestVisible="False" = the mouse goes "through" it to the canvas below -->
+        <StackPanel Classes="EmptyState" IsHitTestVisible="False" IsVisible="{Binding Canvas.ShowEmptyHint}">
           <PathIcon Data="{StaticResource Icon.Network}" />
           <TextBlock Text="Your network is empty" Classes="EmptyStateTitle" />
-          <TextBlock Text="Add devices to start building your topology." Classes="EmptyStateDescription" />
+          <TextBlock Text="Pick a device in the Device Library and click here - or drag it onto the canvas."
+                     Classes="EmptyStateDescription" />
         </StackPanel>
+
+        <!-- An error from placing a device (e.g. no project is open), at the top of the canvas.
+             Visible only when Canvas.ErrorMessage has text - the same red box the other screens use -->
+        <Border Classes="Notification Error" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,12,0,0"
+                IsVisible="{Binding Canvas.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource Icon.Error}" Classes="SM Error" />
+            <TextBlock Text="{Binding Canvas.ErrorMessage}" Classes="Body" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
       </Panel>
 
     </DockPanel>

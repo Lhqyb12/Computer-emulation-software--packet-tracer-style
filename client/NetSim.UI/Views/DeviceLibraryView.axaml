@@ -54,8 +54,10 @@
         <!-- The cards, or the "nothing found" message - they fill the rest of the panel -->
         <Grid>
           <ScrollViewer IsVisible="{Binding HasResults}">
-            <!-- The selected card = the device waiting to be placed (SelectedEntry in the view model) -->
-            <ListBox Classes="DeviceLibraryList" ItemsSource="{Binding FilteredDevices}"
+            <!-- The selected card = the device waiting to be placed (SelectedEntry in the view model).
+                 x:Name = the code half (DeviceLibraryView.axaml.cs) can reach this list as "DeviceList",
+                 to start a drag the moment a card is pressed -->
+            <ListBox x:Name="DeviceList" Classes="DeviceLibraryList" ItemsSource="{Binding FilteredDevices}"
                      SelectedItem="{Binding SelectedEntry, Mode=TwoWay}">
               <!-- How one card looks: icon, name, description; the description is also shown as a tooltip -->
               <ListBox.ItemTemplate>
