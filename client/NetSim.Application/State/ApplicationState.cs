@@ -1,12 +1,35 @@
 using System;                        // EventHandler, EventArgs
 using NetSim.Application.Projects;   // Project
+using NetSim.Core.Topology;          // Network
 
 namespace NetSim.Application.State;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
-// Remembers which project is open and whether it has unsaved changes. It knows no rules - the
-// project service uses it to remember. One per sign-in (Scoped), so the next user starts clean
+// Remembers which project and network are open and whether there are unsaved changes. It knows no
+// rules - the services use it to remember. One per sign-in (Scoped), so the next user starts clean
 public sealed class ApplicationState : IApplicationState
 {
+    // The open network, or null. Only this class can change it
+    public Network? CurrentNetwork { get; private set; }
+
+    // Raised when the open network changes
+    public event EventHandler? CurrentNetworkChanged;
+
+    // Purpose:       Sets the open network (null = no network).
+    // Precondition:  none.
+    // Postcondition: CurrentNetwork is the given network; CurrentNetworkChanged was raised only if
+    //                it is a different object than before. "Unsaved changes" is NOT touched.
+    public void SetCurrentNetwork(Network? network)
+    {
+        // The very same network is already open - nothing changes, so no event
+        if (ReferenceEquals(CurrentNetwork, network))
+        {
+            return;   // stop here - nothing more to do
+        }
+
+        CurrentNetwork = network;                               // the new open network
+        CurrentNetworkChanged?.Invoke(this, EventArgs.Empty);   // tell the listeners (e.g. the canvas empties itself)
+    }
+
     // The open project, or null. Only this class can change it
     public Project? CurrentProject { get; private set; }
 

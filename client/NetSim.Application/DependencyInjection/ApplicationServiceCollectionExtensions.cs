@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;   // IServiceCollection, AddScoped
-using NetSim.Application.Services;                // IProjectService, ProjectService, IClassroomService, ClassroomService
+using NetSim.Application.Services;                // IProjectService, ProjectService, IDeviceService, DeviceService, IConnectionService, ConnectionService
 using NetSim.Application.State;                   // IApplicationState, ApplicationState, ICurrentUser, CurrentUser
-using NetSim.Application.Canvas;                  // IDevicePlacementState, DevicePlacementState
+using NetSim.Application.Canvas;                  // IDevicePlacementState, DevicePlacementState, ICanvasItemsState, CanvasItemsState
 
 
 namespace NetSim.Application.DependencyInjection;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
@@ -26,6 +26,13 @@ public static class ApplicationServiceCollectionExtensions
 
         // The device waiting to be placed on the canvas - one per sign-in, like the open project it belongs to
         services.AddScoped<IDevicePlacementState, DevicePlacementState>();
+
+        // Where every device sits on the canvas - one per sign-in, like the network it belongs to
+        services.AddScoped<ICanvasItemsState, CanvasItemsState>();
+
+        // The rules of devices (add / move / rename / remove) and of cables (connect / disconnect)
+        services.AddScoped<IDeviceService, DeviceService>();
+        services.AddScoped<IConnectionService, ConnectionService>();
 
 
         // Classes (IClassroomService) are NOT registered here any more: their rules now run on the server,

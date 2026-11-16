@@ -6,6 +6,7 @@ using NetSim.Application.Persistence;  // IProjectRepository - the place project
 using NetSim.Application.Projects;     // Project - one project's data
 using NetSim.Application.State;        // IApplicationState - which project is open, and unsaved changes
 using NetSim.Core.Common;              // EntityId - a project's unique id
+using NetSim.Core.Topology;            // Network - the devices and cables of a project
 
 namespace NetSim.Application.Services;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
 
@@ -78,6 +79,10 @@ public sealed class ProjectService : IProjectService
         // Store it, and wait. If this throws, the next lines don't run - so nothing unsaved becomes "open"
         await _repository.SaveAsync(project);   // store it, and wait
 
+        // A new project starts with a new, empty network. Done BEFORE the project is set, so whoever
+        // listens to "project changed" already finds the right network
+        OpenEmptyNetworkFor(project);
+
         // Make it the open project (this raises CurrentProjectChanged)
         _applicationState.SetCurrentProject(project);
 
@@ -103,6 +108,10 @@ public sealed class ProjectService : IProjectService
         // Write "opened now" into the project, and store that change
         project.MarkOpened(DateTime.UtcNow);
         await _repository.SaveAsync(project);   // store it, and wait
+
+        // For now an opened project gets an empty network: saving and loading the network itself
+        // comes in steps 13-15, and then this line will load the saved network instead
+        OpenEmptyNetworkFor(project);
 
         // Make it the open project
         _applicationState.SetCurrentProject(project);
@@ -171,7 +180,8 @@ public sealed class ProjectService : IProjectService
         // Store the copy
         await _repository.SaveAsync(copy);
 
-        // The copy becomes the open project
+        // The copy becomes the open project. The network is NOT replaced on purpose:
+        // "Save As" keeps working on the same devices and cables, now under the copy's name
         _applicationState.SetCurrentProject(copy);
 
         // Success, with the copy
@@ -234,7 +244,8 @@ public sealed class ProjectService : IProjectService
         // If the deleted project was the open one, close it - otherwise the app would keep a deleted project open
         if (CurrentProject is not null && CurrentProject.Id.Equals(projectId))
         {
-            _applicationState.SetCurrentProject(null);
+            _applicationState.SetCurrentNetwork(null);   // its network closes with it
+            _applicationState.SetCurrentProject(null);   // and nothing is open
         }
 
         // Success, nothing to return
@@ -246,8 +257,8 @@ public sealed class ProjectService : IProjectService
     // Output:  nothing.
     public void CloseCurrentProject()
     {
-        // null = no project is open
-        _applicationState.SetCurrentProject(null);
+        _applicationState.SetCurrentNetwork(null);   // the project's network closes with it
+        _applicationState.SetCurrentProject(null);   // null = no project is open
     }
 
     // Purpose: Changes the open project's description in memory only, and marks it "unsaved".
@@ -305,6 +316,12 @@ public sealed class ProjectService : IProjectService
         // No problem
         return null;
     }
+
+    // Purpose:       Opens a new, empty network for a project.
+    // Precondition:  project is not null and its name is not empty (ValidateNameAsync made sure of it).
+    // Postcondition: CurrentNetwork is a new network with no devices and no cables, named like the project.
+    private void OpenEmptyNetworkFor(Project project) =>
+        _applicationState.SetCurrentNetwork(new Network(project.Name));   // build it and make it the open one
 
     // Purpose: Cleans a description before it is stored.
     // Input:   description - what the user typed, may be null.
