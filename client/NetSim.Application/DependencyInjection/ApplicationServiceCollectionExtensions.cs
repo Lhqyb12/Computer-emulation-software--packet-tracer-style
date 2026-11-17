@@ -34,6 +34,11 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IDeviceService, DeviceService>();
         services.AddScoped<IConnectionService, ConnectionService>();
 
+        // Steps 4-5: what is selected on the canvas, and how the canvas is looked at (camera, grid, tool).
+        // One per sign-in; both reset themselves when another network is opened
+        services.AddScoped<ICanvasSelectionState, CanvasSelectionState>();
+        services.AddScoped<ICanvasState, CanvasState>();
+
 
         // Classes (IClassroomService) are NOT registered here any more: their rules now run on the server,
         // so NetSim.App decides which implementation to use (see CompositionRoot) - the same way it

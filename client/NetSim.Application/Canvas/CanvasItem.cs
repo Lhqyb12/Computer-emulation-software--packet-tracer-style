@@ -81,4 +81,12 @@ public sealed class CanvasItem
     public bool Contains(CanvasPoint worldPoint) =>
         worldPoint.X >= Position.X && worldPoint.X <= Position.X + Size.Width &&    // between the left and right edges
         worldPoint.Y >= Position.Y && worldPoint.Y <= Position.Y + Size.Height;     // and between the top and bottom edges
+
+    // Purpose:       Answers whether this item's box overlaps a rectangle (step 4: the selection rectangle).
+    // Precondition:  min is the rectangle's top-left corner and max its bottom-right corner, as world points.
+    // Postcondition: returns true when the two boxes share any area, otherwise false. Nothing is changed.
+    // Two boxes overlap when each one starts before the other one ends - on X and on Y
+    public bool Intersects(CanvasPoint min, CanvasPoint max) =>
+        Position.X < max.X && Position.X + Size.Width > min.X &&     // they overlap left-to-right
+        Position.Y < max.Y && Position.Y + Size.Height > min.Y;      // and top-to-bottom
 }

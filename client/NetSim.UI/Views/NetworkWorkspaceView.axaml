@@ -26,21 +26,107 @@
     <!-- DockPanel = side panels "stick" to an edge, and the last child fills what is left -->
     <DockPanel IsVisible="{Binding HasCurrentProject}">
 
+      <!-- ===== The workspace toolbar (step 5), stuck to the top edge, across the whole width =====
+           Each button calls a command of the Canvas view model (CommunityToolkit adds "Command" to the method name).
+           ToggleButton = a button that stays "pressed" - IsChecked shows which tool / option is on.
+           Mode=OneWay = the button only SHOWS the value; clicking runs the command, which changes the value -->
+      <Border Classes="Toolbar" DockPanel.Dock="Top">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+
+          <!-- The three tools: Select (step 4), Pan (step 5), Connect (step 6) -->
+          <ToggleButton Classes="ToolbarButton" IsChecked="{Binding Canvas.IsSelectToolActive, Mode=OneWay}"
+                        Command="{Binding Canvas.SelectToolCommand}" ToolTip.Tip="Select and move (drag on empty space to select an area)">
+            <PathIcon Data="{StaticResource Icon.Cursor}" Classes="SM" />
+          </ToggleButton>
+          <ToggleButton Classes="ToolbarButton" IsChecked="{Binding Canvas.IsPanToolActive, Mode=OneWay}"
+                        Command="{Binding Canvas.PanToolCommand}" ToolTip.Tip="Pan (or hold Space / the middle mouse button and drag)">
+            <PathIcon Data="{StaticResource Icon.Pan}" Classes="SM" />
+          </ToggleButton>
+          <ToggleButton Classes="ToolbarButton" IsChecked="{Binding Canvas.IsConnectToolActive, Mode=OneWay}"
+                        Command="{Binding Canvas.ConnectToolCommand}" ToolTip.Tip="Connect: click a device, then a second device">
+            <PathIcon Data="{StaticResource Icon.Connection}" Classes="SM" />
+          </ToggleButton>
+
+          <!-- A thin line between groups -->
+          <Rectangle Classes="ToolbarSeparator" />
+
+          <!-- Delete the selection (step 4) - grey and disabled while nothing is selected (CanExecute) -->
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.DeleteSelectionCommand}" ToolTip.Tip="Delete selected (Delete)">
+            <PathIcon Data="{StaticResource Icon.Delete}" Classes="SM" />
+          </Button>
+
+          <Rectangle Classes="ToolbarSeparator" />
+
+          <!-- Zoom out / the zoom in percent / zoom in (step 5) -->
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.ZoomOutCommand}" ToolTip.Tip="Zoom out">
+            <PathIcon Data="{StaticResource Icon.ZoomOut}" Classes="SM" />
+          </Button>
+          <TextBlock Text="{Binding Canvas.ZoomPercentText}" Classes="Caption" VerticalAlignment="Center" Width="44" TextAlignment="Center" />
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.ZoomInCommand}" ToolTip.Tip="Zoom in (or use the mouse wheel)">
+            <PathIcon Data="{StaticResource Icon.ZoomIn}" Classes="SM" />
+          </Button>
+
+          <Rectangle Classes="ToolbarSeparator" />
+
+          <!-- Fit everything in view / back to the starting view -->
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.FitToViewCommand}" ToolTip.Tip="Fit to view">
+            <PathIcon Data="{StaticResource Icon.FitToView}" Classes="SM" />
+          </Button>
+          <Button Classes="ToolbarButton" Command="{Binding Canvas.ResetViewCommand}" ToolTip.Tip="Reset view">
+            <PathIcon Data="{StaticResource Icon.ViewReset}" Classes="SM" />
+          </Button>
+
+          <Rectangle Classes="ToolbarSeparator" />
+
+          <!-- Show the grid / snap to it -->
+          <ToggleButton Classes="ToolbarButton" IsChecked="{Binding Canvas.IsGridVisible, Mode=OneWay}"
+                        Command="{Binding Canvas.ToggleGridCommand}" ToolTip.Tip="Show grid">
+            <PathIcon Data="{StaticResource Icon.Grid}" Classes="SM" />
+          </ToggleButton>
+          <ToggleButton Classes="ToolbarButton" IsChecked="{Binding Canvas.IsSnapToGridEnabled, Mode=OneWay}"
+                        Command="{Binding Canvas.ToggleSnapToGridCommand}" ToolTip.Tip="Snap to grid">
+            <PathIcon Data="{StaticResource Icon.Snap}" Classes="SM" />
+          </ToggleButton>
+
+        </StackPanel>
+      </Border>
+
       <!-- The Device Library, stuck to the left edge. DataContext = it reads from the DeviceLibrary view model -->
       <views:DeviceLibraryView DockPanel.Dock="Left" DataContext="{Binding DeviceLibrary}" />
 
-      <!-- The middle area (step 3): the Network Canvas, with two things floating above it.
-           Panel = all three children sit in the same place, one above the other (the last is on top) -->
+      <!-- The middle area: the Network Canvas, with a few things floating above it.
+           Panel = all the children sit in the same place, one above the other (the last is on top) -->
       <Panel>
 
         <!-- The canvas itself. ViewModel = the Canvas view model of this screen.
              The colors come from the theme with DynamicResource, so a dark / light switch reaches the canvas too -->
         <controls:NetworkCanvasControl ViewModel="{Binding Canvas}"
                                        CanvasBackground="{DynamicResource Brush.Canvas.Background}"
+                                       GridBrush="{DynamicResource Brush.Canvas.Grid}"
                                        ItemFillBrush="{DynamicResource Brush.Surface}"
                                        ItemBorderBrush="{DynamicResource Brush.Border.Strong}"
                                        ItemTextBrush="{DynamicResource Brush.Text.Primary}"
-                                       AccentBrush="{DynamicResource Brush.Canvas.Selection}" />
+                                       AccentBrush="{DynamicResource Brush.Canvas.Selection}"
+                                       HoverBrush="{DynamicResource Brush.Accent.Hover}"
+                                       ConnectionBrush="{DynamicResource Brush.Canvas.Connection}" />
+
+        <!-- A hint (not an error) at the top - e.g. the Connect tool's next step (step 6). Visible only when it has text -->
+        <Border Classes="Notification Info" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,12,0,0"
+                IsHitTestVisible="False"
+                IsVisible="{Binding Canvas.HintMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource Icon.Info}" Classes="SM" />
+            <TextBlock Text="{Binding Canvas.HintMessage}" Classes="Body" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- The world point under the mouse, in the bottom-right corner (step 5).
+             IsHitTestVisible="False" = the mouse goes through it to the canvas -->
+        <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12" Padding="8,4"
+                Background="{DynamicResource Brush.Bg.Panel}" BorderBrush="{DynamicResource Brush.Border.Default}"
+                BorderThickness="1" CornerRadius="{DynamicResource Radius.SM}" IsHitTestVisible="False">
+          <TextBlock Text="{Binding Canvas.PointerCoordinatesText}" Classes="Caption" FontFamily="Consolas,monospace" />
+        </Border>
 
         <!-- The hint, only while the canvas has no devices and nothing is being placed.
              IsHitTestVisible="False" = the mouse goes "through" it to the canvas below -->
@@ -51,7 +137,7 @@
                      Classes="EmptyStateDescription" />
         </StackPanel>
 
-        <!-- An error from placing a device (e.g. no project is open), at the top of the canvas.
+        <!-- An error (placing a device, or the Connect tool: e.g. "PC0 has no free port"), at the top of the canvas.
              Visible only when Canvas.ErrorMessage has text - the same red box the other screens use -->
         <Border Classes="Notification Error" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,12,0,0"
                 IsVisible="{Binding Canvas.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
