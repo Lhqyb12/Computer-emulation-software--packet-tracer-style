@@ -8,26 +8,29 @@ namespace NetSim.Application.State;   // the namespace = the "address" of the cl
 // rules - the services use it to remember. One per sign-in (Scoped), so the next user starts clean
 public sealed class ApplicationState : IApplicationState
 {
-    // The open network, or null. Only this class can change it
+    // The network of the open project (its devices and cables), or null when no project is open.
+    // "Network?" = a Network OR null; "private set" = everyone can read it, only this class can change it (SetCurrentNetwork)
     public Network? CurrentNetwork { get; private set; }
 
-    // Raised when the open network changes
+    // Raised when a different network becomes the open one (or the network is closed). "?" = may have no listeners
     public event EventHandler? CurrentNetworkChanged;
 
-    // Purpose:       Sets the open network (null = no network).
-    // Precondition:  none.
-    // Postcondition: CurrentNetwork is the given network; CurrentNetworkChanged was raised only if
-    //                it is a different object than before. "Unsaved changes" is NOT touched.
+    // Purpose:       Sets the open network.
+    // Precondition:  receives network - the network to open, or null to close it (no network).
+    // Postcondition: returns nothing - CurrentNetwork is the given network; CurrentNetworkChanged was raised only if it is
+    //                a different object than before. The "unsaved changes" flag is NOT touched.
     public void SetCurrentNetwork(Network? network)
     {
-        // The very same network is already open - nothing changes, so no event
+        // ReferenceEquals = "is it the very same object in memory?" - the same network is already open, so nothing
+        // changes and no event is raised (the canvas would empty itself for nothing)
         if (ReferenceEquals(CurrentNetwork, network))
         {
             return;   // stop here - nothing more to do
         }
 
-        CurrentNetwork = network;                               // the new open network
-        CurrentNetworkChanged?.Invoke(this, EventArgs.Empty);   // tell the listeners (e.g. the canvas empties itself)
+        CurrentNetwork = network;                               // keep the new open network
+        // Tell the listeners ("?." = only if someone listens): the canvas, the selection and the view empty / reset themselves
+        CurrentNetworkChanged?.Invoke(this, EventArgs.Empty);
     }
 
     // The open project, or null. Only this class can change it

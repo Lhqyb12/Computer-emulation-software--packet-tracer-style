@@ -318,10 +318,13 @@ public sealed class ProjectService : IProjectService
     }
 
     // Purpose:       Opens a new, empty network for a project.
-    // Precondition:  project is not null and its name is not empty (ValidateNameAsync made sure of it).
-    // Postcondition: CurrentNetwork is a new network with no devices and no cables, named like the project.
+    // Precondition:  receives project - the project being created / opened (not null, and its name is not empty -
+    //                ValidateNameAsync made sure of it).
+    // Postcondition: returns nothing - CurrentNetwork is a new network with no devices and no cables, named like the project.
+    // "new Network(project.Name)" = build an empty network (Core, step 1) with the project's name;
+    // SetCurrentNetwork makes it the open one (and the canvas, selection and view reset themselves)
     private void OpenEmptyNetworkFor(Project project) =>
-        _applicationState.SetCurrentNetwork(new Network(project.Name));   // build it and make it the open one
+        _applicationState.SetCurrentNetwork(new Network(project.Name));
 
     // Purpose: Cleans a description before it is stored.
     // Input:   description - what the user typed, may be null.

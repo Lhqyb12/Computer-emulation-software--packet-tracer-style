@@ -156,10 +156,11 @@ public sealed class Network
     // Purpose:       Connects two ports with a cable - the only way to add a cable to the network.
     //                Checks that both devices are in this network and that these two ports are not already joined;
     //                the other rules (not itself, ports free, cable kinds fit) are checked by Connection.Create.
-    // Precondition:  endpointA and endpointB are not null; connectionType is the cable kind
-    //                (straight-through copper when not given).
-    // Postcondition: the new cable is in the network and plugged in; its link is Up when the cable kind is the
-    //                right one for these two devices, otherwise Down (step 7). Throws DomainException when a rule is broken.
+    // Precondition:  receives endpointA, endpointB - the two ports to join (not null, their devices in this network);
+    //                connectionType - the cable kind ("= CopperStraightThrough" = straight-through copper when not given).
+    // Postcondition: returns the new cable (Connection) - it is in the network and plugged into both ports, and its link
+    //                is Up when the cable kind is the right one for these two devices, otherwise Down (step 7).
+    //                Throws DomainException when a rule is broken.
     public Connection Connect(
         NetworkInterface endpointA,
         NetworkInterface endpointB,
@@ -190,7 +191,8 @@ public sealed class Network
         // Make the cable (Connection.Create checks the other rules and plugs it into both ports)
         var connection = Connection.Create(endpointA, endpointB, connectionType);
 
-        // Step 7: does the link work? (the right cable kind, both ports turned on) - Up or Down
+        // Step 7: does the new cable's link work (the right cable kind, both ports turned on)? ApplyLinkState (below)
+        // marks the cable and its two ports Up or Down. (Before step 7 every cable was simply marked Up here)
         ApplyLinkState(connection);
 
         _connections.Add(connection);                                 // put it in the list
@@ -235,29 +237,34 @@ public sealed class Network
     }
 
     // Purpose:       Decides whether a cable's link works, and marks the cable and its two ports Up or Down (step 7).
-    // Precondition:  connection is plugged into both of its ports.
-    // Postcondition: Up when both ports are turned on AND the cable kind is the right one for the two
-    //                devices (CableRules.WillLinkWork); otherwise the cable and both ports are Down.
+    // Precondition:  receives connection - a cable that was just plugged into both of its ports.
+    // Postcondition: returns nothing - the cable and both its ports are Up when both ports are turned on AND the cable
+    //                kind is the right one for the two devices (CableRules.WillLinkWork); otherwise all three are Down.
     //                Like Packet Tracer: a wrong copper cable stays plugged in, it just does not work.
+    // "private" = only this class uses it; "static" = it doesn't use the network's own lists, only the cable it receives
     private static void ApplyLinkState(Connection connection)
     {
-        var a = connection.EndpointA;   // the first port
-        var b = connection.EndpointB;   // the second port
+        var a = connection.EndpointA;   // the port at the cable's first end (a short name, so the lines below stay readable)
+        var b = connection.EndpointB;   // the port at the cable's second end
 
-        // Both ports on, and the right kind of cable ("out _" = we don't need the reason here)
+        // Does the link work? All three must be true ("&&" = AND):
+        //   a.IsEnabled - the first port is turned on (not "shutdown" by the user);
+        //   b.IsEnabled - the second port is turned on;
+        //   WillLinkWork - the cable kind is the right one for these two devices (e.g. not a crossover between a PC and a switch).
+        // "out _" = WillLinkWork also gives a reason, but here we only need the yes / no answer, so "_" throws the reason away
         var works = a.IsEnabled && b.IsEnabled && CableRules.WillLinkWork(connection.ConnectionType, a, b, out _);
 
         if (works)
         {
-            connection.BringUp();   // the cable passes traffic
-            a.BringUp();            // and both ports are up
-            b.BringUp();
+            connection.BringUp();   // the cable passes traffic: its State becomes Up
+            a.BringUp();            // the first port is working: its OperationalState becomes Up
+            b.BringUp();            // and so is the second port
         }
         else
         {
-            connection.BringDown(); // plugged in, but not working
-            a.BringDown();          // both ports down
-            b.BringDown();
+            connection.BringDown(); // the cable stays plugged in, but it does not pass anything: State = Down
+            a.BringDown();          // the first port is not working
+            b.BringDown();          // nor the second
         }
     }
 
@@ -270,10 +277,10 @@ public sealed class Network
         // Unplug it from both ports
         connection.Disconnect();
 
-        // Step 7: with no cable, the link is gone - the cable and both ports are down
-        connection.BringDown();
-        connection.EndpointA.BringDown();
-        connection.EndpointB.BringDown();
+        // Step 7: with the cable unplugged there is no link any more, so everything is marked down
+        connection.BringDown();             // the cable itself: State = Down
+        connection.EndpointA.BringDown();   // the port it was plugged into at its first end: not working any more
+        connection.EndpointB.BringDown();   // and the port at its second end
 
         _connections.Remove(connection);                                       // the list
         _connectionsById.Remove(connection.Id);                                // the id dictionary

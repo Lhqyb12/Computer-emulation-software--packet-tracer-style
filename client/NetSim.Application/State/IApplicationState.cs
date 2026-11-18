@@ -14,11 +14,12 @@ public interface IApplicationState
     // Raised when a different network becomes the open one (or the network is closed)
     event EventHandler? CurrentNetworkChanged;
 
-    // Purpose:       Sets the open network (null = no network).
-    // Precondition:  none (ProjectService calls it right BEFORE SetCurrentProject, so whoever
-    //                listens to "project changed" already finds the right network).
-    // Postcondition: CurrentNetwork is the given network; CurrentNetworkChanged was raised only if
-    //                it is a different object than before. "Unsaved changes" is NOT touched.
+    // Purpose:       Sets the open network.
+    // Precondition:  receives network - the network to open, or null to close it (no network).
+    //                (ProjectService calls it right BEFORE SetCurrentProject, so whoever listens to "project changed"
+    //                already finds the right network.)
+    // Postcondition: returns nothing - CurrentNetwork is the given network; CurrentNetworkChanged was raised only if it
+    //                is a different object than before. The "unsaved changes" flag is NOT touched.
     void SetCurrentNetwork(Network? network);
 
     // The open project, or null if none is open
