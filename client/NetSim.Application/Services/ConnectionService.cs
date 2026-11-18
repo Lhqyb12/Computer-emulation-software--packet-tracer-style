@@ -37,7 +37,7 @@ public sealed class ConnectionService : IConnectionService
     // Precondition:  a project is open; both ports are in its network and turned on.
     // Postcondition: success - cable in the network + project "unsaved" + ConnectionsChanged;
     //                failure - nothing changed.
-    public OperationResult<Connection> Connect(NetworkInterface endpointA, NetworkInterface endpointB, ConnectionType connectionType = ConnectionType.Copper)
+    public OperationResult<Connection> Connect(NetworkInterface endpointA, NetworkInterface endpointB, ConnectionType connectionType = ConnectionType.CopperStraightThrough)
     {
         // null is not allowed - stop with a clear message
         ArgumentNullException.ThrowIfNull(endpointA);

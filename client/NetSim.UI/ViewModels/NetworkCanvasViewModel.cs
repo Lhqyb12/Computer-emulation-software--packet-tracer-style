@@ -7,6 +7,7 @@ using NetSim.Application.Services;         // IDeviceService, IConnectionService
 using NetSim.Application.State;            // IApplicationState - the open network
 using NetSim.Core.Common;                  // EntityId
 using NetSim.Core.Devices;                 // DeviceType
+using NetSim.Core.Networking;              // ConnectionType, CableRules (step 7)
 using NetSim.UI.Common;                    // ViewModelBase - IsBusy, ErrorMessage
 
 namespace NetSim.UI.ViewModels;   // the namespace = the "address" of the classes in this file; other files reach them with "using"
@@ -138,13 +139,72 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
     public bool IsPlacingDevice => _placementState.IsPlacing;
 
     // A hint for the user (not an error), shown in a blue box: the Connect tool's next step or its success.
-    // "a ?? b" = a, or b when a is null
     public string? HintMessage =>
         ConnectionTool.StatusMessage is { } message && !ConnectionTool.IsStatusError
-            ? message                                                                  // the tool's own hint / success
+            ? message                                    // the tool's own hint / success
             : IsConnectToolActive && ConnectionTool.StatusMessage is null
-                ? "Connect tool: click a device, then a second device, to cable them."  // how to start
-                : null;                                                                 // no hint
+                ? ConnectToolStartHint                   // how to start, for the cable picked
+                : null;                                  // no hint
+
+    // How to start with the cable picked in the toolbar (step 7)
+    private string ConnectToolStartHint => ConnectionTool.SelectedCableType is { } cableType
+        ? $"{CableRules.DisplayName(cableType)} cable: click a device and choose a port, then do the same on the second device."
+        : "Automatic cable: click a device, then a second device - the right cable and free ports are picked for you.";
+
+    // ----- The cable picker in the toolbar (step 7) -----
+
+    // The lines of the toolbar's cable list. "Automatic" has no type (null)
+    public IReadOnlyList<CableOption> CableOptions { get; } =
+    [
+        new("Automatic", null),                                       // the right cable is picked by itself
+        new("Copper Straight-Through", ConnectionType.CopperStraightThrough),   // different devices
+        new("Copper Cross-Over", ConnectionType.CopperCrossover),     // devices of the same kind
+        new("Fiber", ConnectionType.Fiber),                           // Gigabit ports only
+        new("Serial", ConnectionType.Serial),                         // router Serial ports only
+    ];
+
+    // The line picked in the cable list (TwoWay - the list writes it back here)
+    public CableOption SelectedCableOption
+    {
+        // The line whose type is the tool's cable (Automatic when none matches)
+        get => CableOptions.FirstOrDefault(o => o.Type == ConnectionTool.SelectedCableType) ?? CableOptions[0];
+        set
+        {
+            // The list can hand back null for a moment - ignore that
+            if (value is null)
+            {
+                return;   // stop here
+            }
+
+            ConnectionTool.SelectCable(value.Type);                 // the tool uses this cable from now on
+            _canvasState.SetCurrentTool(CanvasTool.Connect);        // picking a cable = "I want to connect" (like Packet Tracer)
+        }
+    }
+
+    // ----- The "choose a port" list (step 7) -----
+
+    // Is the list open
+    public bool IsPortPickerOpen => ConnectionTool.IsPortPickerOpen;
+
+    // Its title and its lines
+    public string? PortPickerTitle => ConnectionTool.PortPickerTitle;
+    public IReadOnlyList<PortOption> PortPickerOptions => ConnectionTool.PortPickerOptions;
+
+    // Where it opens on the SCREEN: the device's bottom-left corner, through the camera (so it follows zoom / scroll)
+    public double PortPickerLeft => Viewport.WorldToScreen(ConnectionTool.PortPickerAnchor).X;
+    public double PortPickerTop => Viewport.WorldToScreen(ConnectionTool.PortPickerAnchor).Y + 4;   // 4 units below the box
+
+    // Purpose:       A port was clicked in the list.
+    // Precondition:  portName is the full name of a line in the list.
+    // Postcondition: the Connect tool used it (first end, or the cable was made).
+    [RelayCommand]
+    private void ChoosePort(string portName) => ConnectionTool.ChoosePort(portName);
+
+    // Purpose:       The list's "Cancel" button - gives up the cable being made.
+    // Precondition:  none.
+    // Postcondition: no list, nothing picked.
+    [RelayCommand]
+    private void CancelConnection() => ConnectionTool.Cancel();
 
     // Purpose:       Answers whether a device or a cable is selected (the control draws it highlighted).
     // Precondition:  none.
@@ -367,6 +427,8 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(Viewport));          // the camera itself
         OnPropertyChanged(nameof(ZoomPercentText));   // "125%"
+        OnPropertyChanged(nameof(PortPickerLeft));    // an open port list follows its device
+        OnPropertyChanged(nameof(PortPickerTop));
         Redraw();                                     // everything moves / grows
     }
 
@@ -432,8 +494,14 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
         // A problem is shown in the red box; anything else clears it
         ErrorMessage = ConnectionTool.IsStatusError ? ConnectionTool.StatusMessage : null;
 
-        OnPropertyChanged(nameof(HintMessage));   // the blue box
-        Redraw();                                 // the rubber band / the new cable
+        OnPropertyChanged(nameof(HintMessage));          // the blue box
+        OnPropertyChanged(nameof(SelectedCableOption));  // the toolbar's cable list (step 7)
+        OnPropertyChanged(nameof(IsPortPickerOpen));     // the port list: open?
+        OnPropertyChanged(nameof(PortPickerTitle));      // its title
+        OnPropertyChanged(nameof(PortPickerOptions));    // its lines
+        OnPropertyChanged(nameof(PortPickerLeft));       // its place
+        OnPropertyChanged(nameof(PortPickerTop));
+        Redraw();                                        // the rubber band / the new cable
     }
 
     // Purpose:       Asks the canvas control to draw again.
@@ -441,3 +509,7 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
     // Postcondition: RedrawRequested was raised (if anyone listens).
     private void Redraw() => RedrawRequested?.Invoke(this, EventArgs.Empty);
 }
+
+// One line in the toolbar's cable list (step 7): the text, and the cable kind (null = Automatic).
+// "record" = holds data only; "sealed" = nothing inherits from it
+public sealed record CableOption(string Label, ConnectionType? Type);

@@ -153,15 +153,17 @@ public sealed class Network
 
     // ----- Cables -----
 
-    // Purpose: Connects two ports with a cable - the only way to add a cable to the network.
-    //          Checks that both devices are in this network and that these two ports are not already joined;
-    //          the other rules (not itself, ports free, cable kinds fit) are checked by Connection.Create.
-    // Input:   endpointA, endpointB - the two ports; connectionType - the material (Copper when not given).
-    // Output:  the new cable. Throws DomainException when a rule is broken.
+    // Purpose:       Connects two ports with a cable - the only way to add a cable to the network.
+    //                Checks that both devices are in this network and that these two ports are not already joined;
+    //                the other rules (not itself, ports free, cable kinds fit) are checked by Connection.Create.
+    // Precondition:  endpointA and endpointB are not null; connectionType is the cable kind
+    //                (straight-through copper when not given).
+    // Postcondition: the new cable is in the network and plugged in; its link is Up when the cable kind is the
+    //                right one for these two devices, otherwise Down (step 7). Throws DomainException when a rule is broken.
     public Connection Connect(
         NetworkInterface endpointA,
         NetworkInterface endpointB,
-        ConnectionType connectionType = ConnectionType.Copper)
+        ConnectionType connectionType = ConnectionType.CopperStraightThrough)
     {
         // null is not allowed
         ArgumentNullException.ThrowIfNull(endpointA);
@@ -188,8 +190,8 @@ public sealed class Network
         // Make the cable (Connection.Create checks the other rules and plugs it into both ports)
         var connection = Connection.Create(endpointA, endpointB, connectionType);
 
-        // A cable between two devices counts as working for now (real up/down comes in step 8)
-        connection.BringUp();
+        // Step 7: does the link work? (the right cable kind, both ports turned on) - Up or Down
+        ApplyLinkState(connection);
 
         _connections.Add(connection);                                 // put it in the list
         _connectionsById.Add(connection.Id, connection);              // and in the id dictionary
@@ -232,6 +234,33 @@ public sealed class Network
         return true;
     }
 
+    // Purpose:       Decides whether a cable's link works, and marks the cable and its two ports Up or Down (step 7).
+    // Precondition:  connection is plugged into both of its ports.
+    // Postcondition: Up when both ports are turned on AND the cable kind is the right one for the two
+    //                devices (CableRules.WillLinkWork); otherwise the cable and both ports are Down.
+    //                Like Packet Tracer: a wrong copper cable stays plugged in, it just does not work.
+    private static void ApplyLinkState(Connection connection)
+    {
+        var a = connection.EndpointA;   // the first port
+        var b = connection.EndpointB;   // the second port
+
+        // Both ports on, and the right kind of cable ("out _" = we don't need the reason here)
+        var works = a.IsEnabled && b.IsEnabled && CableRules.WillLinkWork(connection.ConnectionType, a, b, out _);
+
+        if (works)
+        {
+            connection.BringUp();   // the cable passes traffic
+            a.BringUp();            // and both ports are up
+            b.BringUp();
+        }
+        else
+        {
+            connection.BringDown(); // plugged in, but not working
+            a.BringDown();          // both ports down
+            b.BringDown();
+        }
+    }
+
     // Purpose: The removal of a cable, without the version and the events - shared by RemoveConnection
     //          and RemoveDevice (which removes several cables but reports only ONE change: "device removed").
     // Input:   connection - the cable.
@@ -240,6 +269,11 @@ public sealed class Network
     {
         // Unplug it from both ports
         connection.Disconnect();
+
+        // Step 7: with no cable, the link is gone - the cable and both ports are down
+        connection.BringDown();
+        connection.EndpointA.BringDown();
+        connection.EndpointB.BringDown();
 
         _connections.Remove(connection);                                       // the list
         _connectionsById.Remove(connection.Id);                                // the id dictionary

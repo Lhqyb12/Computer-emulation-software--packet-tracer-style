@@ -21,7 +21,7 @@ public interface IConnectionService
     // Postcondition: on success - the cable is in the network and plugged into both ports, the project is
     //                marked "unsaved" and ConnectionsChanged was raised. On failure - nothing changed
     //                (InvalidState: no project / a port is turned off; Conflict: a cable rule was broken).
-    OperationResult<Connection> Connect(NetworkInterface endpointA, NetworkInterface endpointB, ConnectionType connectionType = ConnectionType.Copper);
+    OperationResult<Connection> Connect(NetworkInterface endpointA, NetworkInterface endpointB, ConnectionType connectionType = ConnectionType.CopperStraightThrough);
 
     // Purpose:       Removes a cable.
     // Precondition:  a project is open and the cable is in its network.

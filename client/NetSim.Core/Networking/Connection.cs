@@ -35,15 +35,16 @@ public sealed class Connection
     // Is the cable working
     public ConnectionState State { get; private set; }
 
-    // Purpose: Creates a cable between two ports - the only way to make one.
-    // Input:   endpointA, endpointB - the two ports;
-    //          connectionType - the material; "= ConnectionType.Copper" = Copper when the caller does not say.
-    // Output:  the new cable, already plugged into both ports.
-    //          Throws DomainException when a rule is broken (see the 4 rules below).
+    // Purpose:       Creates a cable between two ports - the only way to make one.
+    // Precondition:  endpointA and endpointB are not null; connectionType is the cable kind
+    //                (straight-through copper when the caller does not say).
+    // Postcondition: the new cable is plugged into both ports and handed back (its State is Down until
+    //                Network decides whether the link works - step 7).
+    //                Throws DomainException when a rule is broken (see the 5 rules below).
     public static Connection Create(
         NetworkInterface endpointA,
         NetworkInterface endpointB,
-        ConnectionType connectionType = ConnectionType.Copper)
+        ConnectionType connectionType = ConnectionType.CopperStraightThrough)
     {
         // null is not allowed for either port
         ArgumentNullException.ThrowIfNull(endpointA);
@@ -75,6 +76,18 @@ public sealed class Connection
         {
             // "!" = we know the reason is not null when the answer is "no"
             throw new DomainException(incompatibilityReason!);
+        }
+
+        // Rule 5 (step 7): the cable KIND must fit both ports - e.g. a Serial cable can't go into an
+        // Ethernet port, and a Fiber cable only into a Gigabit port. "out var" = the reason when it does not fit
+        if (!CableRules.CanPlug(connectionType, endpointA, out var plugReasonA))
+        {
+            throw new DomainException(plugReasonA!);   // the first port can't take this cable
+        }
+
+        if (!CableRules.CanPlug(connectionType, endpointB, out var plugReasonB))
+        {
+            throw new DomainException(plugReasonB!);   // the second port can't take this cable
         }
 
         // All rules passed - build the cable

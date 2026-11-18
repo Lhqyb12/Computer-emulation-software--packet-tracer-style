@@ -8,6 +8,7 @@ using Avalonia.Interactivity;        // RoutingStrategies - which way an event t
 using Avalonia.Media;                // DrawingContext, IBrush, Pen, Geometry, FormattedText, Typeface, DashStyle
 using NetSim.Application.Canvas;     // CanvasItem, CanvasPoint, CanvasPointerButton, CanvasTool, CanvasInteractionMode
 using NetSim.Core.Devices;           // DeviceType
+using NetSim.Core.Networking;        // ConnectionType - each cable kind is drawn in its own style (step 7)
 using NetSim.UI.Devices;             // DeviceIcons - which icon draws each device kind
 using NetSim.UI.ViewModels;          // NetworkCanvasViewModel
 
@@ -61,6 +62,11 @@ public sealed class NetworkCanvasControl : Control
     private static readonly IBrush SeeThroughAccent = new SolidColorBrush(Color.Parse("#334FA8E8"));   // "33" = about 20% visible
 
     private static readonly DashStyle Dashed = new([4, 3], 0);   // 4 units of line, 3 units of gap
+
+    // Step 7: the cable kinds' looks. Crossover = long dashes; fiber = orange; serial = red (like Packet Tracer)
+    private static readonly DashStyle CrossoverDash = new([6, 4], 0);                            // 6 units of line, 4 of gap
+    private static readonly IBrush FiberBrush = new SolidColorBrush(Color.Parse("#F29B38"));     // orange
+    private static readonly IBrush SerialBrush = new SolidColorBrush(Color.Parse("#E5534B"));    // red
 
     private const double IconGridSize = 20.0;     // the icons are drawn on a 20 x 20 grid (Theme/Icons.axaml)
     private const double LabelFontSize = 12;      // the device name's size
@@ -237,19 +243,33 @@ public sealed class NetworkCanvasControl : Control
         viewModel.ConfirmPlacement(ToWorld(viewModel, position));
     }
 
-    // Purpose:       Every key press in the window - Escape cancels "place a device" from anywhere.
+    // Purpose:       Every key press in the window - Escape cancels "place a device", or closes the port list,
+    //                from anywhere (the port list's buttons take the focus away from the canvas).
     // Precondition:  e is the key event.
-    // Postcondition: Escape while a device was waiting -> nothing is waiting, the key is used up.
+    // Postcondition: Escape while placing -> nothing is waiting; Escape while the port list is open (step 7) ->
+    //                the half-made cable is given up. In both cases the key is used up.
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
-        // Only Escape, and only while placing
-        if (e.Key != Key.Escape || ViewModel is not { IsPlacingDevice: true } viewModel)
+        // Only Escape, with a view model
+        if (e.Key != Key.Escape || ViewModel is not { } viewModel)
         {
             return;   // stop here
         }
 
-        viewModel.CancelPlacement();   // stop waiting
-        e.Handled = true;              // no other control reacts to this Escape
+        if (viewModel.IsPlacingDevice)
+        {
+            viewModel.CancelPlacement();           // stop waiting to place
+        }
+        else if (viewModel.IsPortPickerOpen)
+        {
+            viewModel.ConnectionTool.Cancel();     // close the list and give up the cable
+        }
+        else
+        {
+            return;   // stop here - the canvas's own OnKeyDown handles any other Escape
+        }
+
+        e.Handled = true;   // no other control reacts to this Escape
     }
 
     // ----- Mouse on the canvas itself -----
@@ -520,9 +540,12 @@ public sealed class NetworkCanvasControl : Control
         }
     }
 
-    // Purpose:       Draws every cable as a line from device middle to device middle (step 6).
+    // Purpose:       Draws every cable as a line from device middle to device middle (steps 6-7).
     // Precondition:  inside the world transform.
-    // Postcondition: each cable is drawn - thicker and in the accent color when selected, lighter when hovered.
+    // Postcondition: each cable is drawn in its kind's style (step 7, like Packet Tracer):
+    //                straight-through = solid grey, crossover = dashed grey, fiber = orange, serial = red.
+    //                Selected -> accent color and thicker; hovered -> the hover color. The style (dashes)
+    //                stays the same, so the kind can still be seen.
     private void DrawConnections(DrawingContext context, NetworkCanvasViewModel viewModel)
     {
         var hoveredId = viewModel.Interaction.HoveredConnectionId;   // the cable under the mouse (or null)
@@ -531,17 +554,31 @@ public sealed class NetworkCanvasControl : Control
         {
             var isSelected = viewModel.IsSelected(cable.Id);   // is this cable selected
 
-            // The color: selected -> accent, hovered -> hover, otherwise the normal cable color
+            // The color: selected -> accent, hovered -> hover, otherwise the color of its kind
             var brush = isSelected ? AccentBrush ?? FallbackAccent
                 : hoveredId == cable.Id ? HoverBrush ?? FallbackHover
-                : ConnectionBrush ?? FallbackConnection;
+                : CableBrush(cable.ConnectionType);
 
-            // A round-ended pen, 3 units when selected and 2 otherwise
-            var pen = new Pen(brush, isSelected ? 3 : 2) { LineCap = PenLineCap.Round };
+            // A round-ended pen, 3 units when selected and 2 otherwise; crossover cables are dashed
+            var pen = new Pen(brush, isSelected ? 3 : 2)
+            {
+                LineCap = PenLineCap.Round,                                                            // round ends
+                DashStyle = cable.ConnectionType == ConnectionType.CopperCrossover ? CrossoverDash : null,   // dashes = crossover
+            };
 
             context.DrawLine(pen, ToPoint(cable.A), ToPoint(cable.B));   // the line
         }
     }
+
+    // Purpose:       Picks the color of a cable kind (step 7).
+    // Precondition:  none.
+    // Postcondition: fiber -> orange, serial -> red, copper (both kinds) -> the theme's cable color.
+    private IBrush CableBrush(ConnectionType cableType) => cableType switch
+    {
+        ConnectionType.Fiber => FiberBrush,                                // orange, like Packet Tracer
+        ConnectionType.Serial => SerialBrush,                              // red, like Packet Tracer
+        _ => ConnectionBrush ?? FallbackConnection,                        // copper - the normal cable color
+    };
 
     // Purpose:       Draws the "rubber band": a dashed line from the first picked device to the mouse (step 6).
     // Precondition:  inside the world transform.

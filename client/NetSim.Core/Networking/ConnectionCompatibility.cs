@@ -70,18 +70,7 @@ public static class ConnectionCompatibility
         return AreCompatible(a.InterfaceType, b.InterfaceType, out incompatibilityReason);
     }
 
-    // Purpose: Picks the cable material that fits two port kinds.
-    // Input:   a, b - the two port kinds.
-    // Output:  Serial when both are Serial ports, otherwise Copper.
-    public static ConnectionType InferConnectionType(InterfaceType a, InterfaceType b)
-    {
-        // Two serial ports - a serial cable
-        if (a == InterfaceType.Serial && b == InterfaceType.Serial)
-        {
-            return ConnectionType.Serial;
-        }
-
-        // Anything else - a normal copper cable
-        return ConnectionType.Copper;
-    }
+    // (Step 7: InferConnectionType was removed from here. Picking a cable now needs to know the DEVICES too
+    // - a PC and a switch need a different copper cable than two PCs - so it moved to
+    // CableRules.ChooseAutomatic, which takes the two ports and looks at their devices.)
 }
