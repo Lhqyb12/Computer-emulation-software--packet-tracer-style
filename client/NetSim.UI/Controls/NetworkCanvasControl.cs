@@ -54,6 +54,13 @@ public sealed class NetworkCanvasControl : Control
     public static readonly StyledProperty<IBrush?> ConnectionBrushProperty =
         AvaloniaProperty.Register<NetworkCanvasControl, IBrush?>(nameof(ConnectionBrush));    // a copper cable (step 6)
 
+    // Step 8: the status lights at the ends of a cable. XAML fills them from the theme (Brush.Success / Brush.Error)
+    public static readonly StyledProperty<IBrush?> LinkUpBrushProperty =
+        AvaloniaProperty.Register<NetworkCanvasControl, IBrush?>(nameof(LinkUpBrush));        // a working port's light (green)
+    public static readonly StyledProperty<IBrush?> LinkDownBrushProperty =
+        AvaloniaProperty.Register<NetworkCanvasControl, IBrush?>(nameof(LinkDownBrush));      // a port that is down (red)
+
+
     // Colors to use when the theme did not give one, so the canvas never draws with "no color".
     // Color.Parse("#RRGGBB") turns a color code into a color; SolidColorBrush = a "paint" of one color
     private static readonly IBrush FallbackBackground = new SolidColorBrush(Color.Parse("#12151A"));   // dark floor
@@ -64,6 +71,8 @@ public sealed class NetworkCanvasControl : Control
     private static readonly IBrush FallbackAccent = new SolidColorBrush(Color.Parse("#4FA8E8"));       // blue
     private static readonly IBrush FallbackHover = new SolidColorBrush(Color.Parse("#6BB9EE"));        // light blue
     private static readonly IBrush FallbackConnection = new SolidColorBrush(Color.Parse("#8A93A3"));   // grey cable
+    private static readonly IBrush FallbackLinkUp = new SolidColorBrush(Color.Parse("#3DD68C"));       // step 8: green - a working port
+    private static readonly IBrush FallbackLinkDown = new SolidColorBrush(Color.Parse("#F0665E"));     // step 8: red - a port that is down
     private static readonly IBrush SeeThroughAccent = new SolidColorBrush(Color.Parse("#334FA8E8"));   // see-through blue: "#AARRGGBB", AA = 33 = about 20% visible
 
     // A dashed line: "new([4, 3], 0)" = 4 units of line, then 3 units of gap, starting at 0
@@ -76,6 +85,8 @@ public sealed class NetworkCanvasControl : Control
 
     private const double IconGridSize = 20.0;     // the icons in Theme/Icons.axaml are drawn on a 20 x 20 grid - used to scale them
     private const double LabelFontSize = 12;      // the size of a device's name under its icon
+    private const double LinkLightRadius = 4;     // step 8: the radius of a status light, in world units (a dot 8 units across)
+
 
     // The mouse cursors, made once. Arrow = normal; Hand = "you can grab and scroll"; SizeAll = "you are moving
     // something"; Cross = "pick a point / a device"
@@ -101,7 +112,9 @@ public sealed class NetworkCanvasControl : Control
         // AffectsRender = "when one of these properties changes, call Render() again"
         AffectsRender<NetworkCanvasControl>(
             CanvasBackgroundProperty, GridBrushProperty, ItemFillBrushProperty, ItemBorderBrushProperty,
-            ItemTextBrushProperty, AccentBrushProperty, HoverBrushProperty, ConnectionBrushProperty);
+            ItemTextBrushProperty, AccentBrushProperty, HoverBrushProperty, ConnectionBrushProperty,
+            LinkUpBrushProperty, LinkDownBrushProperty);   // step 8: the two light colors too
+
 
         // Let the canvas receive the keyboard focus (needed for Delete, Ctrl+A, Space and Escape)
         FocusableProperty.OverrideDefaultValue<NetworkCanvasControl>(true);
@@ -117,6 +130,9 @@ public sealed class NetworkCanvasControl : Control
     public IBrush? AccentBrush { get => GetValue(AccentBrushProperty); set => SetValue(AccentBrushProperty, value); }
     public IBrush? HoverBrush { get => GetValue(HoverBrushProperty); set => SetValue(HoverBrushProperty, value); }
     public IBrush? ConnectionBrush { get => GetValue(ConnectionBrushProperty); set => SetValue(ConnectionBrushProperty, value); }
+    public IBrush? LinkUpBrush { get => GetValue(LinkUpBrushProperty); set => SetValue(LinkUpBrushProperty, value); }       // step 8: green
+    public IBrush? LinkDownBrush { get => GetValue(LinkDownBrushProperty); set => SetValue(LinkDownBrushProperty, value); } // step 8: red
+
 
     // ----- Joining the view model, and the canvas size -----
 
@@ -514,6 +530,7 @@ public sealed class NetworkCanvasControl : Control
             {
                 DrawItem(context, viewModel, item);
             }
+            DrawLinkLights(context, viewModel);           // step 8: the status lights - AFTER the devices, so no device ever hides them
             DrawSelectionRectangle(context, viewModel);   // the rectangle being drawn
             DrawPlacementGhost(context, viewModel);       // the device being placed, on top of everything
         }
@@ -597,6 +614,31 @@ public sealed class NetworkCanvasControl : Control
         ConnectionType.Serial => SerialBrush,                              // red, like Packet Tracer
         _ => ConnectionBrush ?? FallbackConnection,                        // any other (copper) - the normal cable color
     };
+    // Purpose:       Step 8 - draws a status light at each end of every cable: green when the port at that end is working,
+    //                red when it is down (a wrong cable kind, or a port that is turned off).
+    // Precondition:  receives context - where to draw (inside the world transform); viewModel - for the cables.
+    // Postcondition: returns nothing - two small round lights are drawn for every cable, one just outside each device.
+    private void DrawLinkLights(DrawingContext context, NetworkCanvasViewModel viewModel)
+    {
+        var upBrush = LinkUpBrush ?? FallbackLinkUp;           // the green: the theme's color, or the fallback when there is none
+        var downBrush = LinkDownBrush ?? FallbackLinkDown;     // the red: the theme's color, or the fallback
+
+        // A thin ring around each light, in the color of the canvas floor - it separates the light from the cable line
+        // that runs under it, so the dot reads clearly on any cable color
+        var ring = new Pen(CanvasBackground ?? FallbackBackground, 1.5);
+
+        // Two lights for every cable
+        foreach (var cable in viewModel.Connections)
+        {
+            // The first end: "a ? b : c" = green when that end's port is working (IsEndAUp), red otherwise.
+            // DrawEllipse(fill, ring, middle point, radius across, radius down) - the same radius twice = a circle
+            context.DrawEllipse(cable.IsEndAUp ? upBrush : downBrush, ring, ToPoint(cable.LightA), LinkLightRadius, LinkLightRadius);
+
+            // The second end: the same, with its own point and its own port's state
+            context.DrawEllipse(cable.IsEndBUp ? upBrush : downBrush, ring, ToPoint(cable.LightB), LinkLightRadius, LinkLightRadius);
+        }
+    }
+
 
     // Purpose:       Draws the "rubber band": a dashed line from the first picked device to the mouse (step 6).
     // Precondition:  receives context - where to draw (inside the world transform); viewModel - for the Connect tool.

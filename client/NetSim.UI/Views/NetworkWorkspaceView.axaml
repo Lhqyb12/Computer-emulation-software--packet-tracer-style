@@ -121,7 +121,9 @@
                                        ItemTextBrush="{DynamicResource Brush.Text.Primary}"
                                        AccentBrush="{DynamicResource Brush.Canvas.Selection}"
                                        HoverBrush="{DynamicResource Brush.Accent.Hover}"
-                                       ConnectionBrush="{DynamicResource Brush.Canvas.Connection}" />
+                                       ConnectionBrush="{DynamicResource Brush.Canvas.Connection}"
+                                       LinkUpBrush="{DynamicResource Brush.Success}"
+                                       LinkDownBrush="{DynamicResource Brush.Error}" />
 
         <!-- Step 7: the "choose a port" list, opened under the clicked device.
              A Canvas panel lets us put it at an exact spot: Canvas.Left / Canvas.Top come from the view model

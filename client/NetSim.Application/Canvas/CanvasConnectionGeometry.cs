@@ -1,22 +1,26 @@
-using System;                      // brings in Math (Clamp, Sqrt)
+using System;                      // brings in Math (Clamp, Sqrt, Abs, Min)
 using System.Collections.Generic;  // brings in List<T> and IReadOnlyList<T>
 using NetSim.Core.Common;          // brings in EntityId - a cable's unique id
 using NetSim.Core.Topology;        // brings in Network - all the devices and cables
 
 namespace NetSim.Application.Canvas;   // the "address" of this file: the Canvas part of the Application layer
 
-// Where the cables are on the canvas (step 6): builds a drawable line for every cable of the network,
-// and finds the cable under the mouse (step 4 - so a cable can be selected and deleted).
-// New - in the reference project this lived inside the screen's view model; here it is in the Application
-// layer, so the mouse logic (CanvasInteractionController) can use it too.
+// Where the cables are on the canvas (steps 6-8): builds a drawable line for every cable of the network - with a
+// status light just outside each device (step 8) - and finds the cable under the mouse (step 4).
+// New - in the reference project this lived inside the screen's view model; here it is in the Application layer,
+// so the mouse logic (CanvasInteractionController) can use it too.
 // "static class" = no objects; call it straight through the class: CanvasConnectionGeometry.Build(...)
 public static class CanvasConnectionGeometry
 {
+    // Step 8: how far OUTSIDE the device's box the status light sits, in world units.
+    // "const" = a fixed number. 8 = far enough to be clearly outside the box's border, close enough to belong to the device
+    private const double LightGap = 8;
+
     // Purpose:       Builds one line for every cable whose two devices are both on the canvas.
     // Precondition:  receives network - the open network (may be null when no project is open);
     //                items - the canvas positions of the devices.
-    // Postcondition: returns the lines (each from one device's middle to the other's), or an empty list when there
-    //                is no network or no cable. Nothing is changed.
+    // Postcondition: returns the lines (each from one device's middle to the other's, with a status light near each end),
+    //                or an empty list when there is no network or no cable. Nothing is changed.
     public static IReadOnlyList<CanvasConnectionView> Build(Network? network, ICanvasItemsState items)
     {
         // No network, or a network with no cables - no lines. "||" = OR; "[]" = an empty list
@@ -42,8 +46,26 @@ public static class CanvasConnectionGeometry
                 continue;   // skip THIS cable and go on to the next one
             }
 
-            // A line from the middle of one device to the middle of the other, with the cable's id, kind and link state
-            views.Add(new CanvasConnectionView(connection.Id, itemA.Center, itemB.Center, connection.ConnectionType, connection.State));
+            // Step 8: where each status light goes - just outside its own device's box, on the line towards the other device.
+            // For the first end: start from A's middle, head towards B's middle, A's box size decides where the edge is
+            var lightA = LightPoint(itemA.Center, itemB.Center, itemA.Size);
+
+            // For the second end: the same, the other way round - start from B, head towards A, B's box
+            var lightB = LightPoint(itemB.Center, itemA.Center, itemB.Size);
+
+            // Build the line with all nine values, in the order CanvasConnectionView lists them:
+            //   the cable's id, the two middles, its kind, its link state, the two light points, and whether each end's
+            //   port is working. IsOperational (a port's own property, step 1) = the port is turned on AND its state is Up
+            views.Add(new CanvasConnectionView(
+                connection.Id,                         // the cable's id
+                itemA.Center,                          // where the line starts: the first device's middle
+                itemB.Center,                          // where the line ends: the second device's middle
+                connection.ConnectionType,             // the cable's kind (for its style)
+                connection.State,                      // the whole cable's link: Up / Down
+                lightA,                                // step 8: the first end's light point
+                lightB,                                // step 8: the second end's light point
+                connection.EndpointA.IsOperational,    // step 8: is the first end's port working? (green / red)
+                connection.EndpointB.IsOperational));  // step 8: is the second end's port working?
         }
 
         // Hand back all the lines
@@ -75,6 +97,49 @@ public static class CanvasConnectionGeometry
 
         // The winner, or null when no cable was close enough
         return best;
+    }
+
+    // Purpose:       Step 8 - finds where a cable's status light goes: the point where the line leaves the device's box,
+    //                pushed a little further out (LightGap), so the light is never hidden under the device.
+    // Precondition:  receives center - the middle of the device this end belongs to; towards - the middle of the device at
+    //                the OTHER end (the line heads that way); boxSize - the size of this end's device box.
+    // Postcondition: returns the light's point, in the world. When both middles are the same point (no direction), returns center.
+    private static CanvasPoint LightPoint(CanvasPoint center, CanvasPoint towards, CanvasSize boxSize)
+    {
+        // STEP 1 - the direction: how far the other device is from this one, across (dx) and down (dy)
+        var dx = towards.X - center.X;
+        var dy = towards.Y - center.Y;
+
+        // How long that direction is (Pythagoras: the square root of dx² + dy²)
+        var length = Math.Sqrt(dx * dx + dy * dy);
+
+        // Both middles are the same point - there is no direction to walk in, so just use the middle
+        if (length <= double.Epsilon)
+        {
+            return center;
+        }
+
+        // STEP 2 - walk from the middle along the direction until the line hits the box's border.
+        // "t" = which part of the whole direction (dx, dy) we walk: t = 0.5 means half of it.
+        // To reach the LEFT / RIGHT side we must walk half the width across: t = (width / 2) / |dx|.
+        // To reach the TOP / BOTTOM side we must walk half the height down: t = (height / 2) / |dy|.
+        // Math.Abs = the size of a number without its sign (-30 -> 30). When dx is 0 the line goes straight up / down and
+        // never reaches a side, so that t is "endless" (double.PositiveInfinity) - the same for dy = 0
+        var tSide = dx == 0 ? double.PositiveInfinity : (boxSize.Width / 2) / Math.Abs(dx);
+        var tTopBottom = dy == 0 ? double.PositiveInfinity : (boxSize.Height / 2) / Math.Abs(dy);
+
+        // The line hits whichever border comes FIRST - the smaller of the two
+        var tEdge = Math.Min(tSide, tTopBottom);
+
+        // The point on the border: the middle + that part of the direction
+        var edgeX = center.X + tEdge * dx;
+        var edgeY = center.Y + tEdge * dy;
+
+        // STEP 3 - push LightGap more units outwards along the same direction.
+        // dx / length and dy / length = the direction shrunk to exactly 1 unit long, so "* LightGap" moves exactly 8 units
+        return new CanvasPoint(
+            edgeX + dx / length * LightGap,    // the light's X
+            edgeY + dy / length * LightGap);   // the light's Y
     }
 
     // Purpose:       Measures the shortest distance from a point to a line segment (the piece of line from A to B).
@@ -114,3 +179,4 @@ public static class CanvasConnectionGeometry
     private static double Distance(CanvasPoint p, CanvasPoint q) =>
         Math.Sqrt((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y));
 }
+
