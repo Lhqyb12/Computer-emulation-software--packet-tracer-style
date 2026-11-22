@@ -34,6 +34,7 @@ public static class UIServiceCollectionExtensions
         services.AddTransient<ClassroomsViewModel>();   // the Classes screen
         services.AddTransient<DeviceLibraryViewModel>();   // the Device Library panel (inside the workspace)
         services.AddTransient<NetworkCanvasViewModel>();   // the Network Canvas (inside the workspace) - step 3
+        services.AddTransient<DevicePropertiesViewModel>();   // the Device Properties panel (inside the workspace) - step 9
         services.AddTransient<NetworkWorkspaceViewModel>();   // the Network Workspace screen
 
 

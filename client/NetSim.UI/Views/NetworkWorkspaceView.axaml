@@ -107,6 +107,15 @@
       <!-- The Device Library, stuck to the left edge. DataContext = it reads from the DeviceLibrary view model -->
       <views:DeviceLibraryView DockPanel.Dock="Left" DataContext="{Binding DeviceLibrary}" />
 
+      <!-- Step 9: the Device Properties panel, stuck to the RIGHT edge.
+           DataContext = it reads from the DeviceProperties view model of this screen.
+           IsVisible = it is shown only while that panel is open (after a double-click on a device); when it is closed the
+           canvas takes its room. It comes BEFORE the canvas on purpose: in a DockPanel the side panels must be listed first,
+           and the LAST child (the canvas) fills whatever room is left -->
+      <views:DevicePropertiesView DockPanel.Dock="Right" DataContext="{Binding DeviceProperties}"
+                                  IsVisible="{Binding IsOpen}" />
+
+
       <!-- The middle area: the Network Canvas, with a few things floating above it.
            Panel = all the children sit in the same place, one above the other (the last is on top) -->
       <Panel>

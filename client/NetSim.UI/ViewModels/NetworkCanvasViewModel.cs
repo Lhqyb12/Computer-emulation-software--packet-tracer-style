@@ -278,6 +278,39 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
     // Postcondition: returns nothing - nothing is waiting to be placed.
     public void CancelPlacement() => _placementState.Cancel();
 
+    // ----- Opening the Device Properties panel (step 9) -----
+
+    // Raised when the user double-clicks a device. The workspace screen listens to it and opens the properties panel.
+    // "EventHandler<NetworkDevice>" = the event also hands over a value: the device that was double-clicked.
+    // "?" = there may be nobody listening (then it is null)
+    public event EventHandler<NetworkDevice>? DevicePropertiesRequested;
+
+    // Purpose:       Asks for the properties of the device under a point - called by the canvas control on a double-click.
+    // Precondition:  receives worldPoint - where the double-click was, as a WORLD point (the control turned the mouse into one).
+    // Postcondition: returns nothing - when a device is there, DevicePropertiesRequested was raised with that device;
+    //                when the double-click was on empty canvas (or the device is gone), nothing happens.
+    public void RequestDeviceProperties(CanvasPoint worldPoint)
+    {
+        // Which canvas item is under the point? (CanvasItemsState.HitTest, step 2 - the top-most one).
+        // "is not { } item" = if there is none (null) -> stop; otherwise keep it in "item"
+        if (_itemsState.HitTest(worldPoint) is not { } item)
+        {
+            return;   // stop here - a double-click on empty canvas opens nothing
+        }
+
+        // The device itself, from the open network, by the item's id (the item and the device share the same id - step 2).
+        // "?." = if there is no open network the result is null; GetDevice returns null if the device is gone
+        if (_applicationState.CurrentNetwork?.GetDevice(item.Id) is not { } device)
+        {
+            return;   // stop here - no device to show
+        }
+
+        // Tell whoever listens (the workspace screen): "show the properties of THIS device".
+        // "?." = only if someone listens; "this" = who raised it (this view model); "device" = the value handed over
+        DevicePropertiesRequested?.Invoke(this, device);
+    }
+
+
     // Purpose:       Remembers the canvas's size on the screen (the control calls it every time its size changes).
     // Precondition:  receives width, height - the canvas size in screen units.
     // Postcondition: returns nothing - "Fit to View" will use this size.

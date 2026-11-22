@@ -343,6 +343,20 @@ public sealed class NetworkCanvasControl : Control
             e.Handled = true;   // used up
             return;             // stop here
         }
+        // Step 9: a DOUBLE-click with the left button opens the device's properties panel.
+        // e.ClickCount = how many quick clicks in a row this press is - Avalonia counts them for us:
+        // 1 = a normal click, 2 = the SECOND click of a double-click. (The first click of the pair already went through
+        // the normal path below and selected the device - so a double-click both selects the device and opens its panel)
+        if (e.ClickCount == 2 && button == CanvasPointerButton.Left)
+        {
+            // Ask the view model to open the properties of the device under the double-click (part 9.4).
+            // "world" = the press as a WORLD point (worked out a few lines above, through the camera)
+            viewModel.RequestDeviceProperties(world);
+
+            e.Handled = true;   // used up - this second click must NOT also start a drag / a selection rectangle
+            return;             // stop here
+        }
+
 
         // Steps 4-5: select / drag / rectangle / pan.
         // "Capture" = keep getting this mouse's moves and its release even if it leaves the canvas, so a drag never gets "stuck"

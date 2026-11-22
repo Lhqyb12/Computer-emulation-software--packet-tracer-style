@@ -1,0 +1,120 @@
+<!-- The Device Properties panel (step 9): opens on the right of the Network screen on a double-click on a device.
+     Its DataContext is DevicePropertiesViewModel - every {Binding X} below reads / writes X in that view model.
+     Taken from the reference project's DevicePropertiesView, cut down to steps 9-10 and given a title row with a close (X) button.
+     xmlns = the "address books" this file uses: the first is Avalonia's own controls, "x" is XAML's own words,
+     "vm" is our ViewModels folder. x:Class = the C# class this file belongs to (the code half, DevicePropertiesView.axaml.cs).
+     x:DataType = the view model type, so the bindings are checked while building (a typo in a name fails the build) -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:NetSim.UI.ViewModels"
+             x:Class="NetSim.UI.Views.DevicePropertiesView"
+             x:DataType="vm:DevicePropertiesViewModel">
+
+  <!-- The panel's frame: the same "Sidebar" look as the Device Library on the left, 300 units wide -->
+  <Border Classes="Sidebar" Width="300">
+
+    <!-- DockPanel = the title row sticks to the top; the last child (the scrolling content) fills the rest -->
+    <DockPanel Margin="14">
+
+      <!-- ===== Title row: the device's name on the left, the close (X) button on the right =====
+           Grid with two columns: "*" = take all the room that is left, "Auto" = just as wide as the button -->
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+        <StackPanel Grid.Column="0" Spacing="2">
+          <!-- The big title. Binding = shows DeviceName and updates by itself when it changes -->
+          <TextBlock Text="{Binding DeviceName}" Classes="H2" TextWrapping="Wrap" />
+          <!-- The device's kind under it, e.g. "Router" -->
+          <TextBlock Text="{Binding DeviceTypeText}" Classes="BodySecondary" />
+        </StackPanel>
+        <!-- The X button: runs CloseCommand in the view model (CommunityToolkit made it from the Close() method) -->
+        <Button Grid.Column="1" Classes="Icon" VerticalAlignment="Top" Command="{Binding CloseCommand}" ToolTip.Tip="Close">
+          <PathIcon Data="{StaticResource Icon.Close}" Classes="SM" />
+        </Button>
+      </Grid>
+
+      <!-- ===== The content - scrolls when the panel is taller than the window ===== -->
+      <ScrollViewer>
+        <!-- StackPanel = the sections one under the other, Space.MD (12 units) apart -->
+        <StackPanel Spacing="{DynamicResource Space.MD}">
+
+          <!-- ===== Section: GENERAL - the device's name ===== -->
+          <TextBlock Text="GENERAL" Classes="Label" />
+          <Border Classes="GroupContainer">
+            <StackPanel Spacing="{DynamicResource Space.SM}">
+
+              <TextBlock Text="Device Name" Classes="Label" />
+
+              <!-- The name box. Mode=TwoWay = typing writes back into DeviceName in the view model.
+                   Classes.Error = the box gets the red "Error" look while NameError has text.
+                   StringConverters.IsNotNullOrEmpty turns "is there text?" into true / false -->
+              <TextBox Text="{Binding DeviceName, Mode=TwoWay}" MaxLength="64"
+                       Classes.Error="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+              <!-- Why the new name was refused - the red box, visible only while NameError has text -->
+              <Border Classes="Notification Error"
+                      IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding NameError}" Classes="Body" TextWrapping="Wrap" />
+              </Border>
+
+              <!-- Apply: runs ApplyNameCommand (from the ApplyName() method) -->
+              <Button Content="Apply" Classes="Primary" HorizontalAlignment="Right" Command="{Binding ApplyNameCommand}" />
+
+            </StackPanel>
+          </Border>
+
+          <!-- ===== Section: PORTS - one card per port ===== -->
+          <TextBlock Text="PORTS" Classes="Label" />
+
+          <!-- ItemsControl = repeats the template below once for every line in Interfaces (DeviceInterfaceItem, part 9.1) -->
+          <ItemsControl ItemsSource="{Binding Interfaces}">
+
+            <!-- The lines one under the other, 6 units apart -->
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="6" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <!-- How ONE port looks. Inside the template, {Binding X} reads X of that line (DeviceInterfaceItem) -->
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:DeviceInterfaceItem">
+                <Border Classes="GroupContainer">
+                  <StackPanel Spacing="2">
+
+                    <!-- First row: the short name in bold on the left, the status on the right -->
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Grid.Column="0" Text="{Binding ShortName}" FontWeight="SemiBold" />
+                      <!-- The status word: green while the port is up, red otherwise. Classes.X="{Binding ...}" = the class X
+                           is on while the value is true. StatusText.Success / .Error are colors from Theme/Styles/StatusBar.axaml -->
+                      <TextBlock Grid.Column="1" Text="{Binding StatusText}"
+                                 Classes="StatusText" Classes.Success="{Binding IsUp}" Classes.Error="{Binding !IsUp}" />
+                    </Grid>
+
+                    <!-- The kind and the speed, e.g. "Fast Ethernet · 100 Mbps". StringFormat puts the two values into one text -->
+                    <TextBlock Classes="Caption">
+                      <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0} · {1}">
+                          <Binding Path="InterfaceTypeText" />
+                          <Binding Path="SpeedText" />
+                        </MultiBinding>
+                      </TextBlock.Text>
+                    </TextBlock>
+
+                    <!-- The physical (MAC) address. StringFormat adds the word "MAC" in front of the value -->
+                    <TextBlock Text="{Binding MacAddressText, StringFormat='MAC {0}'}" Classes="Caption" />
+
+                    <!-- Where its cable goes, e.g. "Switch0 Fa0/1", or "Not connected" -->
+                    <TextBlock Text="{Binding ConnectedToText, StringFormat='Connected to: {0}'}" Classes="Caption" />
+
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+        </StackPanel>
+      </ScrollViewer>
+
+    </DockPanel>
+  </Border>
+
+</UserControl>
