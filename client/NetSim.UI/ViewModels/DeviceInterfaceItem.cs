@@ -18,6 +18,10 @@ public sealed class DeviceInterfaceItem
     {
         // If no port was passed in (null), stop right away with a clear error - it would be a bug in the caller
         ArgumentNullException.ThrowIfNull(networkInterface);
+        
+        // Step 10: keep the port itself - when the user picks this line in the IP settings list, the panel needs the REAL
+        // port to hand to the device service (the texts below are only copies, for showing)
+        Interface = networkInterface;
 
         Name = networkInterface.Name;                                             // the full name, e.g. "FastEthernet0/1"
         ShortName = networkInterface.ShortName;                                   // the short name, e.g. "Fa0/1"
@@ -34,6 +38,22 @@ public sealed class DeviceInterfaceItem
         // The status as a word, by priority ("a ? b : c ? d : e" = if a then b, otherwise if c then d, otherwise e):
         //   turned off by the user -> "Turned off"; working -> "Up"; otherwise -> "Down"
         StatusText = !networkInterface.IsEnabled ? "Turned off" : IsUp ? "Up" : "Down";
+
+        // Step 10: the port's IPv4 settings as text.
+        // "is { } ipv4" = the port HAS an address - keep its settings in "ipv4"; otherwise (null) show dashes
+        if (networkInterface.IPv4Configuration is { } ipv4)
+        {
+            IPv4AddressText = ipv4.Address.ToString();        // e.g. "192.168.1.10" (IPv4Address.ToString, part 10.1)
+            SubnetMaskText = ipv4.SubnetMask.ToString();      // e.g. "255.255.255.0" (SubnetMask.ToString, part 10.2)
+        }
+        else
+        {
+            IPv4AddressText = "-";   // no address yet
+            SubnetMaskText = "-";    // and so no mask
+        }
+
+        // The default gateway as text. "?." = if there is no gateway (null), the whole thing is null; "?? "-"" = then a dash
+        DefaultGatewayText = networkInterface.IPv4DefaultGateway?.ToString() ?? "-";
 
         // Where the port's cable goes. "is { } connection" = the port has a cable - keep it in "connection"
         if (networkInterface.Connection is { } connection)
@@ -60,4 +80,10 @@ public sealed class DeviceInterfaceItem
     public bool IsUp { get; }                 // is the port working (the screen colors the status by it)
     public string StatusText { get; }         // "Up" / "Down" / "Turned off"
     public string ConnectedToText { get; }    // e.g. "Switch0 Fa0/1", or "Not connected"
+
+    // Step 10 - the port's IPv4 settings
+    public NetworkInterface Interface { get; }     // the port itself - the panel hands it to the device service
+    public string IPv4AddressText { get; }         // e.g. "192.168.1.10", or "-" when the port has no address
+    public string SubnetMaskText { get; }          // e.g. "255.255.255.0", or "-"
+    public string DefaultGatewayText { get; }      // e.g. "192.168.1.1", or "-" when no gateway is set
 }

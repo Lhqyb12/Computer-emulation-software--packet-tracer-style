@@ -3,7 +3,9 @@ using System.Linq;                   // brings in Any - "is there at least one i
 using NetSim.Application.Canvas;     // brings in ICanvasItemsState, CanvasItem, CanvasPoint - the canvas positions
 using NetSim.Application.Common;     // brings in OperationResult and OperationErrorType - success / failure answers
 using NetSim.Application.State;      // brings in IApplicationState - the open network, and the "unsaved changes" flag
+using NetSim.Core.Common.Exceptions; // brings in DomainException - the error Core throws when a rule is broken (step 10)
 using NetSim.Core.Devices;           // brings in NetworkDevice, DeviceType, NetworkDeviceFactory, DeviceTypeRegistry
+using NetSim.Core.Networking;        // brings in NetworkInterface, IPv4Address, SubnetMask, Ipv4InterfaceConfiguration (step 10)
 using NetSim.Core.Topology;          // brings in Network - all the devices and cables of the project
 
 namespace NetSim.Application.Services;   // the "address" of this file: the Services part of the Application layer
@@ -16,7 +18,8 @@ namespace NetSim.Application.Services;   // the "address" of this file: the Serv
 //   - An empty or taken name comes back as a failure answer instead of an exception.
 //   - The default name takes the lowest FREE number ("Router0", "Router1"...), so deleting a device
 //     and adding a new one can't produce two devices with the same name.
-//   - The address / gateway / port methods were left out - they come in steps 10-11.
+//   - Step 10 adds the port address / gateway methods: one address per port, a mask instead of a prefix length,
+//     one gateway method (null = remove). The port on / off method comes in step 11.
 // "sealed" = no other class can inherit from it; ": IDeviceService" = it does everything the interface lists
 public sealed class DeviceService : IDeviceService
 {
@@ -188,6 +191,106 @@ public sealed class DeviceService : IDeviceService
 
         // The project now has a change that was not saved
         _applicationState.MarkCurrentProjectDirty();
+
+        // Hand back a success
+        return OperationResult.Success();
+    }
+
+    // ----- Port IPv4 settings (step 10) -----
+
+    // Raised after a port's settings changed (see IDeviceService). "public" = the interface promised it to everyone.
+    // Only this class can raise it - inside ApplyInterfaceChange, below
+    public event EventHandler? InterfacesChanged;
+
+    // Purpose:       Gives a port an IPv4 address and subnet mask (replacing any it had).
+    // Precondition:  receives networkInterface - the port (its device in the open network); address - the address;
+    //                subnetMask - the mask.
+    // Postcondition: returns success (new address + "unsaved" + InterfacesChanged; an old gateway that is no longer in
+    //                the port's network is removed), or failure + why (nothing changed).
+    public OperationResult SetInterfaceIPv4Configuration(NetworkInterface networkInterface, IPv4Address address, SubnetMask subnetMask)
+    {
+        // ApplyInterfaceChange (below) does the checks and the "after" work; here we only say WHAT to change.
+        // "() => { ... }" = a small function with no inputs, handed over to be run later - only if the checks pass
+        return ApplyInterfaceChange(networkInterface, () =>
+        {
+            // Build the settings. Create (part 10.3) checks every rule and throws DomainException if one is broken.
+            // It runs BEFORE anything is changed - so a bad address leaves the port exactly as it was
+            var configuration = Ipv4InterfaceConfiguration.Create(address, subnetMask);
+
+            // Remember the port's current gateway (or null) - the new address may move the port to another network
+            var oldGateway = networkInterface.IPv4DefaultGateway;
+
+            // Give the port its new address and mask (part 10.4)
+            networkInterface.SetIPv4Configuration(configuration);
+
+            // There was a gateway - check it again against the NEW address, with the port's own rules (part 10.4)
+            if (oldGateway is not null)
+            {
+                try
+                {
+                    networkInterface.SetIPv4DefaultGateway(oldGateway);   // still in the network -> it simply stays
+                }
+                catch (DomainException)
+                {
+                    networkInterface.SetIPv4DefaultGateway(null);         // not in the new network any more -> remove it
+                }
+            }
+        });
+    }
+
+    // Purpose:       Removes a port's IPv4 address and mask - and its default gateway with them.
+    // Precondition:  receives networkInterface - the port (its device in the open network).
+    // Postcondition: returns success (no address, no gateway + "unsaved" + InterfacesChanged), or failure + why.
+    // "=>" = the whole method is this one call; "() => networkInterface.ClearIPv4Configuration()" = what to change (part 10.4)
+    public OperationResult ClearInterfaceIPv4Configuration(NetworkInterface networkInterface) =>
+        ApplyInterfaceChange(networkInterface, () => networkInterface.ClearIPv4Configuration());
+
+    // Purpose:       Sets a port's default gateway, or removes it.
+    // Precondition:  receives networkInterface - the port (its device in the open network); gateway - an address, or null.
+    // Postcondition: returns success (gateway set / removed + "unsaved" + InterfacesChanged), or failure + why
+    //                (ValidationError carries the port's rule, e.g. "not in this port's network") - nothing changed.
+    public OperationResult SetInterfaceIPv4DefaultGateway(NetworkInterface networkInterface, IPv4Address? gateway) =>
+        ApplyInterfaceChange(networkInterface, () => networkInterface.SetIPv4DefaultGateway(gateway));
+
+    // Purpose:       The shared work around every port change: check, change, mark "unsaved", raise InterfacesChanged.
+    // Precondition:  receives networkInterface - the port to change (not null);
+    //                change - WHAT to do to it; it may throw DomainException when a rule is broken.
+    // Postcondition: returns success (the change was made, the project is marked "unsaved", InterfacesChanged was
+    //                raised), or failure: InvalidState (no project) / NotFound (the port's device is not in the open
+    //                network) / ValidationError (a rule was broken - its message) - then nothing was changed.
+    // "Action" = a function with no inputs and no result - the "what to change" each method above hands over
+    private OperationResult ApplyInterfaceChange(NetworkInterface networkInterface, Action change)
+    {
+        // If no port was passed in (null), stop right away with a clear error
+        ArgumentNullException.ThrowIfNull(networkInterface);
+
+        // A port belongs to a device (networkInterface.Device) - is a project open, and is that device in its network?
+        // The same check RenameDevice uses (CheckDeviceInOpenNetwork, below). "out _" = we don't need the network here
+        var failure = CheckDeviceInOpenNetwork(networkInterface.Device, out _);
+
+        // There is a problem - hand it back; nothing was changed
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        // "try" = run this; if a DomainException is thrown inside it, jump to "catch" instead of crashing
+        try
+        {
+            change();   // run the change the caller handed over
+        }
+        catch (DomainException ex)   // "ex" = the thrown error; ex.Message = its text, e.g. "...is not in this port's network"
+        {
+            // A broken rule is an expected problem (the user typed something wrong) - hand it back as a failure answer,
+            // and the panel will show the message in red
+            return OperationResult.Failure(OperationErrorType.ValidationError, ex.Message);
+        }
+
+        // The project now has a change that was not saved
+        _applicationState.MarkCurrentProjectDirty();
+
+        // Ring the bell: "a port changed". "?." = only if someone listens; this = who raised it; EventArgs.Empty = no details
+        InterfacesChanged?.Invoke(this, EventArgs.Empty);
 
         // Hand back a success
         return OperationResult.Success();

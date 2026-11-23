@@ -1,6 +1,8 @@
+using System;                      // brings in EventHandler - the kind of the InterfacesChanged event (step 10)
 using NetSim.Application.Canvas;   // brings in CanvasPoint - a place on the canvas
 using NetSim.Application.Common;   // brings in OperationResult - a "success / failure + why" answer
 using NetSim.Core.Devices;         // brings in NetworkDevice (a device) and DeviceType (its kind)
+using NetSim.Core.Networking;      // brings in NetworkInterface (a port), IPv4Address and SubnetMask - step 10
 
 namespace NetSim.Application.Services;   // the "address" of this file: the Services part of the Application layer
 
@@ -42,4 +44,36 @@ public interface IDeviceService
     // Postcondition: returns an OperationResult: success (the device, its cables and its item are gone, the project
     //                is marked "unsaved"), or failure + why (InvalidState / NotFound) - then nothing changed.
     OperationResult RemoveDevice(NetworkDevice device);
+
+    // ----- Port IPv4 settings (step 10) -----
+
+    // Raised after a port's settings changed (its address, mask or gateway; in step 11 also on / off).
+    // The Device Properties panel listens to it, to show the new values.
+    // "event" = others can only listen ("+=") or stop listening ("-="); only the service can raise it.
+    // "EventHandler" = the listener gets (sender, EventArgs) - no extra details; "?" = may have no listeners (null)
+    event EventHandler? InterfacesChanged;
+
+    // Purpose:       Gives a port an IPv4 address and subnet mask (replacing any it had).
+    // Precondition:  receives networkInterface - the port (its device must be in the open network);
+    //                address - the address, e.g. 192.168.1.10; subnetMask - the mask, e.g. 255.255.255.0.
+    // Postcondition: returns an OperationResult: success (the port has the new address and mask, the project is marked
+    //                "unsaved", InterfacesChanged was raised), or failure + why (InvalidState: no project;
+    //                NotFound: the port is not in the open network; ValidationError: the address can't be used with
+    //                this mask - e.g. it is the network or broadcast address) - then nothing changed.
+    OperationResult SetInterfaceIPv4Configuration(NetworkInterface networkInterface, IPv4Address address, SubnetMask subnetMask);
+
+    // Purpose:       Removes a port's IPv4 address and mask - and its default gateway with them.
+    // Precondition:  receives networkInterface - the port (its device must be in the open network).
+    // Postcondition: returns an OperationResult: success (the port has no address and no gateway, the project is marked
+    //                "unsaved", InterfacesChanged was raised), or failure + why (InvalidState / NotFound) - then nothing changed.
+    OperationResult ClearInterfaceIPv4Configuration(NetworkInterface networkInterface);
+
+    // Purpose:       Sets a port's default gateway, or removes it.
+    // Precondition:  receives networkInterface - the port (its device must be in the open network);
+    //                gateway - the router's address, or null to remove the gateway.
+    // Postcondition: returns an OperationResult: success (the gateway is set / removed, the project is marked "unsaved",
+    //                InterfacesChanged was raised), or failure + why (InvalidState / NotFound; ValidationError: the port
+    //                has no address yet, or the gateway is not in the port's network, or it is the port's own address)
+    //                - then nothing changed.
+    OperationResult SetInterfaceIPv4DefaultGateway(NetworkInterface networkInterface, IPv4Address? gateway);
 }

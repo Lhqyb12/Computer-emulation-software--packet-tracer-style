@@ -61,6 +61,59 @@
             </StackPanel>
           </Border>
 
+          <!-- ===== Section: IP SETTINGS (step 10) - the address, mask and gateway of one port =====
+               IsVisible = CanConfigureIPv4: the whole section (title and box) is hidden for a switch, which has no IP addresses -->
+          <TextBlock Text="IP SETTINGS" Classes="Label" IsVisible="{Binding CanConfigureIPv4}" />
+          <Border Classes="GroupContainer" IsVisible="{Binding CanConfigureIPv4}">
+            <StackPanel Spacing="{DynamicResource Space.SM}">
+
+              <TextBlock Text="Port" Classes="Label" />
+
+              <!-- The port list. ItemsSource = the choices (IPv4Ports - every port except Console, part 10.8).
+                   SelectedItem TwoWay = picking a port writes it into SelectedPort -> OnSelectedPortChanged fills the boxes;
+                   and when the view model changes SelectedPort (a reload), the list shows it.
+                   HorizontalAlignment="Stretch" = as wide as the panel -->
+              <ComboBox ItemsSource="{Binding IPv4Ports}" SelectedItem="{Binding SelectedPort, Mode=TwoWay}"
+                        HorizontalAlignment="Stretch">
+                <!-- How ONE choice looks: the port's full name, e.g. "FastEthernet0/1".
+                     Inside the template, {Binding X} reads X of that line (DeviceInterfaceItem) -->
+                <ComboBox.ItemTemplate>
+                  <DataTemplate DataType="vm:DeviceInterfaceItem">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+
+              <!-- The three boxes. Mode=TwoWay = typing writes back into the view model's text.
+                   PlaceholderText = the grey example shown while the box is empty; MaxLength="15" = the longest
+                   address text is "255.255.255.255" - 15 characters -->
+              <TextBlock Text="IP Address" Classes="Label" />
+              <TextBox Text="{Binding AddressInput, Mode=TwoWay}" PlaceholderText="e.g. 192.168.1.10" MaxLength="15" />
+
+              <TextBlock Text="Subnet Mask" Classes="Label" />
+              <TextBox Text="{Binding SubnetMaskInput, Mode=TwoWay}" PlaceholderText="e.g. 255.255.255.0" MaxLength="15" />
+
+              <!-- The gateway - label and box are shown only on end devices (UsesDefaultGateway, part 10.8) -->
+              <TextBlock Text="Default Gateway" Classes="Label" IsVisible="{Binding UsesDefaultGateway}" />
+              <TextBox Text="{Binding DefaultGatewayInput, Mode=TwoWay}" PlaceholderText="e.g. 192.168.1.1 (empty = none)"
+                       MaxLength="15" IsVisible="{Binding UsesDefaultGateway}" />
+
+              <!-- Why the IP settings were refused - the red box, visible only while AddressError has text (like NameError) -->
+              <Border Classes="Notification Error"
+                      IsVisible="{Binding AddressError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding AddressError}" Classes="Body" TextWrapping="Wrap" />
+              </Border>
+
+              <!-- The two buttons side by side on the right, 8 units apart.
+                   Clear -> ClearIPv4Command (from ClearIPv4()); Apply -> ApplyIPv4Command (from ApplyIPv4()) - part 10.9 -->
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="Clear" Classes="Secondary" Command="{Binding ClearIPv4Command}" />
+                <Button Content="Apply" Classes="Primary" Command="{Binding ApplyIPv4Command}" />
+              </StackPanel>
+
+            </StackPanel>
+          </Border>
+
           <!-- ===== Section: PORTS - one card per port ===== -->
           <TextBlock Text="PORTS" Classes="Label" />
 
@@ -104,6 +157,24 @@
 
                     <!-- Where its cable goes, e.g. "Switch0 Fa0/1", or "Not connected" -->
                     <TextBlock Text="{Binding ConnectedToText, StringFormat='Connected to: {0}'}" Classes="Caption" />
+
+                    <!-- Step 10: the port's address and mask, e.g. "IP 192.168.1.10 / 255.255.255.0" ("IP - / -" when none).
+                         The card's DataContext is the LINE, but "can this device have addresses?" belongs to the PANEL, so:
+                         $parent[ItemsControl] = climb up to the ItemsControl that holds the cards; its DataContext is the panel's
+                         view model; "(vm:DevicePropertiesViewModel)" = tell the compiler its type, so .CanConfigureIPv4 is checked -->
+                    <TextBlock Classes="Caption"
+                               IsVisible="{Binding $parent[ItemsControl].((vm:DevicePropertiesViewModel)DataContext).CanConfigureIPv4}">
+                      <TextBlock.Text>
+                        <MultiBinding StringFormat="IP {0} / {1}">
+                          <Binding Path="IPv4AddressText" />
+                          <Binding Path="SubnetMaskText" />
+                        </MultiBinding>
+                      </TextBlock.Text>
+                    </TextBlock>
+
+                    <!-- Step 10: the default gateway, e.g. "Gateway 192.168.1.1" - only on end devices (the same climb up) -->
+                    <TextBlock Text="{Binding DefaultGatewayText, StringFormat='Gateway {0}'}" Classes="Caption"
+                               IsVisible="{Binding $parent[ItemsControl].((vm:DevicePropertiesViewModel)DataContext).UsesDefaultGateway}" />
 
                   </StackPanel>
                 </Border>
