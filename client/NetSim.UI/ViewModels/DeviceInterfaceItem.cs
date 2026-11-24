@@ -39,6 +39,13 @@ public sealed class DeviceInterfaceItem
         //   turned off by the user -> "Turned off"; working -> "Up"; otherwise -> "Down"
         StatusText = !networkInterface.IsEnabled ? "Turned off" : IsUp ? "Up" : "Down";
 
+        // Step 11: is the port turned on (by the user)? Not the same as IsUp - a port can be on but still down (no cable,
+        // or the wrong cable). The on / off button reads it to know which way to switch
+        IsEnabled = networkInterface.IsEnabled;
+
+        // The text on the port's on / off button: what pressing it WILL do. "a ? b : c" = if a then b, otherwise c
+        ToggleText = IsEnabled ? "Turn off" : "Turn on";
+
         // Step 10: the port's IPv4 settings as text.
         // "is { } ipv4" = the port HAS an address - keep its settings in "ipv4"; otherwise (null) show dashes
         if (networkInterface.IPv4Configuration is { } ipv4)
@@ -86,4 +93,8 @@ public sealed class DeviceInterfaceItem
     public string IPv4AddressText { get; }         // e.g. "192.168.1.10", or "-" when the port has no address
     public string SubnetMaskText { get; }          // e.g. "255.255.255.0", or "-"
     public string DefaultGatewayText { get; }      // e.g. "192.168.1.1", or "-" when no gateway is set
+
+    // Step 11 - turning the port on / off
+    public bool IsEnabled { get; }                 // is the port turned on (true) or turned off by the user (false)
+    public string ToggleText { get; }              // the button's text: "Turn off" or "Turn on"
 }

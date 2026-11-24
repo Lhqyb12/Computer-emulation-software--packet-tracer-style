@@ -236,6 +236,51 @@ public sealed class Network
         return true;
     }
 
+    // Purpose:       Turns a port on or off (step 11), and works out again whether its cable's link works.
+    // Precondition:  receives networkInterface - the port (it must belong to a device in this network);
+    //                enabled - true to turn it on ("no shutdown"), false to turn it off ("shutdown").
+    // Postcondition: returns true when the port is in this network (then it is on / off as asked, and if a cable is
+    //                plugged into it, the cable and BOTH its ports are Up or Down again by the link rules), or false when
+    //                the port is not in this network (then nothing changed).
+    // Why here and not on the port: turning a port off must also bring down the cable and the port at its OTHER end, and
+    // turning it on must check the cable kind (step 7) - only the network knows the cable rules (ApplyLinkState, below)
+    public bool SetInterfaceEnabled(NetworkInterface networkInterface, bool enabled)
+    {
+        // If no port was passed in (null), stop right away with a clear error
+        ArgumentNullException.ThrowIfNull(networkInterface);
+
+        // The port is not in this network (its device was never added, or was removed) - nothing to do.
+        // _interfacesById = every port of every device in the network, by its id (kept up to date since step 1)
+        if (!_interfacesById.ContainsKey(networkInterface.Id))
+        {
+            return false;
+        }
+
+        // Turn it on or off (NetworkInterface, step 1). Disable() also marks the port itself Down
+        if (enabled)
+        {
+            networkInterface.Enable();
+        }
+        else
+        {
+            networkInterface.Disable();
+        }
+
+        // "is { } connection" = a cable IS plugged into this port - keep it in "connection" and work its link out again:
+        // off -> the cable and both ports go Down; on -> Up again, but only if the other port is on too and the cable kind
+        // is the right one. No cable -> there is no link to work out
+        if (networkInterface.Connection is { } connection)
+        {
+            ApplyLinkState(connection);
+        }
+
+        // One more change in the network (the version counts changes - step 1)
+        BumpVersion();
+
+        // Done
+        return true;
+    }
+
     // Purpose:       Decides whether a cable's link works, and marks the cable and its two ports Up or Down (step 7).
     // Precondition:  receives connection - a cable that was just plugged into both of its ports.
     // Postcondition: returns nothing - the cable and both its ports are Up when both ports are turned on AND the cable

@@ -76,4 +76,15 @@ public interface IDeviceService
     //                has no address yet, or the gateway is not in the port's network, or it is the port's own address)
     //                - then nothing changed.
     OperationResult SetInterfaceIPv4DefaultGateway(NetworkInterface networkInterface, IPv4Address? gateway);
+
+    // ----- Port on / off (step 11) -----
+
+    // Purpose:       Turns a port on or off - like "no shutdown" / "shutdown" on a real router or switch.
+    // Precondition:  receives networkInterface - the port (its device must be in the open network);
+    //                enabled - true to turn it on, false to turn it off.
+    // Postcondition: returns an OperationResult: success (the port is on / off; if a cable is plugged into it, the cable
+    //                and both its ports are Up or Down again by the link rules; the project is marked "unsaved";
+    //                InterfacesChanged was raised), or failure + why (InvalidState: no project; NotFound: the port is
+    //                not in the open network) - then nothing changed.
+    OperationResult SetInterfaceEnabled(NetworkInterface networkInterface, bool enabled);
 }

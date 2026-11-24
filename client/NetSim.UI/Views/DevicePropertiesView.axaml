@@ -117,6 +117,14 @@
           <!-- ===== Section: PORTS - one card per port ===== -->
           <TextBlock Text="PORTS" Classes="Label" />
 
+
+          <!-- Step 11: why turning a port on / off was refused - the red box, visible only while PortError has text
+               (the same look as the name and IP errors) -->
+          <Border Classes="Notification Error"
+                  IsVisible="{Binding PortError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding PortError}" Classes="Body" TextWrapping="Wrap" />
+          </Border>
+
           <!-- ItemsControl = repeats the template below once for every line in Interfaces (DeviceInterfaceItem, part 9.1) -->
           <ItemsControl ItemsSource="{Binding Interfaces}">
 
@@ -175,6 +183,17 @@
                     <!-- Step 10: the default gateway, e.g. "Gateway 192.168.1.1" - only on end devices (the same climb up) -->
                     <TextBlock Text="{Binding DefaultGatewayText, StringFormat='Gateway {0}'}" Classes="Caption"
                                IsVisible="{Binding $parent[ItemsControl].((vm:DevicePropertiesViewModel)DataContext).UsesDefaultGateway}" />
+
+
+                    <!-- Step 11: the port's on / off button, at the bottom right of the card.
+                         Content = its text from the line: "Turn off" or "Turn on" (ToggleText, part 11.5).
+                         Command = the PANEL's TogglePortCommand - the card's DataContext is the line, so we climb up to the
+                         ItemsControl and take its DataContext (the panel's view model), exactly like the IP rows above.
+                         CommandParameter="{Binding}" = "{Binding}" with no name = the card's DataContext itself, i.e. THIS
+                         port's line - it is handed to TogglePort(port), so the command knows which card was pressed -->
+                    <Button Content="{Binding ToggleText}" Classes="Secondary" HorizontalAlignment="Right" Margin="0,4,0,0"
+                            Command="{Binding $parent[ItemsControl].((vm:DevicePropertiesViewModel)DataContext).TogglePortCommand}"
+                            CommandParameter="{Binding}" />
 
                   </StackPanel>
                 </Border>

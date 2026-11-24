@@ -19,7 +19,7 @@ namespace NetSim.Application.Services;   // the "address" of this file: the Serv
 //   - The default name takes the lowest FREE number ("Router0", "Router1"...), so deleting a device
 //     and adding a new one can't produce two devices with the same name.
 //   - Step 10 adds the port address / gateway methods: one address per port, a mask instead of a prefix length,
-//     one gateway method (null = remove). The port on / off method comes in step 11.
+//     one gateway method (null = remove). Step 11 adds the port on / off method (through the Network, so the cable updates too).
 // "sealed" = no other class can inherit from it; ": IDeviceService" = it does everything the interface lists
 public sealed class DeviceService : IDeviceService
 {
@@ -251,6 +251,21 @@ public sealed class DeviceService : IDeviceService
     //                (ValidationError carries the port's rule, e.g. "not in this port's network") - nothing changed.
     public OperationResult SetInterfaceIPv4DefaultGateway(NetworkInterface networkInterface, IPv4Address? gateway) =>
         ApplyInterfaceChange(networkInterface, () => networkInterface.SetIPv4DefaultGateway(gateway));
+
+
+    // ----- Port on / off (step 11) -----
+
+    // Purpose:       Turns a port on or off.
+    // Precondition:  receives networkInterface - the port (its device in the open network); enabled - true = on, false = off.
+    // Postcondition: returns success (on / off as asked, its cable's link worked out again + "unsaved" + InterfacesChanged),
+    //                or failure + why (InvalidState / NotFound) - then nothing changed.
+    // "=>" = the whole method is this one call. ApplyInterfaceChange (below) does the checks and the "after" work;
+    // "() => ..." = WHAT to change: ask the open network to turn the port on / off (Network.SetInterfaceEnabled, part 11.1).
+    // The Network - not the port - because it also brings the cable and the port at the other end Up or Down.
+    // "CurrentNetwork!" = "!" tells the compiler "I know it is not null" - true, because this runs only after
+    // ApplyInterfaceChange checked that a project is open
+    public OperationResult SetInterfaceEnabled(NetworkInterface networkInterface, bool enabled) =>
+        ApplyInterfaceChange(networkInterface, () => _applicationState.CurrentNetwork!.SetInterfaceEnabled(networkInterface, enabled));
 
     // Purpose:       The shared work around every port change: check, change, mark "unsaved", raise InterfacesChanged.
     // Precondition:  receives networkInterface - the port to change (not null);

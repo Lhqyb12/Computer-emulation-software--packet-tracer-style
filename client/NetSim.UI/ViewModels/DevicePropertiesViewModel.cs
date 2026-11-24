@@ -80,6 +80,10 @@ public sealed partial class DevicePropertiesViewModel : ViewModelBase
     [ObservableProperty]
     private string? _addressError;
 
+    // Step 11: why turning a port on / off was refused, or null (shown under the PORTS title)
+    [ObservableProperty]
+    private string? _portError;
+
     // The port lines (one DeviceInterfaceItem per port). "= []" = it starts empty and is never replaced - only filled again
     public ObservableCollection<DeviceInterfaceItem> Interfaces { get; } = [];
 
@@ -132,6 +136,7 @@ public sealed partial class DevicePropertiesViewModel : ViewModelBase
         DeviceName = device.Name;                                                 // its name, into the name box
         DeviceTypeText = DeviceTypeRegistry.Get(device.DeviceType).DisplayName;   // its kind's screen name (step 1's registry), e.g. "PC"
         NameError = null;                                                         // no old error from another device
+        PortError = null;                                                         // step 11: nor an old port error
         CanConfigureIPv4 = device is not Switch;                                  // step 10: a switch has no IP addresses
         UsesDefaultGateway = device is EndDevice;                                 // step 10: only PC / laptop / server use a gateway
         LoadInterfaces();                                                         // build its port lines
@@ -279,6 +284,30 @@ public sealed partial class DevicePropertiesViewModel : ViewModelBase
         {
             AddressError = result.ErrorMessage;   // show why it was refused
         }
+    }
+
+    // Purpose:       The on / off button on a port card (step 11) - turns that port off if it is on, or on if it is off.
+    // Precondition:  receives port - the card's line (the button sends its own line - see CommandParameter in the view);
+    //                null does nothing.
+    // Postcondition: returns nothing - the port is switched (the service rings InterfacesChanged, so the cards are rebuilt
+    //                and the canvas lights redraw), or PortError says why not.
+    // [RelayCommand] on a method WITH a parameter = CommunityToolkit makes "TogglePortCommand", and the value the button
+    // sends (CommandParameter) arrives here as "port"
+    [RelayCommand]
+    private void TogglePort(DeviceInterfaceItem? port)
+    {
+        // Nothing was sent - nothing to switch
+        if (port is null)
+        {
+            return;   // stop here
+        }
+
+        // Ask the service to switch it: "!port.IsEnabled" = the OPPOSITE of its state now (on -> false = turn off;
+        // off -> true = turn on). port.Interface = the real port behind the line (part 10.7)
+        var result = _deviceService.SetInterfaceEnabled(port.Interface, !port.IsEnabled);
+
+        // "a ? b : c" = success -> no error; failure -> the service's message
+        PortError = result.IsSuccess ? null : result.ErrorMessage;
     }
     
     // Purpose:       Stops listening to the shared states, when the workspace screen is left.

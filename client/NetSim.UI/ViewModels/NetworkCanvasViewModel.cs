@@ -91,6 +91,7 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
         _canvasState.CurrentToolChanged += OnCurrentToolChanged;          // another tool
         _selectionState.SelectionChanged += OnSelectionChanged;           // the selection
         _connectionService.ConnectionsChanged += OnConnectionsChanged;    // a cable was added / removed
+        _deviceService.InterfacesChanged += OnInterfacesChanged;          // step 11: a port turned on / off (or its IP changed)
     }
 
     // Raised every time the canvas must be drawn again. The canvas control listens to it
@@ -449,7 +450,7 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
     // old view models would keep listening and stay in memory forever
     public void Detach()
     {
-        // "-=" = stop listening - exactly the seven "+=" from the constructor
+        // "-=" = stop listening - exactly the eight "+=" from the constructor
         _itemsState.ItemsChanged -= OnItemsChanged;
         _placementState.Changed -= OnPlacementChanged;
         _canvasState.ViewportChanged -= OnViewportChanged;
@@ -457,6 +458,7 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
         _canvasState.CurrentToolChanged -= OnCurrentToolChanged;
         _selectionState.SelectionChanged -= OnSelectionChanged;
         _connectionService.ConnectionsChanged -= OnConnectionsChanged;
+        _deviceService.InterfacesChanged -= OnInterfacesChanged;   // step 11
     }
 
     // ----- Reacting to changes. Each method below runs when one of the events above is raised -----
@@ -539,6 +541,12 @@ public sealed partial class NetworkCanvasViewModel : ViewModelBase
     // Precondition:  receives sender, e - the event's values (not used); called by ConnectionsChanged.
     // Postcondition: returns nothing - the canvas redraws.
     private void OnConnectionsChanged(object? sender, EventArgs e) => Redraw();
+
+    // Purpose:       Step 11 - a port changed: it was turned on / off (or its IP settings changed).
+    // Precondition:  receives sender, e - the event's values (not used); called by IDeviceService.InterfacesChanged.
+    // Postcondition: returns nothing - the canvas redraws, so the link lights at the cable ends (step 8) show the
+    //                ports' new state: green while a port is working, red while it is down or turned off.
+    private void OnInterfacesChanged(object? sender, EventArgs e) => Redraw();
 
     // Purpose:       The Select / Pan mouse logic changed something (hover, rectangle, mouse position...).
     // Precondition:  receives nothing; called by Interaction.Changed.
